@@ -17,12 +17,12 @@
 You're on a call, in a contract, deep in a spreadsheet, and you need one answer now. Tap one key in any app and ask out loud, or double-tap and type. Lumi by Loomtable sees what's in front of you, finds the right file, does the work on your Mac with the tools you've connected, and answers right on your screen: one spoken line, a card when a picture helps, and a ring on the exact spot.
 
 <p>
-  <a href="https://github.com/loomtable/lumi/releases/latest"><img alt="Download for Mac" src="https://img.shields.io/badge/Download-DMG-1d1d1f?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <a href="https://github.com/loomtable/lumi/releases/latest"><img alt="Download for Mac" src="https://img.shields.io/badge/Download-for_Mac-1d1d1f?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="#requirements"><img alt="macOS 26 on Apple Silicon" src="https://img.shields.io/badge/macOS_26-Apple_Silicon-1d1d1f?style=for-the-badge"></a>
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0-1d1d1f?style=for-the-badge"></a>
 </p>
 
-[Download](https://github.com/loomtable/lumi/releases/latest) · [Install in 3 steps](#install) · [What Lumi reads](#what-lumi-reads) · [FAQ](#faq) · [Website](https://lumi.loomtable.com)
+[Download](https://github.com/loomtable/lumi/releases/latest) · [Install](#install) · [What Lumi reads](#what-lumi-reads) · [FAQ](#faq) · [Website](https://lumi.loomtable.com)
 
 <p align="center">
   <a href="https://lumi.loomtable.com">
@@ -96,16 +96,22 @@ Others answer. Lumi gets it done.
 
 ## Install
 
-Three steps, a few minutes. Check the [requirements](#requirements) first.
+Check the [requirements](#requirements) first.
 
-1. **Download.** Get `Lumi-<version>.dmg` from the [latest release](https://github.com/loomtable/lumi/releases/latest). To check it, download the `.sha256` file next to it and run `shasum -a 256 -c Lumi-<version>.dmg.sha256` in that folder; it prints `OK`.
-2. **Drag Lumi to Applications.** Open the disk image and drag Lumi into the Applications folder.
-3. **Open Anyway, once.** Lumi isn't signed with an Apple Developer ID yet, so macOS stops the first launch. Open Lumi and close the warning. Then open **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to Lumi. When the warning appears again, click **Open** and confirm with your password or Touch ID. From then on, Lumi opens normally.
+**Option 1: Terminal (one line, no warning).**
 
-   Comfortable in Terminal? This does the same, for this app only:
-   ```sh
-   xattr -dr com.apple.quarantine /Applications/Lumi.app
-   ```
+```sh
+curl -fsSL https://lumi.loomtable.com/install.sh | sh
+```
+
+It downloads `Lumi.zip` from the [latest release](https://github.com/loomtable/lumi/releases/latest), checks its SHA-256 and signature, and puts Lumi in Applications. It never opens Lumi, and asks for your password only if your account can't write to Applications. [Read the script first](https://lumi.loomtable.com/install.sh). Then open Lumi from Applications.
+
+**Option 2: Download.**
+
+1. Get [`Lumi.zip`](https://github.com/loomtable/lumi/releases/latest/download/Lumi.zip), open it and move Lumi to Applications.
+2. Lumi isn't signed with an Apple Developer ID yet, so macOS stops the first launch. Open Lumi and close the warning. Right after you try to open it, go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to Lumi. When the warning appears again, click **Open** and confirm with your password or Touch ID. From then on, Lumi opens normally.
+
+To check the download, get `Lumi.zip.sha256` from the same release and run `shasum -a 256 -c Lumi.zip.sha256` in that folder; it prints `OK`. Disk images (`.dmg`) are on the release too, but macOS stops them twice.
 
 Onboarding then sets up the Lumi key, permissions and voice. Tap right ⌥ in any app and ask your first question.
 
@@ -124,7 +130,7 @@ macOS applies Input Monitoring and Screen Recording only after Lumi reopens; use
 
 </details>
 
-**Update:** choose **Check for Updates…** in Lumi's menu, download the new release and replace Lumi in Applications. Your settings, conversations and permissions stay. If macOS stops the new copy, click **Open Anyway** again.
+**Update:** run the Terminal line again; it quits Lumi and replaces it. Or choose **Check for Updates…** in Lumi's menu, download the new release and replace Lumi in Applications; if macOS stops the new copy, click **Open Anyway** again. Your settings, conversations and permissions stay either way.
 
 <a id="what-it-sees-and-sends"></a>
 
@@ -204,7 +210,7 @@ Lumi can read, run and edit on your Mac and use the tools you've connected. Chan
 <details>
 <summary><b>Why does macOS stop the first launch?</b></summary>
 
-Lumi isn't signed with an Apple Developer ID yet. Open it once, then click **Open Anyway** in System Settings › Privacy & Security. See [Install](#install).
+Lumi isn't signed with an Apple Developer ID yet. Open it once, then click **Open Anyway** in System Settings › Privacy & Security. The Terminal install skips this warning. See [Install](#install).
 </details>
 
 <details>

@@ -1,8 +1,9 @@
 #!/bin/zsh
-# Builds a release disk image of Lumi.app and its SHA-256 checksum. It uploads nothing.
+# Builds a release disk image and zip of Lumi.app with their SHA-256 checksums. It uploads nothing.
 #
-#   git tag v0.1.0 && Scripts/release.sh     # dist/Lumi-0.1.0.dmg and .sha256, plus dist/Lumi.dmg and .sha256
-#   Upload all four to the release; the website's Download button links releases/latest/download/Lumi.dmg.
+#   git tag v0.1.0 && Scripts/release.sh     # dist/Lumi-0.1.0.dmg, Lumi.dmg and Lumi.zip, each with .sha256
+#   Upload all six to the release. The website's Download button and install.sh use
+#   releases/latest/download/Lumi.zip; the disk images stay for anyone who wants one.
 #
 # Releases are signed with the self-signed "Loomtable Release" identity and nothing else. macOS
 # keys the Accessibility, Screen Recording and Input Monitoring grants to the signature's
@@ -56,9 +57,17 @@ codesign --force --timestamp=none --sign "$sha" "dist/$dmg"
 codesign --verify --strict "dist/$dmg"
 hdiutil verify -quiet "dist/$dmg"
 
+# The zip is what people download: from a browser, Gatekeeper stops only the app inside it,
+# where a disk image is stopped too. ditto keeps the signature; extended attributes stay out.
+rm -f dist/Lumi.zip dist/Lumi.zip.sha256
+ditto -c -k --keepParent --norsrc --noextattr --noacl "$app" dist/Lumi.zip
+rm -rf .build/zip-check
+ditto -x -k dist/Lumi.zip .build/zip-check
+codesign --verify --strict --deep .build/zip-check/Lumi.app
+
 lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
-for copy in "$stage/Lumi.app" "$app"; do "$lsregister" -u "${copy:A}" 2>/dev/null || true; done
-rm -rf "$stage" "$app"
+for copy in "$stage/Lumi.app" "$app" .build/zip-check/Lumi.app; do "$lsregister" -u "${copy:A}" 2>/dev/null || true; done
+rm -rf "$stage" "$app" .build/zip-check
 
 # Relative name, so `shasum -c Lumi-<version>.dmg.sha256` works in the download folder.
 (cd dist && shasum -a 256 "$dmg" > "$dmg.sha256")
@@ -66,5 +75,6 @@ rm -rf "$stage" "$app"
 rm -f dist/Lumi.dmg dist/Lumi.dmg.sha256
 cp "dist/$dmg" dist/Lumi.dmg
 (cd dist && shasum -a 256 Lumi.dmg > Lumi.dmg.sha256)
+(cd dist && shasum -a 256 Lumi.zip > Lumi.zip.sha256)
 echo "Built dist/$dmg (Lumi $version, build $build, signed: $cert ($sha))"
-echo "SHA-256: $(cut -d' ' -f1 "dist/$dmg.sha256")"
+echo "SHA-256: $(cut -d' ' -f1 "dist/$dmg.sha256") ($dmg), $(cut -d' ' -f1 dist/Lumi.zip.sha256) (Lumi.zip)"
