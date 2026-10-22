@@ -1,0 +1,46 @@
+{
+  "id": "finder-route-signed-contracts",
+  "app": "finder",
+  "type": "annotate",
+  "routing": true,
+  "question": "which of these have actually been signed",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T15:36:12+05:30",
+    "utterance": "which of these have actually been signed",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Contracts 2026"
+    },
+    "finder": {
+      "folder": "/Users/me/Documents/Studio/Contracts 2026",
+      "selected": []
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_153612",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "the file names and dates don't show whether a contract is signed; each PDF has to be opened",
+      "hand-off: open the 8 PDFs in /Users/me/Documents/Studio/Contracts 2026 and check for signatures"
+    ],
+    "must_not": [
+      "treating '_final' or 'v2' in a file name as proof of signing",
+      "guessing from modification dates"
+    ]
+  },
+  "notes": "Routing: a short question about visible files, but whether they're signed is inside each PDF, not in Finder's columns → deep (needs file contents)."
+}

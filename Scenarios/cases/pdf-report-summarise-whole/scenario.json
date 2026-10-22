@@ -1,0 +1,42 @@
+{
+  "id": "pdf-report-summarise-whole",
+  "app": "pdf",
+  "type": "summarise",
+  "routing": true,
+  "question": "summarise the whole report for me",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "summarise the whole report for me",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Brightwater_Housing_Trust_Annual_Report_2025-26.pdf – Page 3 of 48",
+      "document": "/Users/me/Documents/Brightwater_Housing_Trust_Annual_Report_2025-26.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "only page 3 of 48 (the Chair's foreword) is on screen, so summarising the whole report needs the file",
+      "hand-off: read /Users/me/Documents/Brightwater_Housing_Trust_Annual_Report_2025-26.pdf and summarise all 48 pages"
+    ],
+    "must_not": [
+      "presenting a summary of the visible foreword as a summary of the whole report"
+    ]
+  },
+  "notes": "Routing: the question is about pages that aren't visible, so Quick should hand off to Deep."
+}

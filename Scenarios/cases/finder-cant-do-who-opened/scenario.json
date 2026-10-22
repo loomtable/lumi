@@ -1,0 +1,49 @@
+{
+  "id": "finder-cant-do-who-opened",
+  "app": "finder",
+  "type": "cant-do",
+  "routing": false,
+  "question": "who opened this file last",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "who opened this file last",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Riverbend Arts Grant"
+    },
+    "finder": {
+      "folder": "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Riverbend Arts Grant",
+      "selected": [
+        "/Users/me/Library/Mobile Documents/com~apple~CloudDocs/Riverbend Arts Grant/Grant Application – Final.pages"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "Finder doesn't record who opened a shared file, only who last modified it",
+      "Last Modified By shows Dana Ortiz, yesterday at 5:48 PM"
+    ],
+    "must_not": [
+      "claiming Dana Ortiz was the last to open it",
+      "handing off to Deep to search logs"
+    ]
+  },
+  "notes": "Can't do: the information doesn't exist; the fix points at the closest visible thing."
+}

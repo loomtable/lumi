@@ -1,0 +1,79 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>How to Split a Clip in FrameForge (Beginner Tutorial) — Clipstream</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: #ffffff; color: #0f0f0f; }
+  .chrome { height: 44px; background: #e3e3e1; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #606060; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .url { margin: 0 220px 0 120px; background: #ffffff; border-radius: 6px; padding: 4px 12px; flex: 1; text-align: center; color: #0f0f0f; }
+  header { height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .logo { font-weight: 700; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
+  .logo b { background: #e62117; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+  .search { margin-left: 150px; width: 520px; height: 38px; border: 1px solid #e5e5e5; border-radius: 20px; padding: 8px 18px; color: #606060; }
+  .hdr-r { margin-left: auto; display: flex; gap: 14px; align-items: center; color: #606060; }
+  .me { width: 30px; height: 30px; border-radius: 50%; background: #7a5af5; color: #fff; text-align: center; line-height: 30px; font-weight: 600; }
+  main { display: flex; gap: 24px; padding: 4px 24px 0; }
+  .player { position: relative; width: 880px; height: 541px; background: #0f0f0f; border-radius: 12px; overflow: hidden; }
+  .player svg { display: block; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; padding: 0 70px; }
+  .cap span { background: rgba(8,8,8,.78); color: #fff; font-size: 21px; line-height: 1.45; padding: 2px 8px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #0f0f0f; color: #fff; }
+  .bar { position: absolute; left: 12px; right: 12px; top: 2px; height: 4px; background: rgba(255,255,255,.3); }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 32.8%; background: #e62117; }
+  .bar s { position: absolute; left: 0; top: 0; bottom: 0; width: 40.8%; background: rgba(255,255,255,.45); }
+  .bar u { position: absolute; left: calc(32.8% - 6px); top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #e62117; }
+  .row { position: absolute; left: 16px; right: 16px; bottom: 9px; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+  .row .r { margin-left: auto; display: flex; gap: 18px; }
+  .chap { color: #ddd; }
+  .cc { border-bottom: 2px solid #e62117; font-weight: 700; font-size: 12px; }
+  h1 { font-size: 20px; line-height: 1.3; margin: 10px 0 6px; width: 880px; }
+  .ch { display: flex; align-items: center; gap: 12px; }
+  .av { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; text-align: center; line-height: 40px; }
+  .cn { font-weight: 600; font-size: 15px; }
+  .subs { color: #606060; font-size: 12px; }
+  .sub { background: #0f0f0f; color: #ffffff; border-radius: 18px; padding: 8px 16px; font-weight: 600; margin-left: 12px; }
+  .acts { margin-left: auto; display: flex; gap: 8px; }
+  .act { background: #f2f2f2; border-radius: 18px; padding: 8px 14px; font-weight: 500; }
+  .side { width: 328px; }
+  .chips { display: flex; gap: 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; }
+  .chip { background: #f2f2f2; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+  .chip.on { background: #0f0f0f; color: #ffffff; }
+  .un { display: flex; gap: 8px; margin-bottom: 10px; }
+  .th { position: relative; flex: none; width: 168px; height: 94px; border-radius: 8px; }
+  .dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+  .ut { font-weight: 600; font-size: 14px; line-height: 1.3; max-height: 37px; overflow: hidden; }
+  .uc { color: #606060; font-size: 12px; margin-top: 3px; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">https://www.example-video.com/watch?v=ff-split-clip</span></div>
+  <header><div class="logo"><b>▶</b>Clipstream</div><div class="search">Search</div><div class="hdr-r"><span>＋ Create</span><span>🔔</span><span class="me">J</span></div></header>
+  <main>
+    <div>
+      <div class="player">
+        <svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"><rect width="960" height="540" fill="#16161a"/>
+<rect x="0" y="0" width="960" height="34" fill="#222228"/><text x="16" y="23" font-size="14" fill="#aaa" font-family="Helvetica Neue, Arial, sans-serif">FrameForge — Vlog_Lisbon.ffproj</text>
+<rect x="250" y="50" width="460" height="230" fill="#4a6fa5"/><circle cx="600" cy="110" r="30" fill="#ffd166"/><path d="M250 280 L380 170 L470 240 L560 180 L710 280z" fill="#2f4858"/>
+<rect x="0" y="300" width="960" height="240" fill="#1d1d23"/>
+<g font-family="Menlo, Monaco, monospace" font-size="12" fill="#777"><text x="90" y="320">00:00</text><text x="290" y="320">00:10</text><text x="490" y="320">00:20</text><text x="690" y="320">00:30</text></g>
+<text x="20" y="366" font-size="13" fill="#999" font-family="Helvetica Neue, Arial, sans-serif">V1</text><text x="20" y="426" font-size="13" fill="#999" font-family="Helvetica Neue, Arial, sans-serif">A1</text>
+<rect x="60" y="340" width="300" height="44" rx="4" fill="#5e60ce"/><text x="70" y="366" font-size="13" fill="#fff" font-family="Helvetica Neue, Arial, sans-serif">intro.mov</text>
+<rect x="362" y="340" width="420" height="44" rx="4" fill="#4ea8de"/><text x="372" y="366" font-size="13" fill="#fff" font-family="Helvetica Neue, Arial, sans-serif">tram_ride.mov</text>
+<rect x="60" y="400" width="722" height="36" rx="4" fill="#2d6a4f"/><path d="M60 418 q10 -12 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" stroke="#95d5b2" fill="none"/>
+<line x1="560" y1="326" x2="560" y2="450" stroke="#ff4d6d" stroke-width="3"/><path d="M552 326 L568 326 L560 336z" fill="#ff4d6d"/>
+<rect x="560" y="340" width="222" height="44" fill="#fff" opacity=".18"/>
+<rect x="600" y="455" width="340" height="74" rx="10" fill="#000" opacity=".8"/>
+<g font-family="Helvetica Neue, Arial, sans-serif" font-size="17" fill="#fff"><text x="616" y="480">1  Drag the playhead to the cut point</text><text x="616" y="503">2  Press ⌘B to blade (split) the clip</text><text x="616" y="524">3  Select the leftover part, press Delete</text></g></svg>
+        
+        <div class="ctl"><div class="bar"><s></s><i></i><u></u></div>
+          <div class="row"><span>❚❚</span><span>⏭</span><span>🔊</span><span>2:14 / 6:48 <span class="chap">· Splitting ›</span></span>
+            <span class="r"><span class="cc">CC</span><span>⚙</span><span>▭</span><span>⛶</span></span></div></div>
+      </div>
+      <h1>How to Split a Clip in FrameForge (Beginner Tutorial)</h1>
+      <div class="ch"><div class="av" style="background:#5e60ce">E</div>
+        <div><div class="cn">Edit Bay Tips</div><div class="subs">129K subscribers</div></div>
+        <span class="sub">Subscribe</span>
+        <span class="acts"><span class="act">👍 2.2K</span><span class="act">↗ Share</span><span class="act">⤓ Save</span><span class="act">···</span></span></div>
+    </div>
+    <div class="side"><div class="chips"><span class="chip on">All</span><span class="chip">From this channel</span><span class="chip">Related</span><span class="chip">Recently uploaded</span></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b6ea5,#9cc3e6)"><span class="dur">4:57</span></div><div><div class="ut">FrameForge: ripple delete explained</div><div class="uc">Edit Bay Tips</div><div class="uc">61K views · 5 months ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#a5523b,#f0c08a)"><span class="dur">16:30</span></div><div><div class="ut">Color grading for beginners</div><div class="uc">Edit Bay Tips</div><div class="uc">230K views · 1 year ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b8a5a,#b6e3a0)"><span class="dur">8:12</span></div><div><div class="ut">10 shortcuts every editor should know</div><div class="uc">Cutline Academy</div><div class="uc">540K views · 2 years ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#5b3ba5,#d0a8f0)"><span class="dur">7:41</span></div><div><div class="ut">Exporting for Clipstream: best settings</div><div class="uc">Edit Bay Tips</div><div class="uc">88K views · 9 months ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#333,#888)"><span class="dur">12:05</span></div><div><div class="ut">Sound design on a budget</div><div class="uc">Cutline Academy</div><div class="uc">47K views · 3 months ago</div></div></div></div>
+  </main>
+</body></html>

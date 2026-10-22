@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Tasklane – Inbox</title>
+<style>
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.5 -apple-system, "Helvetica Neue", sans-serif; background: #111214; color: #d4d4d8; }
+  .tabs { height: 38px; background: #1d1f24; display: flex; align-items: flex-end; padding: 0 10px; gap: 4px; font-size: 12px; color: #aaa; }
+  .tab { background: #26282d; padding: 7px 14px; border-radius: 8px 8px 0 0; width: 200px; } .tab.on { background: #35363a; color: #eee; }
+  .bar { height: 40px; background: #35363a; display: flex; align-items: center; padding: 0 14px; gap: 14px; color: #aaa; }
+  .omni { flex: 1; background: #202124; border-radius: 18px; padding: 6px 16px; color: #e8eaed; }
+  .app { display: flex; height: 722px; }
+  .side { width: 230px; background: #17181b; border-right: 1px solid #26272b; padding: 16px 12px; font-size: 13px; }
+  .logo { font-weight: 800; color: #f472b6; font-size: 17px; padding: 0 8px 14px; }
+  .nav div { display: flex; padding: 6px 10px; border-radius: 6px; color: #a1a1aa; } .nav div span { margin-left: auto; color: #71717a; } .nav .on { background: #26272b; color: #fafafa; }
+  .proj { margin-top: 18px; font-size: 11px; color: #71717a; text-transform: uppercase; padding: 0 10px 4px; }
+  main { flex: 1; padding: 22px 34px; }
+  .h { display: flex; align-items: center; gap: 12px; } h1 { font-size: 22px; margin: 0; color: #fafafa; }
+  .count { background: #3f1d32; color: #f9a8d4; font-size: 12px; padding: 2px 9px; border-radius: 10px; }
+  .add { margin-left: auto; background: #db2777; color: #fff; padding: 6px 14px; border-radius: 6px; font-weight: 600; }
+  .filters { display: flex; gap: 8px; margin: 16px 0; font-size: 12px; } .filters span { border: 1px solid #2e2f34; padding: 4px 10px; border-radius: 14px; color: #a1a1aa; } .filters .on { border-color: #db2777; color: #f9a8d4; }
+  .list { border: 1px solid #26272b; border-radius: 10px; height: 430px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #71717a; background: #151619; }
+  .list .e { font-size: 40px; } .list b { color: #d4d4d8; font-size: 16px; margin-top: 6px; }
+  .dev { position: absolute; right: 18px; bottom: 16px; background: #1f2937; color: #9ca3af; font: 11px Menlo, monospace; padding: 5px 9px; border-radius: 6px; border: 1px solid #374151; }
+</style></head>
+<body>
+  <div class="tabs"><div class="tab on">Tasklane – Inbox</div><div class="tab">Vite + React docs</div></div>
+  <div class="bar"><span>←</span><span>→</span><span>↻</span><span class="omni">localhost:5173/inbox</span></div>
+  <div class="app">
+    <div class="side"><div class="logo">▲ Tasklane</div>
+      <div class="nav"><div class="on">Inbox <span>12</span></div><div>Today <span>4</span></div><div>Upcoming <span>9</span></div><div>Done</div></div>
+      <div class="proj">Projects</div><div class="nav"><div>Website relaunch <span>7</span></div><div>Q4 hiring <span>3</span></div><div>Home <span>2</span></div></div>
+    </div>
+    <main>
+      <div class="h"><h1>Inbox</h1><span class="count">12 open</span><span class="add">+ New task</span></div>
+      <div class="filters"><span class="on">All</span><span>Assigned to me</span><span>Due this week</span><span>No date</span></div>
+      <div class="list" aria-label="Inbox tasks"><div class="e">📭</div><b>No tasks yet</b><div>Tasks you add will show up here.</div></div>
+    </main>
+  </div>
+  <div class="dev">VITE v6.2.1 · dev</div>
+</body></html>

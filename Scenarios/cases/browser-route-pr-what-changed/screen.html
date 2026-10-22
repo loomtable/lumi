@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Pull Request #412 · orbitpay/checkout-web</title>
+<style>
+body{margin:0;width:1280px;height:800px;overflow:hidden;font:14px/1.5 -apple-system,"Helvetica Neue",sans-serif;background:#fff;color:#1f2328}
+.tabs{height:38px;background:#dee1e6;display:flex;align-items:flex-end;padding:0 10px 0 80px;gap:4px;font-size:12px;color:#444;position:relative}
+.lights{position:absolute;left:14px;top:13px;display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.tab{background:#cfd3d9;padding:7px 14px;border-radius:8px 8px 0 0;width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tab.on{background:#fff;color:#111}
+.bar{height:40px;background:#fff;display:flex;align-items:center;padding:0 14px;gap:14px;color:#5f6368;border-bottom:1px solid #dadce0}
+.omni{flex:1;background:#f1f3f4;border-radius:18px;padding:6px 16px;color:#202124}
+.omni .h{color:#5f6368}
+
+.top{height:56px;background:#f6f8fa;border-bottom:1px solid #d1d9e0;display:flex;align-items:center;padding:0 24px;gap:14px;font-size:14px}
+.logo{width:30px;height:30px;border-radius:50%;background:#1f2328;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.repo b{font-weight:600}.repo span{color:#59636e}
+.rnav{display:flex;gap:22px;padding:0 24px;border-bottom:1px solid #d1d9e0;font-size:14px;color:#59636e;height:46px;align-items:flex-end;background:#f6f8fa}
+.rnav span{padding-bottom:10px}.rnav .on{color:#1f2328;border-bottom:2px solid #fd8c73;font-weight:600}
+.wrap{padding:22px 60px 0}
+h1{font-size:28px;font-weight:400;margin:0}h1 span{color:#59636e;font-weight:300}
+.state{display:flex;align-items:center;gap:10px;margin:10px 0 16px;color:#59636e;font-size:14px}
+.pill{background:#1f883d;color:#fff;border-radius:16px;padding:4px 12px;font-weight:600}
+code{font:12px Menlo,monospace;background:#ddf4ff;color:#0969da;padding:2px 6px;border-radius:6px}
+.ptabs{display:flex;gap:4px;border-bottom:1px solid #d1d9e0;font-size:14px;color:#59636e}
+.ptabs span{padding:8px 16px;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0}
+.ptabs .on{border-color:#d1d9e0;background:#fff;color:#1f2328;margin-bottom:-1px}
+.ptabs i{font-style:normal;background:#eff2f5;border-radius:10px;padding:0 7px;font-size:12px;margin-left:6px;color:#1f2328}
+.ptabs .diffstat{margin-left:auto;border:0;font-size:13px}.add{color:#1a7f37;font-weight:600}.del{color:#d1242f;font-weight:600}
+.blocks{display:inline-flex;gap:1px;margin-left:6px}.blocks b{width:8px;height:8px;display:inline-block}
+.cols{display:flex;gap:28px;margin-top:18px}.feed{flex:1}.sidecol{width:256px;font-size:12px;color:#59636e}
+.sidecol h5{margin:0 0 6px;font-size:12px;color:#59636e;font-weight:600}.sidecol div{padding-bottom:12px;border-bottom:1px solid #d1d9e0;margin-bottom:12px}
+.c{display:flex;gap:14px;margin-bottom:16px}.av{width:40px;height:40px;border-radius:50%;flex:none;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+.box{flex:1;border:1px solid #d1d9e0;border-radius:6px}.box .hd{background:#f6f8fa;border-bottom:1px solid #d1d9e0;padding:8px 14px;font-size:14px;color:#59636e;border-radius:6px 6px 0 0}
+.box .hd b{color:#1f2328}.box .bd{padding:12px 14px;font-size:14px}.box .bd p{margin:0 0 8px}
+.ev{margin:0 0 14px 54px;font-size:13px;color:#59636e}
+</style></head><body>
+<div class="tabs"><span class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><div class="tab on">Move cart totals to server-side pri…</div><div class="tab">Orbitpay sprint board</div></div>
+<div class="bar"><span>←</span><span>→</span><span>↻</span><span class="omni"><span class="h">code.example.com</span>/orbitpay/checkout-web/pull/412</span></div>
+<div class="top"><div class="logo">◆</div><div class="repo"><span>orbitpay /</span> <b>checkout-web</b></div></div>
+<div class="rnav"><span>Code</span><span class="on">Pull requests 14</span><span>Actions</span><span>Projects</span><span>Wiki</span><span>Settings</span></div>
+<div class="wrap">
+<h1>Move cart totals to server-side pricing <span>#412</span></h1>
+<div class="state"><span class="pill">⇅ Open</span><span><b>tomasz-k</b> wants to merge 9 commits into <code>main</code> from <code>tk/server-pricing</code></span></div>
+<div class="ptabs"><span class="on">💬 Conversation<i>6</i></span><span>⊙ Commits<i>9</i></span><span>☑ Checks<i>3</i></span><span>± Files changed<i>47</i></span>
+<span class="diffstat"><span class="add">+1,318</span> <span class="del">−942</span><span class="blocks"><b style="background:#1a7f37"></b><b style="background:#1a7f37"></b><b style="background:#1a7f37"></b><b style="background:#d1242f"></b><b style="background:#d1242f"></b></span></span></div>
+<div class="cols"><div class="feed">
+<div class="c"><div class="av" style="background:#8250df">TK</div><div class="box"><div class="hd"><b>tomasz-k</b> commented 2 days ago</div>
+<div class="bd"><p>Follow-up to the pricing discussion from last week.</p><p>Details in the diff — happy to walk through it on a call if that's easier. 🙏</p></div></div></div>
+<div class="ev">● <b>tomasz-k</b> requested review from <b>ines-araujo</b> and <b>dev-okafor</b></div>
+<div class="c"><div class="av" style="background:#bf3989">IA</div><div class="box"><div class="hd"><b>ines-araujo</b> commented yesterday</div>
+<div class="bd"><p>Approach makes sense to me. Haven't gone through all of it yet, will finish tomorrow.</p></div></div></div>
+<div class="c"><div class="av" style="background:#0969da">DO</div><div class="box"><div class="hd"><b>dev-okafor</b> commented 3 hours ago</div>
+<div class="bd"><p>Same — big one. Can someone do a first pass before standup?</p></div></div></div>
+</div>
+<div class="sidecol"><div><h5>Reviewers</h5>ines-araujo · pending<br>dev-okafor · pending</div><div><h5>Assignees</h5>tomasz-k</div><div><h5>Labels</h5><span style="background:#fbca04;color:#1f2328;border-radius:10px;padding:1px 8px;font-weight:600">pricing</span></div><div><h5>Milestone</h5>Q4 checkout</div></div>
+</div></div></body></html>

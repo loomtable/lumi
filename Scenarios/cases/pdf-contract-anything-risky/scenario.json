@@ -1,0 +1,46 @@
+{
+  "id": "pdf-contract-anything-risky",
+  "app": "pdf",
+  "type": "annotate",
+  "routing": false,
+  "question": "anything risky?",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "anything risky?",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Halden_Northwind_MSA_v3.pdf – Page 6 of 14",
+      "document": "/Users/me/Documents/Legal/Halden_Northwind_MSA_v3.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "7.2 auto-renews for 24-month terms and needs 120 days' notice to stop it",
+      "8.2 lets the Provider raise fees at any time on 15 days' notice",
+      "9.2 caps the Provider's liability at one month of fees while 9.3 makes the Customer's indemnity unlimited",
+      "10.1 gives the Provider a perpetual, irrevocable licence to Customer Data for any purpose"
+    ],
+    "must_not": [
+      "citing clauses that are not on this page",
+      "giving legal advice as certainty (it should flag, not rule)"
+    ]
+  },
+  "notes": "Numbered marks on the risky clauses with jumps. 8.3 (4% a month late interest) is a fair fifth mark."
+}

@@ -1,0 +1,50 @@
+{
+  "id": "chat-define-burn-rate-go-deep",
+  "app": "chat",
+  "type": "define",
+  "routing": true,
+  "question": "go deep on this what does a 14x burn rate actually mean for us",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:47:33+05:30",
+    "utterance": "go deep on this what does a 14x burn rate actually mean for us",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "sre-alerts (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#sre-alerts",
+      "thread": null
+    },
+    "selection": {
+      "text": "burn rate",
+      "length": 9,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c07",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "Explaining the 14.4× burn rate on checkout-api's 99.9% / 30-day availability SLO",
+      "At 14.4× the 30-day error budget would be used up in about 2 days (71% remains)"
+    ],
+    "must_not": [
+      "answer with a one-line Quick chip despite \"go deep\""
+    ]
+  },
+  "notes": "\"go deep\" override on what would otherwise be a Quick define chip."
+}

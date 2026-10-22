@@ -1,0 +1,47 @@
+{
+  "id": "video-translate-spanish-captions",
+  "app": "video",
+  "type": "translate",
+  "routing": false,
+  "question": "what is she saying",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T19:08:30+05:30",
+    "utterance": "what is she saying",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Arroz con pollo de mi abuela — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=arroz-abuela",
+      "host": "www.example-video.com",
+      "tab_title": "Arroz con pollo de mi abuela — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_190830",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "\"Now we add the minced garlic and let it brown over low heat\"",
+      "for about two minutes, without letting it burn"
+    ],
+    "must_not": [
+      "translating text that isn't on screen"
+    ]
+  },
+  "notes": "Spanish auto-captions; the user wants the visible line in English."
+}

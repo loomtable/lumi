@@ -1,0 +1,49 @@
+{
+  "id": "browser-route-rate-limit-plan",
+  "app": "browser",
+  "type": "compute",
+  "routing": true,
+  "question": "would i get rate limited sending fifty requests a second on the free plan",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:42:18+05:30",
+    "utterance": "would i get rate limited sending fifty requests a second on the free plan",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Rate limits – Relaymail API docs"
+    },
+    "browser": {
+      "url": "https://docs.example-relay.com/api/rate-limits",
+      "host": "docs.example-relay.com",
+      "tab_title": "Rate limits – Relaymail API docs"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_r03",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "yes: the Free plan allows 20 requests per second (burst 40), so 50 a second gets 429 Too Many Requests",
+      "at 50 a second you'd also use up Free's 10,000 daily requests in about 3½ minutes (200 seconds)",
+      "Starter (60/s, 250,000 a day) is the lowest plan that covers 50 a second"
+    ],
+    "must_not": [
+      "handing off to test the API: the limits table answers it",
+      "saying the burst allowance of 40 covers a sustained 50 a second"
+    ]
+  },
+  "notes": "Routing hard negative: sounds like you'd have to try it against the API, but the docs table on screen gives the limit; it's a comparison and a division."
+}

@@ -1,0 +1,57 @@
+{
+  "id": "chat-explain-code-repo-trace",
+  "app": "chat",
+  "type": "explain-code",
+  "routing": true,
+  "question": "why does this fail in our repo",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:44:02+05:30",
+    "utterance": "why does this fail in our repo",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "backend (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#backend",
+      "thread": null
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "recent": [
+      {
+        "app": "Visual Studio Code",
+        "title": "formatTotal.ts — ledger-web"
+      },
+      {
+        "app": "Ghostty",
+        "cwd": "/Users/me/Developer/ledger-web",
+        "command": "npm run dev"
+      }
+    ],
+    "conversation": {
+      "id": "c_c15",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "inv.totals is undefined for some invoices, so reading .currency throws at formatTotal.ts:14",
+      "Likely tied to the invoices-v2 response shape change; Deep should check the Invoice type and API mapping in /Users/me/Developer/ledger-web"
+    ],
+    "must_not": [
+      "answer only from the snippet when the user asked about their repo",
+      "invent the new invoices-v2 field names"
+    ]
+  },
+  "notes": "\"in our repo\" plus a recent VS Code workspace: Deep reads the repo rather than guessing from the paste."
+}

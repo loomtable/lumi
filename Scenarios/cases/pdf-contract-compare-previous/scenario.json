@@ -1,0 +1,53 @@
+{
+  "id": "pdf-contract-compare-previous",
+  "app": "pdf",
+  "type": "compare",
+  "routing": true,
+  "question": "what changed from the previous version, v3 is in the same folder",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "what changed from the previous version, v3 is in the same folder",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Kestrel_Lab_Supply_Agreement_v4.pdf – Page 2 of 11",
+      "document": "/Users/me/Documents/Contracts/Kestrel_Lab_Supply_Agreement_v4.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "recent": [
+      {
+        "app": "Finder",
+        "title": "Contracts"
+      },
+      {
+        "app": "Mail",
+        "title": "RE: Kestrel supply agreement – v4 attached"
+      }
+    ],
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "comparing needs both files: the open v4 and Kestrel_Lab_Supply_Agreement_v3.pdf in /Users/me/Documents/Contracts",
+      "hand-off: read both versions and list the clause-by-clause changes"
+    ],
+    "must_not": [
+      "claiming what changed from the visible v4 page alone",
+      "inventing v3 wording"
+    ]
+  },
+  "notes": "Routing: the comparison target is a file on disk that isn't on screen, so Deep."
+}

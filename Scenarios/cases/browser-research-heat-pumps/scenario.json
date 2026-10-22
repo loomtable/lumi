@@ -1,0 +1,47 @@
+{
+  "id": "browser-research-heat-pumps",
+  "app": "browser",
+  "type": "research",
+  "routing": true,
+  "question": "research whether heat pumps actually save money in really cold climates and write me a report",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T21:05:47+05:30",
+    "utterance": "research whether heat pumps actually save money in really cold climates and write me a report",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Is a heat pump worth it in a cold climate? – HomeWise Forum"
+    },
+    "browser": {
+      "url": "https://forum.example-homewise.com/t/heat-pump-cold-climate/48120",
+      "host": "forum.example-homewise.com",
+      "tab_title": "Is a heat pump worth it in a cold climate? – HomeWise Forum"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_135",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "starts a research job on heat pump running costs versus gas in cold climates (around −15 °C)",
+      "the report should weigh cold-weather COP, gas-to-electricity price ratio and insulation, the points raised in the thread"
+    ],
+    "must_not": [
+      "giving a verdict from the forum posts alone",
+      "giving a time estimate"
+    ]
+  },
+  "notes": "Routing: explicit research and report request."
+}

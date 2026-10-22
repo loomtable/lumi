@@ -1,0 +1,6 @@
+#!/bin/bash
+# Runs a Node script with Playwright 1.64.0 resolvable, without adding a package dependency.
+# Usage: Tools/scenarios/pw Tools/scenarios/render.cjs <args…>
+set -euo pipefail
+args=$(printf '%q ' "$@")
+exec npx -y -p playwright@1.64.0 -c "NODE_PATH=\"\$(dirname \"\$(dirname \"\$(command -v playwright)\")\")\" node $args"

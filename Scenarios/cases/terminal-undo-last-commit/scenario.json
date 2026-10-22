@@ -1,0 +1,46 @@
+{
+  "id": "terminal-undo-last-commit",
+  "app": "terminal",
+  "type": "how-to",
+  "routing": false,
+  "question": "how do i undo that last commit but keep my changes",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T13:27:51+05:30",
+    "utterance": "how do i undo that last commit but keep my changes",
+    "app": {
+      "name": "Ghostty",
+      "bundle": "com.mitchellh.ghostty",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "~/Developer/pebble-notes"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/pebble-notes",
+      "command": "zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_t04",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "run `git reset --soft HEAD~1` to undo commit a91c3e2 and keep the changes staged (or `git reset HEAD~1` to keep them unstaged)",
+      "it is safe to rewrite: the branch is only 1 commit ahead of origin/main, so it has not been pushed"
+    ],
+    "must_not": [
+      "suggesting `git reset --hard`, which would discard the changes",
+      "suggesting `git revert`, which adds a new commit"
+    ]
+  }
+}

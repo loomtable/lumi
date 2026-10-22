@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>2026</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: linear-gradient(160deg,#5b7fa6 0%,#8fa9c4 45%,#c9b79c 100%); font: 13px/1.35 -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif; color: #1d1d1f; }
+  .menubar { height: 25px; background: rgba(246,246,246,.82); color: #111; display: flex; align-items: center; gap: 18px; padding: 0 14px; font-size: 13px; }
+  .menubar b { font-weight: 700; }
+  .menubar .right { margin-left: auto; display: flex; gap: 14px; }
+  .win { position: absolute; left: 36px; top: 42px; width: 1208px; height: 738px; background: #ffffff; border-radius: 12px; overflow: hidden;
+         box-shadow: 0 22px 60px rgba(0,0,0,.45), 0 0 0 .5px rgba(0,0,0,.22); display: flex; }
+  .side { width: 196px; background: #e9e7ec; padding: 46px 10px 10px; color: #2b2b2d; flex: none; }
+  .lights { position: absolute; left: 16px; top: 18px; display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .side h6 { margin: 12px 8px 4px; font-size: 11px; font-weight: 600; color: #8a8a8e; }
+  .side div { padding: 4px 8px; border-radius: 6px; font-size: 13px; display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; }
+  .side div.on { background: rgba(0,0,0,.09); }
+  .side div span { width: 16px; text-align: center; font-size: 12px; filter: saturate(.6); }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .toolbar { height: 52px; background: #f6f5f7; border-bottom: 1px solid #dcdcdf; display: flex; align-items: center; gap: 14px; padding: 0 14px; flex: none; }
+  .toolbar .nav { color: #6e6e73; font-size: 18px; letter-spacing: 10px; }
+  .toolbar .title { font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .toolbar .sp { flex: 1; }
+  .tb { display: flex; gap: 2px; align-items: center; color: #6e6e73; }
+  .tb span { padding: 3px 7px; border-radius: 6px; font-size: 14px; }
+  .tb span.on { background: rgba(0,0,0,.09); color: #1d1d1f; }
+  .search { width: 170px; height: 26px; border-radius: 7px; background: #e6e5e9; color: #6e6e73; padding: 4px 10px; font-size: 12px; }
+  .body { flex: 1; display: flex; min-height: 0; }
+  .list { flex: 1; overflow: hidden; min-width: 0; }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th { text-align: left; font-weight: 500; font-size: 11.5px; color: #6e6e73; background: #fbfbfc; padding: 5px 10px; border-bottom: 1px solid #dcdcdf; border-right: 1px solid #dcdcdf; white-space: nowrap; }
+  th.sort::after { content: " ⌄"; }
+  td { padding: 3px 10px; height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #6e6e73; }
+  td.n { color: #1d1d1f; }
+  td.n .ic { display: inline-flex; vertical-align: middle; margin-right: 7px; width: 18px; justify-content: center; }
+  td.n .dis { display: inline-block; width: 12px; color: #6e6e73; font-size: 9px; }
+  tr:nth-child(even) td { background: #f4f4f6; }
+  tr.sel td { background: #0a63d6 !important; color: rgba(255,255,255,.85); }
+  tr.sel td.n { color: #ffffff; }
+  .cloud { color: #6e6e73; margin-left: 6px; font-size: 12px; }
+  .tag { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
+  .status { height: 26px; flex: none; background: #f6f5f7; border-top: 1px solid #dcdcdf; font-size: 11.5px; color: #6e6e73; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+  .status .path { white-space: nowrap; overflow: hidden; }
+  .status .count { margin-left: auto; white-space: nowrap; }
+  .pane { width: 300px; flex: none; border-left: 1px solid #dcdcdf; background: #fafafa; padding: 20px 18px; overflow: hidden; }
+  .pane .big { display: flex; justify-content: center; margin: 6px 0 14px; }
+  .pane h3 { font-size: 15px; margin: 0 0 2px; word-break: break-word; }
+  .pane .k { color: #6e6e73; font-size: 12px; margin-bottom: 12px; }
+  .pane .info { font-size: 12px; border-top: 1px solid #dcdcdf; padding-top: 10px; }
+  .pane .info div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .pane .info div span:first-child { color: #6e6e73; }
+  .pane .more { color: #0a63d6; font-size: 12px; margin-top: 6px; }
+  .note { background: #ffffff; border: 1px solid #dcdcdf; border-radius: 4px; padding: 14px 14px; font: 12px/1.55 Menlo, monospace; color: #1d1d1f; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, 150px); grid-auto-rows: 150px; gap: 8px 6px; padding: 22px 24px; align-content: start; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .cell .t { height: 96px; display: flex; align-items: center; justify-content: center; border-radius: 6px; padding: 4px; }
+  .cell.sel .t { background: rgba(0,0,0,.09); }
+  .cell .l { font-size: 12px; max-width: 140px; padding: 1px 6px; border-radius: 4px; line-height: 1.3; }
+  .cell.sel .l { background: #0a63d6; color: #fff; }
+  .cols { flex: 1; display: flex; min-width: 0; }
+  .col { width: 242px; flex: none; border-right: 1px solid #dcdcdf; padding: 4px 0; }
+  .col div { display: flex; align-items: center; gap: 7px; padding: 3px 10px; height: 24px; white-space: nowrap; }
+  .col div .ch { margin-left: auto; color: #6e6e73; font-size: 10px; }
+  .col div.path { background: rgba(0,0,0,.09); }
+  .col div.sel { background: #0a63d6; color: #fff; }
+  .col div.sel .ch { color: #fff; }
+</style></head>
+<body>
+  <div class="menubar"><svg width="13" height="15" viewBox="0 0 17 20"><circle cx="8.5" cy="10" r="6" fill="currentColor"/></svg><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+    <span class="right"><span>🔋</span><span>Wi‑Fi</span><span>Wed 14 Oct  10:42</span></span></div>
+  <div class="win">
+    <div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="side"><h6>Favorites</h6><div><span>📡</span>AirDrop</div><div><span>🕘</span>Recents</div><div><span>🅰</span>Applications</div><div><span>🖥</span>Desktop</div><div class="on"><span>📄</span>Documents</div><div><span>⬇</span>Downloads</div><h6>iCloud</h6><div><span>☁</span>iCloud Drive</div><div><span>👥</span>Shared</div><h6>Locations</h6><div><span>💽</span>Macintosh HD</div><div><span>🌐</span>Network</div><h6>Tags</h6><div><span>🔴</span>Red</div><div><span>🟠</span>Orange</div><div><span>🟢</span>Green</div><div><span>🔵</span>Blue</div></div>
+    <div class="main">
+      <div class="toolbar"><span class="nav">‹ ›</span><span class="title">2026</span><span class="sp"></span>
+        <div class="tb"><span class="">▦</span><span class="on">☰</span><span class="">▥</span><span class="">▭</span></div><div class="tb"><span>⊞ ⌄</span><span>⇪</span><span>◯</span><span>··· ⌄</span></div><div class="search">⌕ Search</div></div>
+      <div class="body"><div class="list"><table><colgroup><col style="width:44%"><col style="width:24%"><col style="width:11%"><col style="width:21%"></colgroup><tr><th class="">Name</th><th class="sort">Date Modified</th><th class="">Size</th><th class="">Kind</th></tr><tr class=""><td class="n" style="padding-left:10px"><span class="dis">▶</span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M2 8.5a2 2 0 0 1 2-2h8l2.5 2.5H28a2 2 0 0 1 2 2V25a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#5aa9f0"/><path d="M2 12a2 2 0 0 1 2-2h24a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#7cc0fa"/></svg></span>Tax 2025</td><td>Apr 9, 2026 at 8:00 PM</td><td>--</td><td>Folder</td></tr><tr class="sel"><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Scan.pdf</td><td>Sep 3, 2026 at 6:41 PM</td><td>1.2 MB</td><td>PDF document</td></tr><tr class="sel"><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Scan 2.pdf</td><td>Sep 11, 2026 at 12:05 PM</td><td>884 KB</td><td>PDF document</td></tr><tr class="sel"><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Scan 3.pdf</td><td>Sep 19, 2026 at 8:30 AM</td><td>1.5 MB</td><td>PDF document</td></tr><tr class="sel"><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Scan 4.pdf</td><td>Sep 28, 2026 at 7:52 PM</td><td>976 KB</td><td>PDF document</td></tr><tr class="sel"><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Scan 5.pdf</td><td>Oct 6, 2026 at 1:17 PM</td><td>1.1 MB</td><td>PDF document</td></tr><tr class="sel"><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Scan 6.pdf</td><td>Oct 12, 2026 at 10:03 AM</td><td>702 KB</td><td>PDF document</td></tr><tr class=""><td class="n" style="padding-left:10px"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Warranty - Dishwasher.pdf</td><td>Jun 14, 2026 at 4:20 PM</td><td>310 KB</td><td>PDF document</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></table></div></div>
+      <div class="status"><span class="path"><span>💽 Macintosh HD</span> <span>›</span> <span>📁 Users</span> <span>›</span> <span>📁 me</span> <span>›</span> <span>📁 Documents</span> <span>›</span> <span>📁 Receipts</span> <span>›</span> <span>📁 2026</span></span><span class="count">6 of 8 selected, 214.6 GB available</span></div>
+    </div>
+  </div>
+</body></html>

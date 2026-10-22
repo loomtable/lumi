@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Pricing – Nimbusbox Cloud</title>
+<style>
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 15px/1.5 -apple-system, "Helvetica Neue", sans-serif; background: #f5f7fb; color: #111827; }
+  .chrome { height: 44px; background: #e8e8ea; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #444; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; } .r { background: #ff5f57; } .y { background: #febc2e; } .g { background: #28c840; }
+  .url { margin: 0 auto; width: 480px; text-align: center; background: #fff; border-radius: 7px; padding: 4px 12px; }
+  nav { display: flex; align-items: center; padding: 14px 60px; background: #fff; border-bottom: 1px solid #e5e7eb; gap: 28px; font-size: 14px; color: #4b5563; }
+  .logo { font-weight: 800; font-size: 20px; color: #2563eb; margin-right: auto; }
+  .btn { background: #2563eb; color: #fff; padding: 7px 14px; border-radius: 8px; }
+  h1 { text-align: center; font-size: 34px; margin: 30px 0 4px; }
+  .sub { text-align: center; color: #6b7280; margin-bottom: 26px; }
+  .grid { display: flex; gap: 20px; justify-content: center; }
+  .card { width: 250px; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .card.pop { border: 2px solid #2563eb; position: relative; }
+  .badge { position: absolute; top: -12px; left: 22px; background: #2563eb; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+  .name { font-weight: 700; font-size: 17px; }
+  .price { font-size: 34px; font-weight: 800; margin: 8px 0 0; } .price small { font-size: 14px; color: #6b7280; font-weight: 500; }
+  ul { list-style: none; padding: 0; margin: 14px 0 18px; font-size: 14px; color: #374151; }
+  li { padding: 5px 0; border-bottom: 1px solid #f1f5f9; }
+  .cta { display: block; text-align: center; border: 1px solid #2563eb; color: #2563eb; border-radius: 8px; padding: 8px; font-weight: 600; }
+  .pop .cta { background: #2563eb; color: #fff; }
+  .foot { text-align: center; color: #6b7280; font-size: 13px; margin-top: 18px; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">www.example-nimbusbox.com/pricing</span></div>
+  <nav><span class="logo">☁ Nimbusbox</span><span>Products</span><span>Docs</span><span>Pricing</span><span>Sign in</span><span class="btn">Start free</span></nav>
+  <h1>Simple, predictable VPS pricing</h1>
+  <div class="sub">Billed monthly. Prices in USD, excluding tax.</div>
+  <div class="grid">
+    <div class="card"><div class="name">Starter</div><div class="price">$6<small>/mo</small></div><ul><li>1 vCPU</li><li>2 GB RAM</li><li>50 GB SSD</li><li>2 TB transfer</li><li>Daily backups +$1.20</li></ul><span class="cta">Choose Starter</span></div>
+    <div class="card pop"><span class="badge">Most popular</span><div class="name">Standard</div><div class="price">$24<small>/mo</small></div><ul><li>2 vCPU</li><li>8 GB RAM</li><li>160 GB SSD</li><li>4 TB transfer</li><li>Daily backups +$4.80</li></ul><span class="cta">Choose Standard</span></div>
+    <div class="card"><div class="name">Memory</div><div class="price">$21<small>/mo</small></div><ul><li>1 vCPU</li><li>8 GB RAM</li><li>40 GB SSD</li><li>1 TB transfer</li><li>Daily backups +$4.20</li></ul><span class="cta">Choose Memory</span></div>
+    <div class="card"><div class="name">Performance</div><div class="price">$48<small>/mo</small></div><ul><li>4 vCPU</li><li>16 GB RAM</li><li>320 GB SSD</li><li>6 TB transfer</li><li>Daily backups +$9.60</li></ul><span class="cta">Choose Performance</span></div>
+  </div>
+  <div class="foot">All plans include IPv4 + IPv6, DDoS protection and a 99.95% uptime SLA.</div>
+</body></html>

@@ -1,0 +1,46 @@
+{
+  "id": "video-tcp-handshake-diagram",
+  "app": "video",
+  "type": "diagram",
+  "routing": false,
+  "question": "walk me through this diagram",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T16:02:48+05:30",
+    "utterance": "walk me through this diagram",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Networking Basics #6: How TCP Connects — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=netbasics-06",
+      "host": "www.example-video.com",
+      "tab_title": "Networking Basics #6: How TCP Connects — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_160248",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "it's the TCP three-way handshake between a client and a server",
+      "① the client sends SYN with seq=100; ② the server replies SYN-ACK with seq=300 and ack=101",
+      "③ the client sends ACK with ack=301, and both sides move to ESTABLISHED",
+      "each ack is the other side's sequence number plus one"
+    ]
+  },
+  "notes": "Whiteboard sequence diagram; a rich answer can redraw it step by step."
+}

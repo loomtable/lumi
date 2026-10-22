@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>legacy_export.py — fernhill</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;width:1280px;height:800px;overflow:hidden;background:#ffffff;color:#1f1f1f;font:13px -apple-system,"Helvetica Neue",sans-serif}
+.title{height:30px;background:#dddddd;color:#333333;display:flex;align-items:center;justify-content:center;position:relative;font-size:13px;border-bottom:1px solid #e5e5e5}
+.lights{position:absolute;left:12px;top:9px;display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.main{display:flex;height:748px}
+.actbar{width:48px;background:#2c2c2c;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:22px;color:#858585;font-size:18px}
+.actbar .on{color:#fff}
+.side{width:240px;background:#f3f3f3;color:#3b3b3b;border-right:1px solid #e5e5e5}
+.shead{height:35px;display:flex;align-items:center;padding:0 20px;font-size:11px;letter-spacing:.3px}
+.tr{height:22px;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px}
+.tr.on{background:#e4e6f1;outline:1px solid #0078d4;outline-offset:-1px}
+.ed{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+.tabs{height:35px;background:#f3f3f3;display:flex}
+.tab{display:flex;align-items:center;gap:6px;padding:0 14px;background:#ececec;color:#6f6f6f;border-right:1px solid #e5e5e5}
+.tab.act{background:#ffffff;color:#1f1f1f;border-top:1px solid #0078d4}
+.crumbs{height:22px;display:flex;align-items:center;padding-left:16px;font-size:12px;color:#237893;gap:4px}
+.lines{flex:1;font:13px/19px Menlo,Monaco,monospace;overflow:hidden;padding-top:2px}
+.row{display:flex;height:19px;white-space:pre}.row.cur{background:#f0f0f0}
+.ln{width:52px;text-align:right;color:#237893;padding-right:22px;flex:none}
+.k{color:#0000ff}.kc{color:#af00db}.s{color:#a31515}.c{color:#008000}.n{color:#098658}.t{color:#267f99}.f{color:#795e26}.v{color:#001080}
+.dim{opacity:.5}
+.sq{text-decoration:underline wavy #cca700;text-underline-offset:2px}
+.tip{position:absolute;background:#f8f8f8;border:1px solid #c8c8c8;color:#1f1f1f;font:12px/1.5 -apple-system,sans-serif;padding:8px 12px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.35);width:440px}
+.tip code{font:12px Menlo,monospace}.tip .acts{border-top:1px solid #c8c8c8;margin:8px -12px -8px;padding:5px 12px;color:#3794ff}
+.panel{height:190px;border-top:1px solid #e5e5e5;display:flex;flex-direction:column}
+.ptabs{height:32px;display:flex;align-items:center;gap:22px;padding:0 20px;font-size:11px;color:#8b8b8b;letter-spacing:.3px}
+.ptabs .on{color:#1f1f1f;border-bottom:1px solid #1f1f1f;padding-bottom:3px}
+.pbody{flex:1;padding:2px 20px;font:12px/18px Menlo,monospace;white-space:pre;overflow:hidden}
+.status{height:22px;background:#007acc;color:#fff;font-size:12px;display:flex;align-items:center;gap:16px;padding:0 10px}
+.status .r{margin-left:auto;display:flex;gap:16px}
+
+</style></head><body>
+<div class="title"><span class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span>legacy_export.py — fernhill</div>
+<div class="main"><div class="actbar"><span class="on">❐</span><span>⌕</span><span>⑂</span><span>▷</span><span>⊞</span></div>
+<div class="side"><div class="shead">EXPLORER</div><div class="tr" style="padding-left:8px">⌄ FERNHILL</div><div class="tr" style="padding-left:20px">⌄ fernhill</div><div class="tr" style="padding-left:32px">› api</div><div class="tr" style="padding-left:32px">› billing</div><div class="tr" style="padding-left:32px">⌄ reports</div><div class="tr" style="padding-left:44px"><span style='color:#3572a5'>py</span> __init__.py</div><div class="tr" style="padding-left:44px"><span style='color:#3572a5'>py</span> exporter_v2.py</div><div class="tr on" style="padding-left:44px"><span style='color:#3572a5'>py</span> legacy_export.py</div><div class="tr" style="padding-left:44px"><span style='color:#3572a5'>py</span> models.py</div><div class="tr" style="padding-left:44px"><span style='color:#3572a5'>py</span> schedule.py</div><div class="tr" style="padding-left:32px">› storefront</div><div class="tr" style="padding-left:20px">› tests</div><div class="tr" style="padding-left:20px">⚙ pyproject.toml</div></div>
+<div class="ed"><div class="tabs"><div class="tab"><span style="color:#3572a5">py</span> exporter_v2.py</div><div class="tab act"><span style="color:#3572a5">py</span> legacy_export.py ×</div></div><div class="crumbs">fernhill › reports › <span style="color:#3572a5">py</span> legacy_export.py › ƒ export_csv_v1</div><div class="lines"><div class="row"><span class="ln">1</span><span class="code"><span class="s">"""Legacy CSV export for the monthly partner reports."""</span></span></div><div class="row"><span class="ln">2</span><span class="code"></span></div><div class="row"><span class="ln">3</span><span class="code"><span class="kc">import</span> <span class="t">csv</span></span></div><div class="row"><span class="ln">4</span><span class="code"><span class="kc">from</span> <span class="t">datetime</span> <span class="kc">import</span> <span class="t">date</span></span></div><div class="row"><span class="ln">5</span><span class="code"><span class="kc">from</span> <span class="t">pathlib</span> <span class="kc">import</span> <span class="t">Path</span></span></div><div class="row"><span class="ln">6</span><span class="code"></span></div><div class="row"><span class="ln">7</span><span class="code"><span class="kc">from</span> <span class="t">fernhill.reports.models</span> <span class="kc">import</span> <span class="t">ReportRow</span></span></div><div class="row"><span class="ln">8</span><span class="code"></span></div><div class="row"><span class="ln">9</span><span class="code"><span class="c"># TODO(asha): remove once every partner is on the v2 exporter</span></span></div><div class="row cur"><span class="ln">10</span><span class="code"><span class="k">def</span> <span class="f">export_csv_v1</span>(<span class="v">rows</span>: <span class="t">list</span>[<span class="t">ReportRow</span>], <span class="v">out_dir</span>: <span class="t">Path</span>) -&gt; <span class="t">Path</span>:</span></div><div class="row"><span class="ln">11</span><span class="code">    <span class="v">path</span> = <span class="v">out_dir</span> / <span class="s">f"partners-{</span><span class="t">date</span>.<span class="f">today</span>():<span class="s">%Y-%m}.csv"</span></span></div><div class="row"><span class="ln">12</span><span class="code">    <span class="kc">with</span> <span class="v">path</span>.<span class="f">open</span>(<span class="s">"w"</span>, <span class="v">newline</span>=<span class="s">""</span>) <span class="kc">as</span> <span class="v">fh</span>:</span></div><div class="row"><span class="ln">13</span><span class="code">        <span class="v">w</span> = <span class="t">csv</span>.<span class="f">writer</span>(<span class="v">fh</span>, <span class="v">delimiter</span>=<span class="s">";"</span>)</span></div><div class="row"><span class="ln">14</span><span class="code">        <span class="v">w</span>.<span class="f">writerow</span>([<span class="s">"partner_id"</span>, <span class="s">"orders"</span>, <span class="s">"gross"</span>, <span class="s">"fee"</span>])</span></div><div class="row"><span class="ln">15</span><span class="code">        <span class="kc">for</span> <span class="v">r</span> <span class="kc">in</span> <span class="v">rows</span>:</span></div><div class="row"><span class="ln">16</span><span class="code">            <span class="v">w</span>.<span class="f">writerow</span>([<span class="v">r</span>.<span class="v">partner_id</span>, <span class="v">r</span>.<span class="v">orders</span>, <span class="v">r</span>.<span class="v">gross</span>, <span class="v">r</span>.<span class="v">fee</span>])</span></div><div class="row"><span class="ln">17</span><span class="code">    <span class="kc">return</span> <span class="v">path</span></span></div><div class="row"><span class="ln">18</span><span class="code"></span></div></div></div></div>
+<div class="status"><span>⑂ main</span><span>⊗ 0 ⚠ 0</span><span class="r"><span>Ln 10, Col 5</span><span>Spaces: 2</span><span>UTF-8</span><span>LF</span></span></div>
+</body></html>

@@ -1,0 +1,49 @@
+{
+  "id": "video-cant-do-drm-black-frame",
+  "app": "video",
+  "type": "cant-do",
+  "routing": false,
+  "question": "who's the actor on screen right now",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T22:52:36+05:30",
+    "utterance": "who's the actor on screen right now",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Northern Line — S2 E4 “Signal Failure” | Nightfall+"
+    },
+    "browser": {
+      "url": "https://www.example-stream.com/watch/northern-line/s2/e4",
+      "host": "www.example-stream.com",
+      "tab_title": "Northern Line — S2 E4 “Signal Failure” | Nightfall+"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_225236",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "the video area comes through as solid black: protected streaming video blocks screen capture",
+      "only the player controls and the title (Northern Line, S2 E4 “Signal Failure”, 23:41) are visible"
+    ],
+    "must_not": [
+      "naming or guessing an actor",
+      "describing the scene",
+      "handing off to deep"
+    ]
+  },
+  "notes": "DRM-protected playback captures as black; the honest answer is that the frame can't be seen."
+}

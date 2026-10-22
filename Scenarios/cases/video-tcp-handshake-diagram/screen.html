@@ -1,0 +1,84 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Networking Basics #6: How TCP Connects — Clipstream</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: #ffffff; color: #0f0f0f; }
+  .chrome { height: 44px; background: #e3e3e1; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #606060; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .url { margin: 0 220px 0 120px; background: #ffffff; border-radius: 6px; padding: 4px 12px; flex: 1; text-align: center; color: #0f0f0f; }
+  header { height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .logo { font-weight: 700; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
+  .logo b { background: #e62117; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+  .search { margin-left: 150px; width: 520px; height: 38px; border: 1px solid #e5e5e5; border-radius: 20px; padding: 8px 18px; color: #606060; }
+  .hdr-r { margin-left: auto; display: flex; gap: 14px; align-items: center; color: #606060; }
+  .me { width: 30px; height: 30px; border-radius: 50%; background: #7a5af5; color: #fff; text-align: center; line-height: 30px; font-weight: 600; }
+  main { display: flex; gap: 24px; padding: 4px 24px 0; }
+  .player { position: relative; width: 880px; height: 541px; background: #0f0f0f; border-radius: 12px; overflow: hidden; }
+  .player svg { display: block; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; padding: 0 70px; }
+  .cap span { background: rgba(8,8,8,.78); color: #fff; font-size: 21px; line-height: 1.45; padding: 2px 8px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #0f0f0f; color: #fff; }
+  .bar { position: absolute; left: 12px; right: 12px; top: 2px; height: 4px; background: rgba(255,255,255,.3); }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 43.1%; background: #e62117; }
+  .bar s { position: absolute; left: 0; top: 0; bottom: 0; width: 51.1%; background: rgba(255,255,255,.45); }
+  .bar u { position: absolute; left: calc(43.1% - 6px); top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #e62117; }
+  .row { position: absolute; left: 16px; right: 16px; bottom: 9px; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+  .row .r { margin-left: auto; display: flex; gap: 18px; }
+  .chap { color: #ddd; }
+  .cc { border-bottom: 2px solid #e62117; font-weight: 700; font-size: 12px; }
+  h1 { font-size: 20px; line-height: 1.3; margin: 10px 0 6px; width: 880px; }
+  .ch { display: flex; align-items: center; gap: 12px; }
+  .av { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; text-align: center; line-height: 40px; }
+  .cn { font-weight: 600; font-size: 15px; }
+  .subs { color: #606060; font-size: 12px; }
+  .sub { background: #0f0f0f; color: #ffffff; border-radius: 18px; padding: 8px 16px; font-weight: 600; margin-left: 12px; }
+  .acts { margin-left: auto; display: flex; gap: 8px; }
+  .act { background: #f2f2f2; border-radius: 18px; padding: 8px 14px; font-weight: 500; }
+  .side { width: 328px; }
+  .chips { display: flex; gap: 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; }
+  .chip { background: #f2f2f2; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+  .chip.on { background: #0f0f0f; color: #ffffff; }
+  .un { display: flex; gap: 8px; margin-bottom: 10px; }
+  .th { position: relative; flex: none; width: 168px; height: 94px; border-radius: 8px; }
+  .dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+  .ut { font-weight: 600; font-size: 14px; line-height: 1.3; max-height: 37px; overflow: hidden; }
+  .uc { color: #606060; font-size: 12px; margin-top: 3px; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">https://www.example-video.com/watch?v=netbasics-06</span></div>
+  <header><div class="logo"><b>▶</b>Clipstream</div><div class="search">Search</div><div class="hdr-r"><span>＋ Create</span><span>🔔</span><span class="me">J</span></div></header>
+  <main>
+    <div>
+      <div class="player">
+        <svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"><rect width="960" height="540" fill="#f2f4f3"/>
+<rect x="20" y="20" width="920" height="500" fill="#fdfdfd" stroke="#c9cfcc" stroke-width="4" rx="6"/>
+<defs><marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d3557"/></marker></defs>
+<g font-family="Chalkboard SE, Marker Felt, Comic Sans MS, sans-serif">
+<text x="320" y="72" font-size="30" fill="#1d3557">TCP three-way handshake</text>
+<rect x="120" y="96" width="140" height="48" rx="8" fill="#a8dadc" stroke="#1d3557" stroke-width="2"/><text x="152" y="128" font-size="24" fill="#1d3557">Client</text>
+<rect x="700" y="96" width="140" height="48" rx="8" fill="#f1c0b9" stroke="#1d3557" stroke-width="2"/><text x="730" y="128" font-size="24" fill="#1d3557">Server</text>
+<line x1="190" y1="144" x2="190" y2="470" stroke="#1d3557" stroke-width="2" stroke-dasharray="8 6"/>
+<line x1="770" y1="144" x2="770" y2="470" stroke="#1d3557" stroke-width="2" stroke-dasharray="8 6"/>
+<line x1="190" y1="190" x2="766" y2="250" stroke="#1d3557" stroke-width="3" marker-end="url(#a6)"/>
+<text x="360" y="200" font-size="22" fill="#e63946">① SYN  seq=100</text>
+<line x1="770" y1="290" x2="194" y2="350" stroke="#1d3557" stroke-width="3" marker-end="url(#a6)"/>
+<text x="330" y="300" font-size="22" fill="#e63946">② SYN-ACK  seq=300, ack=101</text>
+<line x1="190" y1="390" x2="766" y2="440" stroke="#1d3557" stroke-width="3" marker-end="url(#a6)"/>
+<text x="380" y="398" font-size="22" fill="#e63946">③ ACK  ack=301</text>
+<text x="40" y="200" font-size="16" fill="#457b9d">SYN-SENT</text><text x="800" y="258" font-size="16" fill="#457b9d">SYN-RCVD</text>
+<text x="30" y="496" font-size="18" fill="#2a9d8f">ESTABLISHED</text><text x="790" y="496" font-size="18" fill="#2a9d8f">ESTABLISHED</text>
+</g></svg>
+        
+        <div class="ctl"><div class="bar"><s></s><i></i><u></u></div>
+          <div class="row"><span>❚❚</span><span>⏭</span><span>🔊</span><span>5:47 / 13:25 <span class="chap">· The handshake ›</span></span>
+            <span class="r"><span class="cc">CC</span><span>⚙</span><span>▭</span><span>⛶</span></span></div></div>
+      </div>
+      <h1>Networking Basics #6: How TCP Connects (the Three-Way Handshake)</h1>
+      <div class="ch"><div class="av" style="background:#457b9d">P</div>
+        <div><div class="cn">Packet Pete</div><div class="subs">341K subscribers</div></div>
+        <span class="sub">Subscribe</span>
+        <span class="acts"><span class="act">👍 9.9K</span><span class="act">↗ Share</span><span class="act">⤓ Save</span><span class="act">···</span></span></div>
+    </div>
+    <div class="side"><div class="chips"><span class="chip on">All</span><span class="chip">From this channel</span><span class="chip">Related</span><span class="chip">Recently uploaded</span></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b6ea5,#9cc3e6)"><span class="dur">11:58</span></div><div><div class="ut">Networking Basics #7: TCP teardown and TIME_WAIT</div><div class="uc">Packet Pete</div><div class="uc">180K views · 1 year ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#a5523b,#f0c08a)"><span class="dur">9:31</span></div><div><div class="ut">UDP vs TCP: when to use which</div><div class="uc">Packet Pete</div><div class="uc">720K views · 2 years ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b8a5a,#b6e3a0)"><span class="dur">17:22</span></div><div><div class="ut">What happens when you type a URL</div><div class="uc">Bitwise Studio</div><div class="uc">2.3M views · 4 years ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#5b3ba5,#d0a8f0)"><span class="dur">24:10</span></div><div><div class="ut">Reading packets in a capture tool</div><div class="uc">Lab Bench Daily</div><div class="uc">64K views · 8 months ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#333,#888)"><span class="dur">20:45</span></div><div><div class="ut">Subnetting without tears</div><div class="uc">Northgate CS</div><div class="uc">410K views · 3 years ago</div></div></div></div>
+  </main>
+</body></html>

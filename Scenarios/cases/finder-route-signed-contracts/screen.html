@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Contracts 2026</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: linear-gradient(160deg,#1d2433 0%,#2b2f45 50%,#3d2f3a 100%); font: 13px/1.35 -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif; color: #ececee; }
+  .menubar { height: 25px; background: rgba(30,30,32,.78); color: #f2f2f2; display: flex; align-items: center; gap: 18px; padding: 0 14px; font-size: 13px; }
+  .menubar b { font-weight: 700; }
+  .menubar .right { margin-left: auto; display: flex; gap: 14px; }
+  .win { position: absolute; left: 36px; top: 42px; width: 1208px; height: 738px; background: #1e1e1e; border-radius: 12px; overflow: hidden;
+         box-shadow: 0 22px 60px rgba(0,0,0,.45), 0 0 0 .5px rgba(255,255,255,.18); display: flex; }
+  .side { width: 196px; background: #2a282d; padding: 46px 10px 10px; color: #e6e6e8; flex: none; }
+  .lights { position: absolute; left: 16px; top: 18px; display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .side h6 { margin: 12px 8px 4px; font-size: 11px; font-weight: 600; color: #8d8d92; }
+  .side div { padding: 4px 8px; border-radius: 6px; font-size: 13px; display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; }
+  .side div.on { background: rgba(255,255,255,.12); }
+  .side div span { width: 16px; text-align: center; font-size: 12px; filter: saturate(.6); }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .toolbar { height: 52px; background: #2c2c2e; border-bottom: 1px solid #3a3a3c; display: flex; align-items: center; gap: 14px; padding: 0 14px; flex: none; }
+  .toolbar .nav { color: #9a9aa0; font-size: 18px; letter-spacing: 10px; }
+  .toolbar .title { font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .toolbar .sp { flex: 1; }
+  .tb { display: flex; gap: 2px; align-items: center; color: #9a9aa0; }
+  .tb span { padding: 3px 7px; border-radius: 6px; font-size: 14px; }
+  .tb span.on { background: rgba(255,255,255,.12); color: #ececee; }
+  .search { width: 170px; height: 26px; border-radius: 7px; background: #3a3a3d; color: #9a9aa0; padding: 4px 10px; font-size: 12px; }
+  .body { flex: 1; display: flex; min-height: 0; }
+  .list { flex: 1; overflow: hidden; min-width: 0; }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th { text-align: left; font-weight: 500; font-size: 11.5px; color: #9a9aa0; background: #232325; padding: 5px 10px; border-bottom: 1px solid #3a3a3c; border-right: 1px solid #3a3a3c; white-space: nowrap; }
+  th.sort::after { content: " ⌄"; }
+  td { padding: 3px 10px; height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #9a9aa0; }
+  td.n { color: #ececee; }
+  td.n .ic { display: inline-flex; vertical-align: middle; margin-right: 7px; width: 18px; justify-content: center; }
+  td.n .dis { display: inline-block; width: 12px; color: #9a9aa0; font-size: 9px; }
+  tr:nth-child(even) td { background: #252527; }
+  tr.sel td { background: #0a5ccc !important; color: rgba(255,255,255,.8); }
+  tr.sel td.n { color: #ffffff; }
+  .cloud { color: #9a9aa0; margin-left: 6px; font-size: 12px; }
+  .tag { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
+  .status { height: 26px; flex: none; background: #272729; border-top: 1px solid #3a3a3c; font-size: 11.5px; color: #9a9aa0; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+  .status .path { white-space: nowrap; overflow: hidden; }
+  .status .count { margin-left: auto; white-space: nowrap; }
+  .pane { width: 300px; flex: none; border-left: 1px solid #3a3a3c; background: #232325; padding: 20px 18px; overflow: hidden; }
+  .pane .big { display: flex; justify-content: center; margin: 6px 0 14px; }
+  .pane h3 { font-size: 15px; margin: 0 0 2px; word-break: break-word; }
+  .pane .k { color: #9a9aa0; font-size: 12px; margin-bottom: 12px; }
+  .pane .info { font-size: 12px; border-top: 1px solid #3a3a3c; padding-top: 10px; }
+  .pane .info div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .pane .info div span:first-child { color: #9a9aa0; }
+  .pane .more { color: #3b8cff; font-size: 12px; margin-top: 6px; }
+  .note { background: #2e2e31; border: 1px solid #3a3a3c; border-radius: 4px; padding: 14px 14px; font: 12px/1.55 Menlo, monospace; color: #ececee; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, 150px); grid-auto-rows: 150px; gap: 8px 6px; padding: 22px 24px; align-content: start; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .cell .t { height: 96px; display: flex; align-items: center; justify-content: center; border-radius: 6px; padding: 4px; }
+  .cell.sel .t { background: rgba(255,255,255,.12); }
+  .cell .l { font-size: 12px; max-width: 140px; padding: 1px 6px; border-radius: 4px; line-height: 1.3; }
+  .cell.sel .l { background: #0a5ccc; color: #fff; }
+  .cols { flex: 1; display: flex; min-width: 0; }
+  .col { width: 242px; flex: none; border-right: 1px solid #3a3a3c; padding: 4px 0; }
+  .col div { display: flex; align-items: center; gap: 7px; padding: 3px 10px; height: 24px; white-space: nowrap; }
+  .col div .ch { margin-left: auto; color: #9a9aa0; font-size: 10px; }
+  .col div.path { background: rgba(255,255,255,.12); }
+  .col div.sel { background: #0a5ccc; color: #fff; }
+  .col div.sel .ch { color: #fff; }
+</style></head>
+<body>
+  <div class="menubar"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+    <span class="right"><span>🔋</span><span>Wi‑Fi</span><span>Wed 14 Oct  15:36</span></span></div>
+  <div class="win">
+    <div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="side"><h6>Favorites</h6><div class=""><span>📡</span>AirDrop</div><div class=""><span>🕘</span>Recents</div><div class=""><span>🅰</span>Applications</div><div class=""><span>🖥</span>Desktop</div><div class="on"><span>📄</span>Documents</div><div class=""><span>⬇</span>Downloads</div><div class=""><span>🎬</span>Movies</div><h6>iCloud</h6><div class=""><span>☁</span>iCloud Drive</div><div class=""><span>👥</span>Shared</div><h6>Locations</h6><div class=""><span>💽</span>Macintosh HD</div><div class=""><span>🌐</span>Network</div><h6>Tags</h6><div class=""><span>🔴</span>Red</div><div class=""><span>🟠</span>Orange</div><div class=""><span>🟢</span>Green</div></div>
+    <div class="main">
+      <div class="toolbar"><span class="nav">‹ ›</span><span class="title">Contracts 2026</span><span class="sp"></span>
+        <div class="tb"><span>▦</span><span class="on">☰</span><span>▥</span><span>▭</span></div><div class="tb"><span>⊞ ⌄</span><span>⇪</span><span>◯</span><span>··· ⌄</span></div><div class="search">⌕ Search</div></div>
+      <div class="body"><div class="list"><table><colgroup><col style="width:50%"><col style="width:24%"><col style="width:9%"><col style="width:17%"></colgroup><tr><th class="">Name</th><th class="sort">Date Modified</th><th class="">Size</th><th class="">Kind</th></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Northgate Bakery — services agreement.pdf</td><td>Oct 13, 2026 at 4:51 PM</td><td>412 KB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Brask Joinery — retainer 2026-27.pdf</td><td>Oct 12, 2026 at 10:08 AM</td><td>1.3 MB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Halcyon Yoga Co — website build.pdf</td><td>Oct 9, 2026 at 3:37 PM</td><td>688 KB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Pemberton Dental — SOW_final.pdf</td><td>Oct 7, 2026 at 11:15 AM</td><td>524 KB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Quillfeather Books — NDA.pdf</td><td>Oct 2, 2026 at 9:40 AM</td><td>196 KB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Tidewater Brewing — rebrand proposal &amp; terms.pdf</td><td>Sep 28, 2026 at 6:22 PM</td><td>2.4 MB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Mossgiel Architects — maintenance contract.pdf</td><td>Sep 21, 2026 at 2:03 PM</td><td>903 KB</td><td>PDF document</td></tr><tr><td class="n"><span class="dis"></span><span class="ic"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></span>Orchard Lane Vets — renewal v2.pdf</td><td>Sep 15, 2026 at 12:47 PM</td><td>455 KB</td><td>PDF document</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></table></div></div>
+      <div class="status"><span class="path"><span>💽 Macintosh HD</span> <span>›</span> <span>📁 Users</span> <span>›</span> <span>📁 me</span> <span>›</span> <span>📁 Documents</span> <span>›</span> <span>📁 Studio</span> <span>›</span> <span>📁 Contracts 2026</span></span><span class="count">8 items, 87.2 GB available</span></div>
+    </div>
+  </div>
+</body></html>

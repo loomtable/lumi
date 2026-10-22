@@ -1,0 +1,49 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>http.ts — harbor-api</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;width:1280px;height:800px;overflow:hidden;background:#1e1e1e;color:#d4d4d4;font:13px -apple-system,"Helvetica Neue",sans-serif}
+.title{height:30px;background:#3c3c3c;color:#cccccc;display:flex;align-items:center;justify-content:center;position:relative;font-size:13px;border-bottom:1px solid #2b2b2b}
+.lights{position:absolute;left:12px;top:9px;display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.main{display:flex;height:748px}
+.actbar{width:48px;background:#333333;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:22px;color:#858585;font-size:18px}
+.actbar .on{color:#fff}
+.side{width:240px;background:#252526;color:#cccccc;border-right:1px solid #2b2b2b}
+.shead{height:35px;display:flex;align-items:center;padding:0 20px;font-size:11px;letter-spacing:.3px}
+.tr{height:22px;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px}
+.tr.on{background:#37373d;outline:1px solid #0078d4;outline-offset:-1px}
+.ed{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+.tabs{height:35px;background:#252526;display:flex}
+.tab{display:flex;align-items:center;gap:6px;padding:0 14px;background:#2d2d2d;color:#969696;border-right:1px solid #2b2b2b}
+.tab.act{background:#1e1e1e;color:#d4d4d4;border-top:1px solid #0078d4}
+.crumbs{height:22px;display:flex;align-items:center;padding-left:16px;font-size:12px;color:#6e7681;gap:4px}
+.lines{flex:1;font:13px/19px Menlo,Monaco,monospace;overflow:hidden;padding-top:2px}
+.row{display:flex;height:19px;white-space:pre}.row.cur{background:#2a2d2e}
+.ln{width:52px;text-align:right;color:#6e7681;padding-right:22px;flex:none}
+.k{color:#569cd6}.kc{color:#c586c0}.s{color:#ce9178}.c{color:#6a9955}.n{color:#b5cea8}.t{color:#4ec9b0}.f{color:#dcdcaa}.v{color:#9cdcfe}
+.dim{opacity:.5}
+.sq{text-decoration:underline wavy #cca700;text-underline-offset:2px}
+.tip{position:absolute;background:#252526;border:1px solid #454545;color:#d4d4d4;font:12px/1.5 -apple-system,sans-serif;padding:8px 12px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.35);width:440px}
+.tip code{font:12px Menlo,monospace}.tip .acts{border-top:1px solid #454545;margin:8px -12px -8px;padding:5px 12px;color:#3794ff}
+.panel{height:190px;border-top:1px solid #2b2b2b;display:flex;flex-direction:column}
+.ptabs{height:32px;display:flex;align-items:center;gap:22px;padding:0 20px;font-size:11px;color:#8b8b8b;letter-spacing:.3px}
+.ptabs .on{color:#d4d4d4;border-bottom:1px solid #d4d4d4;padding-bottom:3px}
+.pbody{flex:1;padding:2px 20px;font:12px/18px Menlo,monospace;white-space:pre;overflow:hidden}
+.status{height:22px;background:#007acc;color:#fff;font-size:12px;display:flex;align-items:center;gap:16px;padding:0 10px}
+.status .r{margin-left:auto;display:flex;gap:16px}
+
+</style></head><body>
+<div class="title"><span class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span>http.ts — harbor-api</div>
+<div class="main"><div class="actbar"><span class="on">❐</span><span>⌕</span><span>⑂</span><span>▷</span><span>⊞</span></div>
+<div class="side"><div class="shead">EXPLORER</div><div class="tr" style="padding-left:8px">⌄ HARBOR-API</div><div class="tr" style="padding-left:20px">› migrations</div><div class="tr" style="padding-left:20px">⌄ src</div><div class="tr" style="padding-left:32px">⌄ config</div><div class="tr" style="padding-left:44px"><span style='color:#3178c6'>TS</span> db.ts</div><div class="tr on" style="padding-left:44px"><span style='color:#3178c6'>TS</span> http.ts</div><div class="tr" style="padding-left:44px"><span style='color:#3178c6'>TS</span> index.ts</div><div class="tr" style="padding-left:32px">› clients</div><div class="tr" style="padding-left:32px">› routes</div><div class="tr" style="padding-left:32px"><span style='color:#3178c6'>TS</span> server.ts</div><div class="tr" style="padding-left:20px">› test</div><div class="tr" style="padding-left:20px">{} package.json</div></div>
+<div class="ed"><div class="tabs"><div class="tab act"><span style="color:#3178c6">TS</span> http.ts ×</div><div class="tab"><span style="color:#3178c6">TS</span> partners.ts</div></div><div class="crumbs">src › config › <span style="color:#3178c6">TS</span> http.ts › <span style="color:#9cdcfe">REQUEST_TIMEOUT_MS</span></div><div class="lines"><div class="row"><span class="ln">1</span><span class="code"><span class="c">// HTTP client defaults shared by every outbound call.</span></span></div><div class="row"><span class="ln">2</span><span class="code"></span></div><div class="row cur"><span class="ln">3</span><span class="code"><span class="kc">export</span> <span class="k">const</span> <span class="v">REQUEST_TIMEOUT_MS</span> = <span class="n">90_000</span>;</span></div><div class="row"><span class="ln">4</span><span class="code"><span class="kc">export</span> <span class="k">const</span> <span class="v">CONNECT_TIMEOUT_MS</span> = <span class="n">5_000</span>;</span></div><div class="row"><span class="ln">5</span><span class="code"><span class="kc">export</span> <span class="k">const</span> <span class="v">MAX_SOCKETS</span> = <span class="n">64</span>;</span></div><div class="row"><span class="ln">6</span><span class="code"></span></div><div class="row"><span class="ln">7</span><span class="code"><span class="kc">export</span> <span class="k">const</span> <span class="v">RETRY</span> = {</span></div><div class="row"><span class="ln">8</span><span class="code">  <span class="v">attempts</span>: <span class="n">3</span>,</span></div><div class="row"><span class="ln">9</span><span class="code">  <span class="v">baseDelayMs</span>: <span class="n">250</span>,</span></div><div class="row"><span class="ln">10</span><span class="code">  <span class="v">retryOn</span>: [<span class="n">502</span>, <span class="n">503</span>, <span class="n">504</span>],</span></div><div class="row"><span class="ln">11</span><span class="code">} <span class="k">as</span> <span class="k">const</span>;</span></div><div class="row"><span class="ln">12</span><span class="code"></span></div><div class="row"><span class="ln">13</span><span class="code"><span class="kc">export</span> <span class="k">function</span> <span class="f">clientOptions</span>(<span class="v">service</span>: <span class="t">string</span>) {</span></div><div class="row"><span class="ln">14</span><span class="code">  <span class="kc">return</span> {</span></div><div class="row"><span class="ln">15</span><span class="code">    <span class="v">timeout</span>: <span class="v">REQUEST_TIMEOUT_MS</span>,</span></div><div class="row"><span class="ln">16</span><span class="code">    <span class="v">connectTimeout</span>: <span class="v">CONNECT_TIMEOUT_MS</span>,</span></div><div class="row"><span class="ln">17</span><span class="code">    <span class="v">maxSockets</span>: <span class="v">MAX_SOCKETS</span>,</span></div><div class="row"><span class="ln">18</span><span class="code">    <span class="v">headers</span>: { <span class="s">"x-client"</span>: <span class="s">`harbor-api/${</span><span class="v">service</span><span class="s">}`</span> },</span></div><div class="row"><span class="ln">19</span><span class="code">  };</span></div><div class="row"><span class="ln">20</span><span class="code">}</span></div><div class="row"><span class="ln">21</span><span class="code"></span></div></div><div class="panel"><div class="ptabs"><span>PROBLEMS</span><span>OUTPUT</span><span class="on">TERMINAL</span><span>PORTS</span></div>
+<div class="pbody"><span style="color:#56d4dd">~/Developer/harbor-api</span> on <span style="color:#d38cff"> main</span>
+<span style="color:#8bd17c">❯</span> npm run lint
+
+&gt; harbor-api@3.4.0 lint
+&gt; eslint src --max-warnings 0
+
+<span style="color:#56d4dd">~/Developer/harbor-api</span> on <span style="color:#d38cff"> main</span> <span style="color:#e9c46a">took 4s</span>
+<span style="color:#8bd17c">❯</span> <span style="background:#d4d4d4"> </span></div></div></div></div>
+<div class="status"><span>⑂ main</span><span>⊗ 0 ⚠ 0</span><span class="r"><span>Ln 3, Col 33</span><span>Spaces: 2</span><span>UTF-8</span><span>LF</span></span></div>
+</body></html>

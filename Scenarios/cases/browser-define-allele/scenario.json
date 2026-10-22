@@ -1,0 +1,52 @@
+{
+  "id": "browser-define-allele",
+  "app": "browser",
+  "type": "define",
+  "routing": false,
+  "question": "what's an allele",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T16:09:44+05:30",
+    "utterance": "what's an allele",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Eye colour – OpenWiki"
+    },
+    "browser": {
+      "url": "https://wiki.example.org/Eye_colour",
+      "host": "wiki.example.org",
+      "tab_title": "Eye colour – OpenWiki"
+    },
+    "selection": {
+      "text": "allele",
+      "length": 6,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_404",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "one of the alternative versions of a gene",
+      "here, a variant of HERC2 that turns down OCA2 and makes blue eyes more likely"
+    ],
+    "must_not": [
+      "a long genetics lecture"
+    ]
+  },
+  "notes": "Define with a selected word on a wiki page."
+}

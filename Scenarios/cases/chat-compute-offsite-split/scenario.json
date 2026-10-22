@@ -1,0 +1,45 @@
+{
+  "id": "chat-compute-offsite-split",
+  "app": "chat",
+  "type": "compute",
+  "routing": false,
+  "question": "how much do i owe marta",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:14:40+05:30",
+    "utterance": "how much do i owe marta",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "offsite-crew (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#offsite-crew",
+      "thread": null
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c09",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "$414.80",
+      "Total $1,840.00 + $412.50 + $236.30 = $2,488.80, split evenly 6 ways"
+    ],
+    "must_not": [
+      "split by a number other than 6"
+    ]
+  }
+}

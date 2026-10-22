@@ -1,0 +1,46 @@
+{
+  "id": "chat-catch-up-other-channel",
+  "app": "chat",
+  "type": "catch-up",
+  "routing": true,
+  "question": "catch me up on what happened in payments eng yesterday",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:47:10+05:30",
+    "utterance": "catch me up on what happened in payments eng yesterday",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "random (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#random",
+      "thread": null
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_c02",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "#payments-eng is not the open channel, so its messages are not on screen (only an unread badge of 47)",
+      "Deep needs to read #payments-eng history from yesterday (Oct 13) and summarise decided / open / waiting on you"
+    ],
+    "must_not": [
+      "summarise #random as if it were #payments-eng",
+      "invent what was said in #payments-eng"
+    ]
+  },
+  "notes": "Needs another channel that is not visible: Deep with the Slack session, not Quick."
+}

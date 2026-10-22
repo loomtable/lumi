@@ -1,0 +1,43 @@
+{
+  "id": "pdf-route-termination-notice",
+  "app": "pdf",
+  "type": "summarise",
+  "routing": true,
+  "question": "how much notice do i have to give to move out",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T22:06:45+05:30",
+    "utterance": "how much notice do i have to give to move out",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Tenancy_Agreement_14_Alder_Row.pdf – Page 2 of 14",
+      "document": "/Users/me/Documents/Flat/Tenancy_Agreement_14_Alder_Row.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_220645",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "page 2 of 14 covers rent, deposit and bills; it points to clause 17 (Ending the tenancy), which isn't on screen",
+      "hand-off: read clause 17 in the PDF for the tenant's notice period"
+    ],
+    "must_not": [
+      "giving a typical notice period (e.g. one or two months) as if it were in this agreement",
+      "quoting clause 3.3's one month, which is the landlord's rent-review notice"
+    ]
+  },
+  "notes": "Routing: a simple-sounding lookup, but the visible page only refers to clause 17 on a later page; the notice period needs the rest of the file → deep. Clause 3.3's 'one month' is a trap."
+}

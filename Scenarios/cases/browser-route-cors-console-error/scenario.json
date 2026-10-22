@@ -1,0 +1,70 @@
+{
+  "id": "browser-route-cors-console-error",
+  "app": "browser",
+  "type": "explain-code",
+  "routing": true,
+  "question": "what does this red error mean",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T22:47:30+05:30",
+    "utterance": "what does this red error mean",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Stockroom – Orders"
+    },
+    "browser": {
+      "url": "http://localhost:5173/orders",
+      "host": "localhost",
+      "tab_title": "Stockroom – Orders"
+    },
+    "local_server": {
+      "port": 5173,
+      "pid": 51904,
+      "cwd": "/Users/me/Developer/stockroom/web",
+      "command": "vite"
+    },
+    "cursor": {
+      "x": 520,
+      "y": 612,
+      "element": {
+        "role": "AXStaticText",
+        "label": "Console message"
+      }
+    },
+    "recent": [
+      {
+        "app": "Ghostty",
+        "cwd": "/Users/me/Developer/stockroom/api",
+        "command": "go run ./cmd/api"
+      }
+    ],
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_r02",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "it's a CORS block: the API at localhost:8080 answered without an Access-Control-Allow-Origin header, so the browser refused to hand the response to the page on localhost:5173",
+      "the request itself reached the API (it came back 200 OK), so the server is up; the missing header is why the page shows 'Couldn't load orders'",
+      "the fix is on the API side: allow the origin http://localhost:5173 (or proxy /api through the Vite dev server)"
+    ],
+    "must_not": [
+      "handing off to the repo: they asked what the error means and the console prints all of it",
+      "saying the API is down or returned an error status"
+    ]
+  },
+  "notes": "Routing hard negative: localhost + local_server looks like a repo job, but the question is what the visible error means, and Chrome's message spells it out."
+}

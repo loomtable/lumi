@@ -1,0 +1,50 @@
+{
+  "id": "spreadsheet-convert-text-numbers",
+  "app": "spreadsheet",
+  "type": "approval",
+  "routing": false,
+  "question": "convert these to real numbers so the total works",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T17:02:26+05:30",
+    "utterance": "convert these to real numbers so the total works",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "vendor-payments-export.xlsx",
+      "document": "/Users/me/Documents/vendor-payments-export.xlsx"
+    },
+    "selection": {
+      "text": "1,240.00\n985.50\n2,310.00\n640.25\n1,105.75\n3,020.00\n455.50\n1,890.00",
+      "length": 65,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_931",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "converts the 8 amounts in E2:E9 from text to numbers",
+      "the total in E10 goes from 0.00 to 11,647.00",
+      "waits for the user's OK (Convert / Cancel), with undo available"
+    ],
+    "must_not": [
+      "changing the cells before the user approves",
+      "changing columns other than E"
+    ]
+  },
+  "notes": "Approval card with a before/after. 1,240+985.50+2,310+640.25+1,105.75+3,020+455.50+1,890 = 11,647.00."
+}

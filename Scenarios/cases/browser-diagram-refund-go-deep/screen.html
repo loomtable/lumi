@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Refunds and webhooks – Tollgate Docs</title>
+<style>
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 15px/1.6 -apple-system, "Helvetica Neue", sans-serif; background: #0f1115; color: #d6dae1; }
+  .chrome { height: 44px; background: #23252b; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #aaa; border-bottom: 1px solid #000; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; } .r { background: #ff5f57; } .y { background: #febc2e; } .g { background: #28c840; }
+  .url { margin: 0 auto; width: 480px; text-align: center; background: #34363d; color: #ddd; border-radius: 7px; padding: 4px 12px; }
+  .top { height: 52px; display: flex; align-items: center; padding: 0 28px; border-bottom: 1px solid #22252c; gap: 26px; color: #8b93a1; font-size: 14px; }
+  .logo { color: #a78bfa; font-weight: 800; font-size: 17px; margin-right: 20px; }
+  .wrap { display: flex; height: 704px; }
+  .side { width: 240px; border-right: 1px solid #22252c; padding: 18px 22px; font-size: 13px; color: #8b93a1; }
+  .side h4 { color: #e5e7eb; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; margin: 14px 0 6px; }
+  .side div { padding: 3px 0; } .side .on { color: #a78bfa; font-weight: 600; }
+  main { flex: 1; padding: 22px 44px; }
+  h1 { color: #f3f4f6; font-size: 28px; margin: 0 0 6px; }
+  h2 { color: #f3f4f6; font-size: 18px; margin: 18px 0 6px; }
+  p { margin: 0 0 10px; color: #c2c8d2; }
+  code { background: #1b1e25; border: 1px solid #2a2e37; border-radius: 4px; padding: 1px 5px; font: 13px Menlo, monospace; color: #f0abfc; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #22252c; }
+  th { color: #8b93a1; font-weight: 600; }
+  .note { border-left: 3px solid #a78bfa; background: #171a22; padding: 8px 14px; font-size: 14px; margin-top: 12px; }
+  .toc { width: 200px; padding: 22px 18px; font-size: 12.5px; color: #8b93a1; border-left: 1px solid #22252c; }
+  .toc div { padding: 3px 0; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">docs.example-tollgate.com/payments/refunds</span></div>
+  <div class="top"><span class="logo">◆ Tollgate</span><span>Guides</span><span>API reference</span><span>SDKs</span><span>Changelog</span></div>
+  <div class="wrap">
+    <div class="side"><h4>Payments</h4><div>Charges</div><div>Payment intents</div><div class="on">Refunds</div><div>Disputes</div><h4>Events</h4><div>Webhooks overview</div><div>Event types</div><div>Retries and signatures</div></div>
+    <main>
+      <h1>Refunds and webhooks</h1>
+      <p>A refund moves through several states. Create one with <code>POST /v2/refunds</code> against a captured charge; Tollgate replies <code>202 Accepted</code> and the refund starts as <code>pending</code>.</p>
+      <h2>Refund states</h2>
+      <table>
+        <tr><th>State</th><th>Meaning</th><th>Webhook sent</th></tr>
+        <tr><td><code>pending</code></td><td>Accepted, waiting for the card network</td><td><code>refund.created</code></td></tr>
+        <tr><td><code>succeeded</code></td><td>Funds returned to the customer (1–5 business days)</td><td><code>refund.succeeded</code></td></tr>
+        <tr><td><code>failed</code></td><td>Card closed or expired; balance credited back to you</td><td><code>refund.failed</code></td></tr>
+        <tr><td><code>requires_action</code></td><td>Bank transfer refunds need the customer's IBAN</td><td><code>refund.requires_action</code></td></tr>
+      </table>
+      <h2>Handling events</h2>
+      <p>Your endpoint must return a <code>2xx</code> within 10 seconds. Failed deliveries are retried with exponential backoff for up to 72 hours. Verify the <code>Tollgate-Signature</code> header before trusting any payload.</p>
+      <div class="note">Partial refunds create one refund object each. A charge is marked <code>refunded</code> only when the refunded total equals the captured amount. See <u>Disputes</u> for how refunds interact with chargebacks.</div>
+    </main>
+    <div class="toc"><div style="color:#e5e7eb;font-weight:600">On this page</div><div>Refund states</div><div>Handling events</div><div>Partial refunds</div><div>Testing refunds</div></div>
+  </div>
+</body></html>

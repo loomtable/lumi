@@ -1,0 +1,58 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>~/Developer/pebble-notes</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1280px; height: 800px; overflow: hidden; background: #ffffff; color: #1d1d1f;
+         font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  .win { width: 1280px; height: 800px; display: flex; flex-direction: column; }
+  .titlebar { height: 30px; background: #e8e8e8; color: #4a4a4a; display: flex; align-items: center;
+              position: relative; font-size: 13px; font-weight: 600; border-bottom: 1px solid #c4c4c4; }
+  .titlebar .ttl { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+  .dots { display: flex; gap: 8px; padding: 0 14px; z-index: 1; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .d1 { background: #ff5f57; } .d2 { background: #febc2e; } .d3 { background: #28c840; }
+  .tabs { display: flex; }
+  .strip { height: 28px; background: #dcdcdc; border-bottom: 1px solid #c4c4c4; }
+  .strip .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px;
+                color: #4a4a4a; border-right: 1px solid #c4c4c4; }
+  .strip .tab.active { background: #f6f6f6; color: #1d1d1f; font-weight: 600; }
+  .ghost { height: 38px; }
+  .ghost .tabs { flex: 1; height: 100%; gap: 2px; padding-right: 10px; }
+  .ghost .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500;
+                margin: 6px 0; border-radius: 6px; color: #4a4a4a; }
+  .ghost .tab.active { background: #f6f6f6; color: #1d1d1f; }
+  .plus { padding: 0 14px; font-size: 16px; font-weight: 400; }
+  pre { flex: 1; margin: 0; padding: 10px 14px; font: 13px/1.5 "SF Mono", Menlo, Monaco, monospace;
+        white-space: pre; overflow: hidden; }
+  .r { color: #c4262e; } .g { color: #2f7d32; } .y { color: #9a6a00; } .b { color: #1d5fbf; }
+  .m { color: #8e3fb5; } .c { color: #0a7f8a; } .dim { color: #8a8a8e; } .bold { font-weight: 700; }
+  .u { text-decoration: underline; }
+  .hl { background: #b4d5ff; }
+  .cur { background: #1d1d1f; color: #ffffff; }
+</style></head>
+<body><div class="win">
+<div class="titlebar ghost"><span class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span><div class="tabs"><div class="tab active">pebble-notes</div><div class="tab">expo start</div></div><span class="plus">+</span></div>
+<pre><span class="c bold">~/Developer/pebble-notes</span> on <span class="m bold"> main</span>
+<span class="g bold">❯</span> git commit -am "wip: add sync toggle"
+[main a91c3e2] wip: add sync toggle
+ 3 files changed, 47 insertions(+), 9 deletions(-)
+
+<span class="c bold">~/Developer/pebble-notes</span> on <span class="m bold"> main</span> <span class="r">⇡1</span>
+<span class="g bold">❯</span> git log --oneline -5
+<span class="y">a91c3e2</span> <span class="b">(</span><span class="c bold">HEAD -&gt; </span><span class="g bold">main</span><span class="b">)</span> wip: add sync toggle
+<span class="y">5f02b8d</span> <span class="b">(</span><span class="r bold">origin/main</span><span class="b">)</span> Fix note list scroll jump on iPad
+<span class="y">c17e4a9</span> Add markdown checkbox rendering
+<span class="y">0b3dd21</span> Bump expo-sqlite to 15.1.2
+<span class="y">94ae610</span> Move theme tokens into one file
+
+<span class="c bold">~/Developer/pebble-notes</span> on <span class="m bold"> main</span> <span class="r">⇡1</span>
+<span class="g bold">❯</span> git status
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+
+<span class="c bold">~/Developer/pebble-notes</span> on <span class="m bold"> main</span> <span class="r">⇡1</span>
+<span class="g bold">❯</span> <span class="cur"> </span></pre>
+</div></body></html>

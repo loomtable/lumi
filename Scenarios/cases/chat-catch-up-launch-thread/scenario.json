@@ -1,0 +1,57 @@
+{
+  "id": "chat-catch-up-launch-thread",
+  "app": "chat",
+  "type": "catch-up",
+  "routing": true,
+  "question": "catch me up on this thread",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:31:44+05:30",
+    "utterance": "catch me up on this thread",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "launch-aurora (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#launch-aurora",
+      "thread": "Heads up: we may need to move the Aurora 2.0 launch"
+    },
+    "cursor": {
+      "x": 1010,
+      "y": 400,
+      "element": {
+        "role": "AXGroup",
+        "label": "Thread"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c01",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "Decided: the Aurora 2.0 launch moves from Oct 20 to Mon Oct 26 because the Ledgerly payments cert is still pending",
+      "QA can sign off by Fri Oct 23 if live keys arrive by Wed Oct 21",
+      "Waiting on you: Marta asked you to confirm the release notes draft will be ready by Oct 22",
+      "Henrik is chasing Ledgerly daily; Priya is updating the roadmap and telling support"
+    ],
+    "must_not": [
+      "hand off to Deep: the whole thread is visible",
+      "invent replies that are not in the thread"
+    ]
+  },
+  "notes": "Hard negative: a long thread sounds like work, but all 8 replies are on screen, so Quick answers."
+}

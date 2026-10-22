@@ -1,0 +1,100 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Calder vs Novak — Full Match | Example Open 2026 Final — Clipstream</title>
+<style>
+* { box-sizing: border-box; }
+:root { --bg:#ffffff; --text:#0f0f0f; --sub:#606060; --chrome:#e3e3e1; --url:#ffffff; --pill:#f2f2f2; --line:#e5e5e5; --inv:#0f0f0f; --invt:#ffffff; --panel:#ffffff; }
+.dark { --bg:#0f0f0f; --text:#f1f1f1; --sub:#aaaaaa; --chrome:#2b2b2d; --url:#1d1d1f; --pill:#272727; --line:#303030; --inv:#f1f1f1; --invt:#0f0f0f; --panel:#1a1a1a; }
+body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); }
+.chrome { height: 44px; background: var(--chrome); display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: var(--sub); }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.url { margin: 0 220px 0 120px; background: var(--url); border-radius: 6px; padding: 4px 12px; flex: 1; text-align: center; color: var(--text); }
+header { height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+.logo { font-weight: 700; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
+.logo b { background: #e62117; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+.search { margin-left: 150px; width: 520px; height: 38px; border: 1px solid var(--line); border-radius: 20px; padding: 8px 18px; color: var(--sub); }
+.hdr-r { margin-left: auto; display: flex; gap: 14px; align-items: center; color: var(--sub); }
+.me { width: 30px; height: 30px; border-radius: 50%; background: #2f8f6a; color: #fff; text-align: center; line-height: 30px; font-weight: 600; }
+main { display: flex; gap: 24px; padding: 4px 24px 0; }
+.player { position: relative; width: 880px; height: 541px; background: #000; border-radius: 12px; overflow: hidden; }
+.player svg { display: block; }
+.cap { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; padding: 0 70px; }
+.cap span { background: rgba(8,8,8,.78); color: #fff; font-size: 21px; line-height: 1.45; padding: 2px 8px; }
+.ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #0f0f0f; color: #fff; }
+.bar { position: absolute; left: 12px; right: 12px; top: 2px; height: 4px; background: rgba(255,255,255,.3); }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #e62117; }
+.bar s { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,255,255,.45); }
+.bar u { position: absolute; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #e62117; margin-left: -6px; }
+.bar em { position: absolute; top: 0; bottom: 0; width: 2px; background: #0f0f0f; }
+.row { position: absolute; left: 16px; right: 16px; bottom: 9px; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+.row .r { margin-left: auto; display: flex; gap: 18px; }
+.chap { color: #ddd; }
+.cc { border-bottom: 2px solid #e62117; font-weight: 700; font-size: 12px; }
+h1 { font-size: 20px; line-height: 1.3; margin: 10px 0 6px; width: 880px; }
+.ch { display: flex; align-items: center; gap: 12px; }
+.av { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; text-align: center; line-height: 40px; }
+.cn { font-weight: 600; font-size: 15px; }
+.subs { color: var(--sub); font-size: 12px; }
+.sub { background: var(--inv); color: var(--invt); border-radius: 18px; padding: 8px 16px; font-weight: 600; margin-left: 12px; }
+.acts { margin-left: auto; display: flex; gap: 8px; }
+.act { background: var(--pill); border-radius: 18px; padding: 8px 14px; font-weight: 500; }
+.side { width: 328px; }
+.chips { display: flex; gap: 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; }
+.chip { background: var(--pill); border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+.chip.on { background: var(--inv); color: var(--invt); }
+.un { display: flex; gap: 8px; margin-bottom: 10px; }
+.th { position: relative; flex: none; width: 168px; height: 94px; border-radius: 8px; }
+.dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+.ut { font-weight: 600; font-size: 14px; line-height: 1.3; max-height: 37px; overflow: hidden; }
+.uc { color: var(--sub); font-size: 12px; margin-top: 3px; }
+.cpanel { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); overflow: hidden; }
+.cpanel .hd { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 16px; }
+.cpanel .hd span { margin-left: auto; font-weight: 400; color: var(--sub); font-size: 18px; }
+.ci { display: flex; gap: 10px; padding: 7px 12px; align-items: center; }
+.ci.on { background: color-mix(in srgb, var(--text) 10%, transparent); }
+.ci .t2 { flex: none; width: 96px; height: 54px; border-radius: 6px; }
+.ci .nm { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.ci .ts { display: inline-block; margin-top: 3px; font-size: 12px; color: #3ea6ff; background: color-mix(in srgb, #3ea6ff 14%, transparent); border-radius: 4px; padding: 0 5px; }
+</style></head>
+<body class="light">
+  <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">https://www.example-video.com/watch?v=eo26-final-full</span></div>
+  <header><div class="logo"><b>▶</b>Clipstream</div><div class="search">Search</div><div class="hdr-r"><span>＋ Create</span><span>🔔</span><span class="me">M</span></div></header>
+  <main>
+    <div>
+      <div class="player">
+        <svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg">
+<rect width="960" height="540" fill="#2f6d4a"/>
+<rect x="0" y="0" width="960" height="110" fill="#1d2a3a"/>
+<g fill="#26384d"><rect x="20" y="20" width="920" height="16"/><rect x="20" y="48" width="920" height="16"/><rect x="20" y="76" width="920" height="16"/></g>
+<polygon points="190,140 770,140 900,520 60,520" fill="#3c86c4"/>
+<polygon points="190,140 770,140 900,520 60,520" fill="none" stroke="#fff" stroke-width="4"/>
+<line x1="246" y1="140" x2="140" y2="520" stroke="#fff" stroke-width="3"/><line x1="714" y1="140" x2="820" y2="520" stroke="#fff" stroke-width="3"/>
+<line x1="160" y1="300" x2="800" y2="300" stroke="#eee" stroke-width="5"/><line x1="480" y1="140" x2="480" y2="520" stroke="#fff" stroke-width="2" stroke-dasharray="0"/>
+<rect x="155" y="285" width="650" height="18" fill="rgba(255,255,255,.18)"/>
+<circle cx="430" cy="200" r="11" fill="#f5d06f"/><rect x="420" y="211" width="20" height="38" fill="#fff"/>
+<circle cx="560" cy="430" r="16" fill="#e9b08e"/><rect x="545" y="446" width="30" height="56" fill="#d1495b"/>
+<circle cx="610" cy="350" r="6" fill="#e2f24a"/>
+<rect x="30" y="20" width="360" height="86" rx="6" fill="rgba(10,16,28,.88)"/>
+<g font-family="Helvetica Neue, Arial, sans-serif" font-size="20" fill="#fff">
+<text x="46" y="52" font-weight="700">CALDER</text><text x="46" y="88" font-weight="700">NOVAK</text>
+<circle cx="150" cy="83" r="5" fill="#e2f24a"/>
+<text x="210" y="52">6</text><text x="210" y="88" fill="#9aa">4</text>
+<text x="250" y="52">2</text><text x="250" y="88">3</text>
+<rect x="290" y="30" width="80" height="30" fill="#e2f24a"/><text x="318" y="52" fill="#111" font-weight="700">15</text>
+<rect x="290" y="66" width="80" height="30" fill="#e2f24a"/><text x="318" y="88" fill="#111" font-weight="700">30</text>
+</g>
+<text x="760" y="60" font-size="16" fill="#fff" font-weight="700" font-family="Helvetica Neue, Arial, sans-serif">EXAMPLE OPEN 2026</text><text x="808" y="84" font-size="14" fill="#cfd8e3" font-family="Helvetica Neue, Arial, sans-serif">WOMEN'S FINAL</text>
+</svg>
+        
+        <div class="ctl"><div class="bar"><s style="width:31%"></s><i style="width:23.8%"></i><u style="left:23.8%"></u></div>
+          <div class="row"><span>▶</span><span>⏭</span><span>🔊</span><span>38:20 / 2:41:05 <span class="chap">· Set 2 ›</span></span>
+            <span class="r"><span class="cc">CC</span><span>⚙</span><span>▭</span><span>⛶</span></span></div></div>
+      </div>
+      <h1>Calder vs Novak — Full Match | Example Open 2026 Women&#x27;s Final</h1>
+      <div class="ch"><div class="av" style="background:#1d2a3a">C</div>
+        <div><div class="cn">Courtline TV</div><div class="subs">906K subscribers</div></div>
+        <span class="sub">Subscribe</span>
+        <span class="acts"><span class="act">👍 4.1K</span><span class="act">↗ Share</span><span class="act">⤓ Save</span><span class="act">···</span></span></div>
+    </div>
+    <div class="side"><div class="chips"><span class="chip on">All</span><span class="chip">From this channel</span><span class="chip">Related</span><span class="chip">Recently uploaded</span></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3c86c4,#9fd0f0)"><span class="dur">14:52</span></div><div><div class="ut">Example Open 2026 final: extended highlights</div><div class="uc">Courtline TV</div><div class="uc">Uploaded 1 day ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#2f6d4a,#9ad1a9)"><span class="dur">2:05:13</span></div><div><div class="ut">Semi-final: Calder vs Ortega — full match</div><div class="uc">Courtline TV</div><div class="uc">61K views · 4 days ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#d1495b,#f5b0ba)"><span class="dur">9:47</span></div><div><div class="ut">Mila Novak&#x27;s road to the final</div><div class="uc">Courtline TV</div><div class="uc">33K views · 3 days ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#8a6d1f,#f2d27a)"><span class="dur">11:30</span></div><div><div class="ut">Top 10 rallies of the week</div><div class="uc">Rally Room</div><div class="uc">120K views · 2 days ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#333,#888)"><span class="dur">16:08</span></div><div><div class="ut">Serve technique breakdown</div><div class="uc">Rally Room</div><div class="uc">48K views · 2 months ago</div></div></div></div>
+  </main>
+</body></html>

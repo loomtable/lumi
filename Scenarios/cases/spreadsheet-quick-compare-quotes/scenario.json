@@ -1,0 +1,45 @@
+{
+  "id": "spreadsheet-quick-compare-quotes",
+  "app": "spreadsheet",
+  "type": "compare",
+  "routing": true,
+  "question": "quick answer which quote should we go with we need them within two weeks",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T13:40:02+05:30",
+    "utterance": "quick answer which quote should we go with we need them within two weeks",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Laptop Refresh Quotes.xlsx",
+      "document": "/Users/me/Documents/Laptop Refresh Quotes.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_928",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "Northwind is cheapest ($29,500) but its 21-day lead time misses the two-week deadline",
+      "Corvid Systems ($30,375, 14 days) is the cheapest quote that arrives within two weeks",
+      "Bluefin costs $250 more ($30,625) but arrives in 10 days with a 3-year warranty"
+    ],
+    "must_not": [
+      "handing off to Deep despite 'quick answer'",
+      "recommending Northwind"
+    ]
+  },
+  "notes": "'quick answer' override; comparison over visible rows."
+}

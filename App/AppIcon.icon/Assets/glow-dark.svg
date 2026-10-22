@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 100 824 824" width="1024" height="1024">
+  <defs>
+    <radialGradient id="halo" cx="512" cy="530" r="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF8A5B" stop-opacity=".6"/><stop offset=".5" stop-color="#FF8A5B" stop-opacity=".16"/><stop offset="1" stop-color="#FF8A5B" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pool" cx="512" cy="790" r="260" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 790) scale(1 .24) translate(0 -790)">
+      <stop offset="0" stop-color="#FF8A5B" stop-opacity=".4"/><stop offset="1" stop-color="#FF8A5B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="512" cy="530" r="420" fill="url(#halo)"/>
+  <ellipse cx="512" cy="790" rx="260" ry="62" fill="url(#pool)"/>
+</svg>

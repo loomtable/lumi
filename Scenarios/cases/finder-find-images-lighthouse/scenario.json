@@ -1,0 +1,49 @@
+{
+  "id": "finder-find-images-lighthouse",
+  "app": "finder",
+  "type": "find-images",
+  "routing": true,
+  "question": "find me some more photos like this one, a lighthouse at dusk, wide enough for the homepage",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "find me some more photos like this one, a lighthouse at dusk, wide enough for the homepage",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Hero images"
+    },
+    "finder": {
+      "folder": "/Users/me/Projects/Saltmarsh Inn/Website/Hero images",
+      "selected": [
+        "/Users/me/Projects/Saltmarsh Inn/Website/Hero images/lighthouse-dusk-draft.png"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "shape": "card",
+    "facts": [
+      "needs a web image search for wide lighthouse-at-dusk photos",
+      "the reference is the selected lighthouse-dusk-draft.png (2400×1600) for the Saltmarsh Inn homepage hero"
+    ],
+    "must_not": [
+      "claiming to have found images without searching the web",
+      "using the user's own folder images as the results"
+    ]
+  },
+  "notes": "Routing: find-images needs the web, so it goes Deep even though the reference image is on screen."
+}

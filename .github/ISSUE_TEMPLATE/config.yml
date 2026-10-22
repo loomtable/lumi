@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and help
+    url: https://lumi.loomtable.com
+    about: Email hello@loomtable.com with questions about using Lumi.
+  - name: Security problem
+    url: https://github.com/loomtable/lumi/blob/main/SECURITY.md
+    about: Please email security@loomtable.com instead of opening a public issue.
+  - name: Loomtable
+    url: https://loomtable.com
+    about: The studio that makes Lumi.

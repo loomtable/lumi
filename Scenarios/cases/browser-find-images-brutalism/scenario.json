@@ -1,0 +1,48 @@
+{
+  "id": "browser-find-images-brutalism",
+  "app": "browser",
+  "type": "find-images",
+  "routing": true,
+  "question": "find me six more buildings like this one for my moodboard",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T15:36:22+05:30",
+    "utterance": "find me six more buildings like this one for my moodboard",
+    "app": {
+      "name": "Arc",
+      "bundle": "company.thebrowser.Browser",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Harlow Civic Tower – OpenAtlas"
+    },
+    "browser": {
+      "url": "https://wiki.example.org/Harlow_Civic_Tower",
+      "host": "wiki.example.org",
+      "tab_title": "Harlow Civic Tower – OpenAtlas"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_333",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hands off to search the web for images of similar buildings",
+      "similar means Brutalist, board-marked concrete, 1960s–70s civic or office towers like Harlow Civic Tower",
+      "returns about six images with their sources"
+    ],
+    "must_not": [
+      "inventing image URLs in a quick answer",
+      "only describing the one image on screen"
+    ]
+  },
+  "notes": "Routing: find-images needs the web, so deep."
+}

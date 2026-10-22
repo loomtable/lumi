@@ -1,0 +1,56 @@
+{
+  "id": "chat-draft-reply-oncall-cover",
+  "app": "chat",
+  "type": "draft-reply",
+  "routing": false,
+  "question": "draft a reply saying yes but i have a dentist thing the afternoon of the 22nd so someone needs to cover 2 to 5",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:09:30+05:30",
+    "utterance": "draft a reply saying yes but i have a dentist thing the afternoon of the 22nd so someone needs to cover 2 to 5",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "Dana Whitcombe (DM) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "Dana Whitcombe (DM)",
+      "thread": null
+    },
+    "cursor": {
+      "x": 760,
+      "y": 690,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Message Dana Whitcombe"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c03",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "Says yes to covering primary on-call Wed Oct 21 to Fri Oct 23",
+      "Flags being unavailable Thu Oct 22 from 2 to 5 pm and asks for someone to cover that window",
+      "Draft is offered for Insert into the composer, addressed to Dana"
+    ],
+    "must_not": [
+      "send the message",
+      "change the on-call dates",
+      "mention the dentist in more detail than the user gave"
+    ]
+  }
+}

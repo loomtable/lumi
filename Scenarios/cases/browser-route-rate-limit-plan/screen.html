@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Rate limits – Relaymail API docs</title>
+<style>
+body{margin:0;width:1280px;height:800px;overflow:hidden;font:15px/1.6 -apple-system,"Helvetica Neue",sans-serif;background:#fff;color:#1c2024}
+.saf{height:52px;background:#f3f3f3;border-bottom:1px solid #d9d9d9;display:flex;align-items:center;padding:0 14px;gap:14px;color:#6b6b6b;position:relative}
+.lights{display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.addr{margin:0 auto;width:520px;background:#e5e5e5;border-radius:8px;padding:5px 12px;text-align:center;color:#1c1c1c;font-size:13px}
+.dh{height:58px;border-bottom:1px solid #e6e8eb;display:flex;align-items:center;padding:0 28px;gap:28px;font-size:14px;color:#60646c}
+.brand{font-weight:800;color:#1c2024;font-size:17px}.brand i{font-style:normal;color:#e5484d}
+.srch{margin-left:auto;border:1px solid #e0e1e6;border-radius:8px;padding:4px 12px;width:240px;color:#8b8d98;font-size:13px}
+.body{display:flex;height:690px}
+.nav{width:250px;border-right:1px solid #e6e8eb;padding:22px 20px;font-size:14px;color:#60646c}
+.nav h6{margin:14px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#8b8d98}
+.nav div{padding:3px 10px;border-radius:6px}.nav .on{background:#feebec;color:#ce2c31;font-weight:600}
+article{flex:1;padding:30px 56px;max-width:760px}
+.crumb{font-size:13px;color:#8b8d98}h1{margin:4px 0 10px;font-size:32px;letter-spacing:-.02em}
+p{margin:0 0 14px;color:#3b3f45}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 18px}
+th{text-align:left;font-weight:600;color:#60646c;border-bottom:1px solid #e0e1e6;padding:8px 12px;background:#f9f9fb}
+td{border-bottom:1px solid #eceef0;padding:9px 12px}
+code{font:13px Menlo,monospace;background:#f0f0f3;padding:1px 6px;border-radius:5px}
+.note{border-left:3px solid #e5484d;background:#fff7f7;padding:10px 14px;border-radius:0 8px 8px 0;font-size:14px;color:#3b3f45}
+.toc{width:200px;padding:30px 18px;font-size:13px;color:#8b8d98}.toc div{padding:3px 0}.toc .on{color:#ce2c31}
+</style></head><body>
+<div class="saf"><span class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><span>‹ ›</span><span class="addr">🔒 docs.example-relay.com</span><span>⇧ ＋</span></div>
+<div class="dh"><span class="brand"><i>✉</i> Relaymail</span><span>Guides</span><span style="color:#1c2024;font-weight:600">API reference</span><span>SDKs</span><span>Changelog</span><span class="srch">Search docs  ⌘K</span></div>
+<div class="body"><div class="nav"><h6>Getting started</h6><div>Authentication</div><div>Sending email</div><div>Webhooks</div><h6>Platform</h6><div>Errors</div><div class="on">Rate limits</div><div>Pagination</div><div>Idempotency</div><div>Plans &amp; billing</div></div>
+<article><div class="crumb">API reference / Platform</div><h1>Rate limits</h1>
+<p>Limits apply per API key. Requests over the limit return <code>429 Too Many Requests</code> with a <code>Retry-After</code> header in seconds.</p>
+<table><tr><th>Plan</th><th>Requests / second</th><th>Burst</th><th>Requests / day</th></tr>
+<tr><td><b>Free</b></td><td>20</td><td>40</td><td>10,000</td></tr>
+<tr><td><b>Starter</b></td><td>60</td><td>120</td><td>250,000</td></tr>
+<tr><td><b>Team</b></td><td>200</td><td>400</td><td>2,000,000</td></tr>
+<tr><td><b>Enterprise</b></td><td colspan="3">Custom — contact sales</td></tr></table>
+<p><b>Burst</b> is the most requests accepted in any single second, as long as your average over the last 10 seconds stays within the per-second limit.</p>
+<div class="note">Daily limits reset at 00:00 UTC. Batch endpoints count as one request per call, regardless of the number of messages.</div>
+</article>
+<div class="toc"><div style="font-weight:600;color:#1c2024">On this page</div><div class="on">Limits by plan</div><div>Burst</div><div>Handling 429s</div><div>Raising your limits</div></div></div>
+</body></html>

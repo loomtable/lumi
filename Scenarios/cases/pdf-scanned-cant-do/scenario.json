@@ -1,0 +1,52 @@
+{
+  "id": "pdf-scanned-cant-do",
+  "app": "pdf",
+  "type": "cant-do",
+  "routing": false,
+  "question": "copy the account number from this letter",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "copy the account number from this letter",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Scan_2026-10-11_bank_letter.pdf – Page 1 of 2",
+      "document": "/Users/me/Documents/Scans/Scan_2026-10-11_bank_letter.pdf"
+    },
+    "cursor": {
+      "x": 640,
+      "y": 330,
+      "element": {
+        "role": "AXImage",
+        "label": "Page 1"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "the page is a scanned image with no selectable text, and it's too blurry to read the number reliably",
+      "offers one fix: read it with OCR"
+    ],
+    "must_not": [
+      "guessing or inventing an account number",
+      "copying anything to the clipboard"
+    ]
+  },
+  "notes": "Dark appearance. The text is drawn with a CSS blur so the digits can't be read from the screenshot."
+}

@@ -1,0 +1,49 @@
+{
+  "id": "browser-annotate-form-errors",
+  "app": "browser",
+  "type": "annotate",
+  "routing": false,
+  "question": "what do i still need to fix on this form",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T13:51:19+05:30",
+    "utterance": "what do i still need to fix on this form",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Tenancy application – Keystone Lettings"
+    },
+    "browser": {
+      "url": "https://apply.example-keystone.com/application/step-2",
+      "host": "apply.example-keystone.com",
+      "tab_title": "Tenancy application – Keystone Lettings"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_270",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "three problems, each marked",
+      "Date of birth must be DD/MM/YYYY, so 03/07/1994 instead of 1994-07-03",
+      "Postcode MB4 9Q is incomplete and needs both parts, like MB4 9QT",
+      "Proof of income needs at least one payslip or bank statement uploaded (PDF or JPG under 10 MB)"
+    ],
+    "must_not": [
+      "guessing the full postcode as fact"
+    ]
+  },
+  "notes": "Annotate: 'I've marked three' with numbered marks on the red fields."
+}

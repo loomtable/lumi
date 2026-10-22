@@ -1,0 +1,46 @@
+{
+  "id": "pdf-policy-page-summary",
+  "app": "pdf",
+  "type": "summarise",
+  "routing": true,
+  "question": "summarise this page",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "summarise this page",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Orbital_Freight_Travel_and_Expenses_Policy_2026.pdf – Page 7 of 22",
+      "document": "/Users/me/Documents/HR/Orbital_Freight_Travel_and_Expenses_Policy_2026.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "book flights through the Navigo portal at least 14 days ahead",
+      "economy under 6 hours, premium economy for a 6-hour-plus leg, business only for a 10-hour-plus leg with VP approval in writing",
+      "one checked bag reimbursed; seat fees only on flights over 3 hours; lounge, wifi and upgrades are personal unless wifi is pre-agreed for work",
+      "lowest logical fare, and loyalty points must not drive the booking or the extra cost is charged back"
+    ],
+    "must_not": [
+      "handing off to Deep just because the PDF has 22 pages",
+      "summarising sections not on this page"
+    ]
+  },
+  "notes": "Routing hard negative: a long, dense page in a long document, but the user asked about this page, which is fully visible. Quick."
+}

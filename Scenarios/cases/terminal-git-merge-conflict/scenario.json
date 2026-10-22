@@ -1,0 +1,46 @@
+{
+  "id": "terminal-git-merge-conflict",
+  "app": "terminal",
+  "type": "explain-code",
+  "routing": false,
+  "question": "what does this mean",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:03:10+05:30",
+    "utterance": "what does this mean",
+    "app": {
+      "name": "Terminal",
+      "bundle": "com.apple.Terminal",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "harbor-api — -zsh — 132×40"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/harbor-api",
+      "command": "-zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_t02",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "pulling main into feature/booking-limits hit a merge conflict in src/routes/bookings.py",
+      "requirements.txt merged cleanly and is already staged",
+      "resolve the conflict markers in bookings.py, then `git add` it and `git commit`; or `git merge --abort` to back out"
+    ],
+    "must_not": [
+      "telling the user to force-push or reset --hard"
+    ]
+  }
+}

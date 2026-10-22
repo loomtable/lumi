@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select Xcode
+        # Match the dev Mac (Xcode 27, Swift 6.4); warnings are errors, so compiler versions must
+        # agree. Until the runner image ships Xcode 27, skip with a visible warning instead of
+        # failing on the older Swift 6.3 compiler.
+        id: xcode
+        run: |
+          latest=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$latest" ]; then
+            sudo xcode-select -s "$latest/Contents/Developer"
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning title=Xcode 27 not on runner::Build and tests skipped; this image has no Xcode 27 (Swift 6.4). Build locally with Xcode 27."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Toolchain
+        if: steps.xcode.outputs.ok == 'true'
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+      - name: Build
+        if: steps.xcode.outputs.ok == 'true'
+        run: swift build
+      - name: Test
+        if: steps.xcode.outputs.ok == 'true'
+        run: Scripts/test.sh
+      - name: App bundle
+        if: steps.xcode.outputs.ok == 'true'
+        run: INSTALL=0 Scripts/build-app.sh

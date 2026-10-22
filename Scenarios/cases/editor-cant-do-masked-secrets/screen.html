@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>.env.production — parcelpost</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; width:1280px; height:800px; overflow:hidden; background:#1e1e1e; color:#d4d4d4;
+  font: 13px -apple-system, "Helvetica Neue", sans-serif; }
+.title { height:30px; background:#3c3c3c; color:#cccccc; display:flex; align-items:center;
+  justify-content:center; position:relative; font-size:13px; border-bottom:1px solid #2b2b2b; }
+.lights { position:absolute; left:12px; top:9px; display:flex; gap:8px; }
+.lights i { width:12px; height:12px; border-radius:50%; display:block; }
+.cmd { background:#252526; border:1px solid #2b2b2b; border-radius:6px; padding:2px 90px; color:#8b8b8b; font-size:12px; }
+.main { display:flex; height:748px; }
+.actbar { width:48px; background:#333333; display:flex; flex-direction:column; align-items:center; padding-top:6px; }
+.ai { width:48px; height:48px; display:flex; align-items:center; justify-content:center; color:#858585; position:relative; }
+.ai.on { color:#ffffff; border-left:2px solid #ffffff; }
+.ai b { position:absolute; right:8px; bottom:9px; background:#0078d4; color:#fff; font-size:9px; border-radius:8px; padding:1px 4px; }
+.side { width:250px; background:#252526; color:#cccccc; position:relative; border-right:1px solid #2b2b2b; }
+.shead { height:35px; display:flex; align-items:center; justify-content:space-between; padding:0 12px 0 20px; font-size:11px; color:#bbbbbb; letter-spacing:.3px; }
+.ws { font-size:11px; font-weight:700; padding:3px 8px; }
+.tr { height:22px; display:flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; padding-right:10px; }
+.tra { background:#37373d; outline:1px solid #0078d4; outline-offset:-1px; }
+.chev { width:14px; text-align:center; color:#8b8b8b; font-size:12px; }
+.fi { font: 700 8px Menlo, monospace; width:14px; text-align:center; }
+.nm { flex:1; overflow:hidden; text-overflow:ellipsis; }
+.nm.mod { color:#cca700; }
+.gm { color:#cca700; font-size:11px; }
+.outline { position:absolute; bottom:22px; left:0; right:0; height:22px; border-top:1px solid #2b2b2b; font-size:11px; font-weight:700; padding:4px 8px; }
+.editor { flex:1; display:flex; flex-direction:column; min-width:0; }
+.panes { flex:1; display:flex; min-height:0; }
+.pane { position:relative; display:flex; flex-direction:column; border-right:1px solid #2b2b2b; overflow:hidden; }
+.tabs { height:35px; background:#252526; display:flex; position:relative; }
+.tab { flex:none; display:flex; align-items:center; gap:6px; padding:0 10px 0 12px; background:#2d2d2d; color:#969696; border-right:1px solid #2b2b2b; white-space:nowrap; }
+.tab.act { background:#1e1e1e; color:#ffffff; border-top:1px solid #0078d4; }
+.tab .x { width:14px; text-align:center; font-size:14px; }
+.tabacts { position:absolute; right:8px; top:9px; display:flex; gap:10px; color:#8b8b8b; }
+.crumbs { height:22px; display:flex; align-items:center; padding-left:16px; font-size:12px; color:#a9a9a9; gap:2px; white-space:nowrap; }
+.sep { opacity:.7; }
+.sym { color:#b180d7; }
+.lines { flex:1; padding-top:2px; font: 13px/19px Menlo, Monaco, monospace; overflow:hidden; }
+.row { display:flex; height:19px; white-space:pre; padding-right:80px; }
+.pane.split .row { padding-right:6px; }
+.row.cur { background:#2a2d2e; outline:1px solid #282828; outline-offset:-1px; }
+.ln { width:44px; text-align:right; color:#6e7681; flex:none; }
+.lnact { color:#c6c6c6; }
+.gl { width:22px; flex:none; text-align:center; font-size:10px; }
+.code { flex:1; overflow:hidden; }
+.code.sel { background:#264f78; }
+.selw { background:#264f78; }
+.lensrow { height:17px; }
+.lens { font: 11px -apple-system, sans-serif; color:#999999; line-height:17px; }
+.sq { text-decoration-line: underline; text-decoration-style: wavy; text-underline-offset:1px; text-decoration-thickness:1px; }
+.k { color:#569cd6; } .kc { color:#c586c0; } .s { color:#ce9178; } .c { color:#6a9955; }
+.n { color:#b5cea8; } .t { color:#4ec9b0; } .f { color:#dcdcaa; } .v { color:#9cdcfe; }
+.minimap { position:absolute; right:14px; top:57px; width:70px; height:300px; opacity:.35; }
+.minimap i { position:absolute; height:2px; background:#d4d4d4; }
+.panel { border-top:1px solid #2b2b2b; background:#1e1e1e; display:flex; flex-direction:column; }
+.ptabs { height:35px; display:flex; align-items:center; gap:22px; padding:0 20px; font-size:11px; color:#8b8b8b; letter-spacing:.3px; }
+.pt.on { color:#ffffff; border-bottom:1px solid #ffffff; padding-bottom:4px; margin-top:4px; }
+.pright { margin-left:auto; }
+.pbody { flex:1; padding:2px 20px; font: 12px/17px Menlo, Monaco, monospace; white-space:pre; overflow:hidden; }
+.status { height:22px; background:#007acc; color:#fff; display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:0 8px; }
+.status span { padding:0 7px; }
+.red { color:#f14c4c; } .yel { color:#cca700; } .grn { color:#89d185; } .dim { color:#8b8b8b; }
+.bold { font-weight:700; }
+.prob { font: 13px/22px -apple-system, sans-serif; white-space:nowrap; }
+
+</style></head>
+<body>
+<div class="title"><div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+<span class="cmd">🔍 parcelpost</span></div>
+<div class="main"><div class="actbar"><div class="ai on"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3h7l5 5v13H7z M14 3v5h5" /></svg></div><div class="ai"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/></svg></div><div class="ai"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="5" r="2"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="9" r="2"/><path d="M7 7v10 M17 11c0 4-10 2-10 6"/></svg></div><div class="ai"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 5l11 7-11 7z"/></svg></div><div class="ai"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3h6 M10 3v6l-5 10h14l-5-10V3"/></svg></div><div class="ai"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg></div></div><div class="side"><div class="shead">EXPLORER<span>···</span></div><div class="ws">⌄ PARCELPOST</div><div class="tr" style="padding-left:12px"><span class="chev">›</span><span class="nm">app</span></div><div class="tr" style="padding-left:12px"><span class="chev">›</span><span class="nm">db</span></div><div class="tr" style="padding-left:12px"><span class="chev">›</span><span class="nm">scripts</span></div><div class="tr" style="padding-left:12px"><span class="fi" style="color:#999999">⚙</span><span class="nm">.env.example</span></div><div class="tr tra" style="padding-left:12px"><span class="fi" style="color:#999999">⚙</span><span class="nm">.env.production</span></div><div class="tr" style="padding-left:12px"><span class="fi" style="color:#999">≡</span><span class="nm">.gitignore</span></div><div class="tr" style="padding-left:12px"><span class="fi" style="color:#cb171e">Y</span><span class="nm">docker-compose.yml</span></div><div class="tr" style="padding-left:12px"><span class="fi" style="color:#cbcb41">{}</span><span class="nm">package.json</span></div><div class="tr" style="padding-left:12px"><span class="fi" style="color:#519aba">M↓</span><span class="nm">README.md</span></div><div class="outline">› OUTLINE</div><div class="outline" style="bottom:0">› TIMELINE</div></div>
+<div class="editor"><div class="panes"><div class="pane" style="width:982px"><div class="tabs"><div class="tab act"><span class="fi" style="color:#999999">⚙</span><span>.env.production</span><span class="x">×</span></div><div class="tab"><span class="fi" style="color:#999999">⚙</span><span>.env.example</span><span class="x"></span></div><div class="tabacts"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><rect x="1.5" y="2.5" width="13" height="11"/><path d="M8 2.5v11"/></svg><span>···</span></div></div><div class="crumbs">.env.production</div><div class="lines"><div class="row"><span class="ln">1</span><span class="gl"></span><span class="code"><span class="c"># Production — values are injected by the deploy pipeline. Do not commit real secrets.</span></span></div><div class="row"><span class="ln">2</span><span class="gl"></span><span class="code"><span class="v">APP_ENV</span>=<span class="s">production</span></span></div><div class="row"><span class="ln">3</span><span class="gl"></span><span class="code"><span class="v">APP_URL</span>=<span class="s">https://app.example-parcelpost.com</span></span></div><div class="row"><span class="ln">4</span><span class="gl"></span><span class="code"><span class="v">LOG_LEVEL</span>=<span class="s">info</span></span></div><div class="row"><span class="ln">5</span><span class="gl"></span><span class="code"> </span></div><div class="row cur"><span class="ln lnact">6</span><span class="gl"></span><span class="code"><span class="v">DATABASE_URL</span>=<span class="s">●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●</span></span></div><div class="row"><span class="ln">7</span><span class="gl"></span><span class="code"><span class="v">DATABASE_POOL_SIZE</span>=<span class="s">●●</span></span></div><div class="row"><span class="ln">8</span><span class="gl"></span><span class="code"><span class="v">REDIS_URL</span>=<span class="s">●●●●●●●●●●●●●●●●●●●●●●●●●●●</span></span></div><div class="row"><span class="ln">9</span><span class="gl"></span><span class="code"> </span></div><div class="row"><span class="ln">10</span><span class="gl"></span><span class="code"><span class="v">STRIPE_SECRET_KEY</span>=<span class="s">●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●</span></span></div><div class="row"><span class="ln">11</span><span class="gl"></span><span class="code"><span class="v">STRIPE_WEBHOOK_SECRET</span>=<span class="s">●●●●●●●●●●●●●●●●●●●●●●●●●</span></span></div><div class="row"><span class="ln">12</span><span class="gl"></span><span class="code"><span class="v">MAPS_API_KEY</span>=<span class="s">●●●●●●●●●●●●●●●●●●●●</span></span></div><div class="row"><span class="ln">13</span><span class="gl"></span><span class="code"> </span></div><div class="row"><span class="ln">14</span><span class="gl"></span><span class="code"><span class="v">SENTRY_DSN</span>=<span class="s">●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●</span></span></div></div><div class="minimap"><i style="top:4px;left:6.0px;width:60px"></i><i style="top:7px;left:6.0px;width:16.2px"></i><i style="top:10px;left:6.0px;width:37.800000000000004px"></i><i style="top:13px;left:6.0px;width:12.6px"></i><i style="top:19px;left:6.0px;width:45.9px"></i><i style="top:22px;left:6.0px;width:18.900000000000002px"></i><i style="top:25px;left:6.0px;width:33.300000000000004px"></i><i style="top:31px;left:6.0px;width:45.9px"></i><i style="top:34px;left:6.0px;width:42.300000000000004px"></i><i style="top:37px;left:6.0px;width:29.7px"></i><i style="top:43px;left:6.0px;width:54.0px"></i></div></div></div></div></div>
+<div class="status"><div><span>⎇ main</span><span>⟳</span><span>⊗ 0  ⚠ 0</span></div><div><span>Ln 6, Col 14</span><span>Spaces: 4</span><span>UTF-8</span><span>LF</span><span>{ } Properties</span><span>🔒 Cloak: secrets hidden</span><span>🔔</span></div></div>
+
+</body></html>

@@ -1,0 +1,44 @@
+{
+  "id": "pdf-route-invoice-grand-total",
+  "app": "pdf",
+  "type": "compute",
+  "routing": true,
+  "question": "what's the total for the whole invoice, all three pages",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T12:31:57+05:30",
+    "utterance": "what's the total for the whole invoice, all three pages",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "INV-2026-0417_Harbourline_Printing.pdf – Page 3 of 3",
+      "document": "/Users/me/Downloads/INV-2026-0417_Harbourline_Printing.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_123157",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "£4,410.48 total due, including VAT",
+      "subtotal £3,675.40 (£3,186.40 carried forward from page 2 plus this page) and VAT 20% £735.08"
+    ],
+    "must_not": [
+      "handing off to Deep to read pages 1 and 2",
+      "adding only this page's line items"
+    ]
+  },
+  "notes": "Routing hard negative: 'all three pages' sounds like the whole file, but page 3 carries the page-2 subtotal forward and prints the grand total (£3,186.40 + £489.00 = £3,675.40; + VAT £735.08 = £4,410.48) → quick."
+}

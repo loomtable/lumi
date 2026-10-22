@@ -1,0 +1,48 @@
+{
+  "id": "video-compare-btree-lsm-quick",
+  "app": "video",
+  "type": "compare",
+  "routing": true,
+  "question": "quick answer which one should i pick for a write heavy logging workload",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T14:33:19+05:30",
+    "utterance": "quick answer which one should i pick for a write heavy logging workload",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "B-trees vs LSM-trees: Which Storage Engine? — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=dsdd-ep9",
+      "host": "www.example-video.com",
+      "tab_title": "B-trees vs LSM-trees: Which Storage Engine? — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_143319",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "pick the LSM-tree for a write-heavy logging workload",
+      "it appends to a memtable and flushes sequentially instead of updating pages in place with random I/O",
+      "the trade-off: reads may check several SSTables, so B-trees suit read-heavy OLTP"
+    ],
+    "must_not": [
+      "handing off to deep or research despite the 'quick answer' override"
+    ]
+  },
+  "notes": "Routing override: a full engine comparison could justify deep research, but 'quick answer' plus a complete comparison table keeps it quick."
+}

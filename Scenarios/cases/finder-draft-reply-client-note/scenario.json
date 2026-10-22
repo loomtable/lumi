@@ -1,0 +1,50 @@
+{
+  "id": "finder-draft-reply-client-note",
+  "app": "finder",
+  "type": "draft-reply",
+  "routing": false,
+  "question": "draft a reply to grace saying yes we can do that",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "draft a reply to grace saying yes we can do that",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Deliverables"
+    },
+    "finder": {
+      "folder": "/Users/me/Projects/Lakeview Dental/Deliverables",
+      "selected": [
+        "/Users/me/Projects/Lakeview Dental/Deliverables/Note from Grace Okafor.txt"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "addressed to Grace, saying yes",
+      "the final logo is ready as SVG and PNG (Lakeview_Logo_Final.svg / .png)",
+      "the letterhead version will follow by Friday the 16th"
+    ],
+    "must_not": [
+      "claiming a letterhead file already exists",
+      "sending anything"
+    ]
+  },
+  "notes": "Draft-reply from a note shown in Finder's preview pane; the folder shows which files are ready."
+}

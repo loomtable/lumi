@@ -1,0 +1,60 @@
+{
+  "id": "browser-compute-dashboard-error-rate",
+  "app": "browser",
+  "type": "compute",
+  "routing": true,
+  "question": "whats the average error rate across these four services",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:18:03+05:30",
+    "utterance": "whats the average error rate across these four services",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Opsboard – Service health"
+    },
+    "browser": {
+      "url": "http://localhost:4000/health",
+      "host": "localhost",
+      "tab_title": "Opsboard – Service health"
+    },
+    "local_server": {
+      "port": 4000,
+      "pid": 61734,
+      "cwd": "/Users/me/Developer/opsboard",
+      "command": "node server.js"
+    },
+    "recent": [
+      {
+        "app": "Ghostty",
+        "cwd": "/Users/me/Developer/opsboard",
+        "command": "npm start"
+      }
+    ],
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_135",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "the simple average is 1.00% ((0.42 + 1.18 + 0.07 + 2.33) / 4)",
+      "weighted by requests it is about 0.66%; billing-worker at 2.33% is the outlier"
+    ],
+    "must_not": [
+      "opening the repo or handing off to deep: the numbers are on screen"
+    ]
+  },
+  "notes": "Routing hard negative: localhost with a local_server and a repo, but it's arithmetic on visible numbers. Dark page."
+}

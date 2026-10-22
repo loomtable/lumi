@@ -1,0 +1,45 @@
+{
+  "id": "chat-research-feature-flag-vendors",
+  "app": "chat",
+  "type": "research",
+  "routing": true,
+  "question": "research hosted feature flag vendors for this and write me a short report",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:12:48+05:30",
+    "utterance": "research hosted feature flag vendors for this and write me a short report",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "mobile-platform (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#mobile-platform",
+      "thread": null
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c11",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "A report comparing hosted feature-flag vendors for Thursday's planning (Oct 15)",
+      "Criteria from Dana and Ravi: Swift and Kotlin SDKs, per-seat vs per-MAU pricing at ~400k MAU, EU data residency, a self-host option, offline evaluation on mobile"
+    ],
+    "must_not": [
+      "answer from memory in a Quick card",
+      "give a time estimate"
+    ]
+  }
+}

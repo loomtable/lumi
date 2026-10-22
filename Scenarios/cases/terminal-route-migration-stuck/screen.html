@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>npm run db:migrate — tidepool-api</title><style>
+html,body{margin:0;padding:0}
+body{width:1280px;height:800px;overflow:hidden;background:#1c1d22;color:#d6d8de;font-family:-apple-system,"Helvetica Neue",sans-serif}
+.win{width:1280px;height:800px;display:flex;flex-direction:column}
+.titlebar{height:38px;background:#2a2b31;color:#a9abb3;display:flex;align-items:center;border-bottom:1px solid #111216}
+.dots{display:flex;gap:8px;padding:0 14px}.dots i{width:12px;height:12px;border-radius:50%;display:block}
+.tabs{flex:1;display:flex;height:100%;gap:2px;padding-right:10px}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;margin:6px 0;border-radius:6px}
+.tab.active{background:#1c1d22;color:#d6d8de}
+pre{flex:1;margin:0;padding:10px 14px;font:13px/1.5 "SF Mono",Menlo,Monaco,monospace;white-space:pre;overflow:hidden}
+.r{color:#ff6b6b}.g{color:#8bd17c}.y{color:#e9c46a}.b{color:#6cb6ff}.m{color:#d38cff}.c{color:#56d4dd}.dim{color:#7d808a}.bold{font-weight:700}
+.cur{background:#d6d8de;color:#1c1d22}
+</style></head>
+<body><div class="win"><div class="titlebar"><span class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><div class="tabs"><div class="tab active">npm run db:migrate</div><div class="tab">psql</div><div class="tab">api dev</div></div></div>
+<pre><span class="c bold">~/Developer/tidepool-api</span> on <span class="m bold"> feat/order-search</span> <span class="dim">via ⬢ v22.9.0</span>
+<span class="g bold">❯</span> npm run db:migrate
+
+&gt; tidepool-api@1.12.0 db:migrate
+&gt; knex migrate:latest --knexfile db/knexfile.ts
+
+<span class="dim">Using environment:</span> development
+<span class="dim">Requiring external module ts-node/register</span>
+<span class="dim">Database:</span> postgres://tidepool@localhost:5432/tidepool_dev
+Batch 18: 3 pending migrations
+  <span class="g">✔</span> 20261009_create_order_tags.ts                 <span class="dim">(0.21s)</span>
+  <span class="g">✔</span> 20261011_backfill_order_tags.ts               <span class="dim">(4.87s)</span>
+  <span class="y">⠼</span> 20261013_add_index_orders_customer_id.ts      <span class="y">running… 6m 12s</span>
+</pre></div></body></html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Opsboard – Service health</title>
+<style>
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.5 -apple-system, "Helvetica Neue", sans-serif; background: #0b0d12; color: #d1d5db; }
+  .tabs { height: 38px; background: #1d1f24; display: flex; align-items: flex-end; padding: 0 10px; gap: 4px; font-size: 12px; color: #aaa; }
+  .tab { background: #26282d; padding: 7px 14px; border-radius: 8px 8px 0 0; width: 200px; } .tab.on { background: #35363a; color: #eee; }
+  .bar { height: 40px; background: #35363a; display: flex; align-items: center; padding: 0 14px; gap: 14px; color: #aaa; }
+  .omni { flex: 1; background: #202124; border-radius: 18px; padding: 6px 16px; color: #e8eaed; }
+  .app { display: flex; height: 722px; }
+  .side { width: 200px; background: #10131a; border-right: 1px solid #1f2430; padding: 16px; font-size: 13px; color: #9ca3af; }
+  .side .logo { color: #34d399; font-weight: 800; font-size: 16px; margin-bottom: 18px; } .side div { padding: 5px 8px; border-radius: 6px; } .side .on { background: #1a2130; color: #f3f4f6; }
+  main { flex: 1; padding: 20px 28px; }
+  .h { display: flex; align-items: center; margin-bottom: 16px; } .h h1 { font-size: 20px; margin: 0; color: #f3f4f6; } .h .r { margin-left: auto; font-size: 12px; color: #9ca3af; background: #151a24; padding: 5px 10px; border-radius: 6px; border: 1px solid #1f2430; }
+  .kpis { display: flex; gap: 14px; margin-bottom: 18px; }
+  .kpi { flex: 1; background: #121621; border: 1px solid #1f2430; border-radius: 10px; padding: 12px 16px; } .kpi .l { font-size: 12px; color: #9ca3af; } .kpi .v { font-size: 24px; font-weight: 700; color: #f3f4f6; }
+  table { width: 100%; border-collapse: collapse; background: #121621; border: 1px solid #1f2430; border-radius: 10px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid #1f2430; } th { font-size: 12px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .ok { color: #34d399; } .warn { color: #fbbf24; } .bad { color: #f87171; }
+  .pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill.ok { background: #064e3b; } .pill.warn { background: #4a3a0b; } .pill.bad { background: #4c1515; }
+  .chart { margin-top: 18px; background: #121621; border: 1px solid #1f2430; border-radius: 10px; padding: 12px 16px; }
+</style></head>
+<body>
+  <div class="tabs"><div class="tab on">Opsboard – Service health</div><div class="tab">Grid PR #212</div></div>
+  <div class="bar"><span>←</span><span>→</span><span>↻</span><span class="omni">localhost:4000/health</span></div>
+  <div class="app">
+    <div class="side"><div class="logo">● Opsboard</div><div class="on">Service health</div><div>Deploys</div><div>Incidents</div><div>Queues</div><div>Settings</div></div>
+    <main>
+      <div class="h"><h1>Service health</h1><span class="r">Last 24 hours ▾ · env: staging</span></div>
+      <div class="kpis"><div class="kpi"><div class="l">Requests</div><div class="v">3.84M</div></div><div class="kpi"><div class="l">Services</div><div class="v">4</div></div><div class="kpi"><div class="l">Open incidents</div><div class="v">1</div></div><div class="kpi"><div class="l">Deploys today</div><div class="v">6</div></div></div>
+      <table>
+        <tr><th>Service</th><th>Requests</th><th>p95 latency</th><th>Error rate</th><th>Status</th></tr>
+        <tr><td>auth-api</td><td class="num">1,240,118</td><td class="num">84 ms</td><td class="num ok">0.42%</td><td><span class="pill ok">Healthy</span></td></tr>
+        <tr><td>orders-api</td><td class="num">962,407</td><td class="num">212 ms</td><td class="num warn">1.18%</td><td><span class="pill warn">Degraded</span></td></tr>
+        <tr><td>search</td><td class="num">1,301,552</td><td class="num">131 ms</td><td class="num ok">0.07%</td><td><span class="pill ok">Healthy</span></td></tr>
+        <tr><td>billing-worker</td><td class="num">336,890</td><td class="num">1,480 ms</td><td class="num bad">2.33%</td><td><span class="pill bad">Failing</span></td></tr>
+      </table>
+      <div class="chart"><div style="font-size:12px;color:#9ca3af;margin-bottom:6px">Error rate, last 24 h</div>
+        <svg width="1000" height="150" viewBox="0 0 1000 150"><g stroke="#1f2430"><line x1="0" y1="30" x2="1000" y2="30"/><line x1="0" y1="75" x2="1000" y2="75"/><line x1="0" y1="120" x2="1000" y2="120"/></g>
+          <polyline fill="none" stroke="#f87171" stroke-width="2" points="0,110 100,105 200,100 300,96 400,90 500,70 600,62 700,58 800,40 900,45 1000,38"/>
+          <polyline fill="none" stroke="#fbbf24" stroke-width="2" points="0,115 100,112 200,108 300,110 400,104 500,100 600,98 700,96 800,95 900,92 1000,94"/>
+          <polyline fill="none" stroke="#34d399" stroke-width="2" points="0,128 100,126 200,127 300,125 400,126 500,124 600,125 700,126 800,124 900,125 1000,126"/></svg></div>
+    </main>
+  </div>
+</body></html>

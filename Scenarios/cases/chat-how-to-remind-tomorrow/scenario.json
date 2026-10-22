@@ -1,0 +1,53 @@
+{
+  "id": "chat-how-to-remind-tomorrow",
+  "app": "chat",
+  "type": "how-to",
+  "routing": false,
+  "question": "how do i get it to remind me about this tomorrow",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:18:05+05:30",
+    "utterance": "how do i get it to remind me about this tomorrow",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "design-system (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#design-system",
+      "thread": null
+    },
+    "cursor": {
+      "x": 1020,
+      "y": 425,
+      "element": {
+        "role": "AXMenuItem",
+        "label": "Remind me about this"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c10",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "Use \"Remind me about this\" in the message's More actions (⋮) menu, which is already open",
+      "Pick \"Tomorrow\" in its submenu (9:00 AM)"
+    ],
+    "must_not": [
+      "describe slash commands or settings that are not on screen as the main path"
+    ]
+  }
+}

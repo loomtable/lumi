@@ -1,0 +1,52 @@
+{
+  "id": "finder-compare-video-exports",
+  "app": "finder",
+  "type": "compare",
+  "routing": true,
+  "question": "quick answer, which of these three should i send the client for review",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "quick answer, which of these three should i send the client for review",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Tidewater Teaser"
+    },
+    "finder": {
+      "folder": "/Users/me/Movies/Exports/Tidewater Teaser",
+      "selected": [
+        "/Users/me/Movies/Exports/Tidewater Teaser/Tidewater_Teaser_v3_1080p_HEVC.mp4",
+        "/Users/me/Movies/Exports/Tidewater Teaser/Tidewater_Teaser_v3_1080p_H264.mp4",
+        "/Users/me/Movies/Exports/Tidewater Teaser/Tidewater_Teaser_v3_4K_ProRes422.mov"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "the 1080p H.264 MP4 (412.4 MB) is the safe pick for a review: widely playable at a sendable size",
+      "the 1080p HEVC MP4 is the smallest at 198.7 MB",
+      "the 4K ProRes 422 .mov at 18.6 GB is the master and too large to send for review"
+    ],
+    "must_not": [
+      "handing off to Deep to inspect the files",
+      "recommending the v2 export"
+    ]
+  },
+  "notes": "Routing override: \"quick answer\" keeps it in Quick even though Deep could probe the files; names and sizes are enough."
+}

@@ -1,0 +1,55 @@
+{
+  "id": "editor-quick-answer-jest-failure",
+  "app": "editor",
+  "type": "explain-code",
+  "routing": true,
+  "question": "quick answer why is this failing",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T16:48:03+05:30",
+    "utterance": "quick answer why is this failing",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "price.test.ts — tillpoint",
+      "document": "/Users/me/Developer/tillpoint/src/format/price.test.ts"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/tillpoint",
+      "file": "/Users/me/Developer/tillpoint/src/format/price.test.ts"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "recent": [
+      {
+        "app": "Ghostty",
+        "cwd": "/Users/me/Developer/tillpoint",
+        "command": "npx vitest"
+      }
+    ],
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "formatPrice(1234.5, \"USD\") returned \"$1,234.5\" but the test expects \"$1,234.50\"",
+      "the trailing zero is dropped: formatPrice rounds to at most two decimals but doesn't force two (e.g. minimumFractionDigits: 2)"
+    ],
+    "must_not": [
+      "handing off to Deep: the user asked for a quick answer",
+      "claiming to have read src/format/price.ts"
+    ]
+  },
+  "notes": "Routing override: Deep could read price.ts, but 'quick answer' keeps it Quick; the terminal diff is enough."
+}

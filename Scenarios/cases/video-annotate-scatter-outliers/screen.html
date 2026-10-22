@@ -1,0 +1,50 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>STAT 120 · Lecture 7: Residuals and Outliers</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 13px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: #1d1d1f; color: #e8e8ea; }
+  .tb { height: 38px; background: #2c2c2e; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid #000; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .tt { flex: 1; text-align: center; font-weight: 600; color: #cfcfd3; margin-right: 60px; }
+  .wrap { display: flex; height: 762px; }
+  aside { width: 290px; background: #242426; border-right: 1px solid #111; padding: 16px 12px; }
+  .course { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: #8e8e93; }
+  .ct { font-size: 16px; font-weight: 700; margin: 4px 0 2px; }
+  .prof { color: #8e8e93; margin-bottom: 14px; }
+  .it { display: flex; gap: 8px; padding: 7px 8px; border-radius: 6px; color: #c7c7cc; }
+  .it.on { background: #0a84ff; color: #fff; }
+  .it .n { opacity: .6; width: 20px; }
+  .it .d { margin-left: auto; opacity: .7; }
+  .main { flex: 1; padding: 20px 50px; }
+  .player { position: relative; width: 880px; height: 495px; background: #000; border-radius: 6px; overflow: hidden; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; padding: 0 70px; }
+  .cap span { background: rgba(0,0,0,.75); color: #fff; font-size: 20px; line-height: 1.45; padding: 2px 8px; }
+  .tp { width: 880px; display: flex; align-items: center; gap: 14px; margin-top: 14px; font-size: 14px; }
+  .bar { position: relative; flex: 1; height: 5px; background: #48484a; border-radius: 3px; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 41.7%; background: #0a84ff; border-radius: 3px; }
+  .bar u { position: absolute; left: calc(41.7% - 7px); top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .btn { background: #3a3a3c; border-radius: 6px; padding: 4px 10px; }
+  .meta { width: 880px; margin-top: 16px; display: flex; gap: 24px; color: #8e8e93; }
+  .meta b { color: #e8e8ea; font-weight: 600; }
+  .notes { width: 880px; margin-top: 12px; background: #2c2c2e; border-radius: 8px; padding: 10px 14px; color: #c7c7cc; }
+</style></head>
+<body>
+  <div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="tt">STAT 120 · Lecture 7: Residuals and Outliers</span></div>
+  <div class="wrap">
+    <aside><div class="course">STAT 120 · Fall 2026</div><div class="ct">Statistics for Social Sciences</div><div class="prof">Prof. Ingrid Solheim</div><div class="it"><span class="n">01</span><span>Describing data</span><span class="d">41:30</span></div><div class="it"><span class="n">02</span><span>Distributions</span><span class="d">43:12</span></div><div class="it"><span class="n">03</span><span>Sampling</span><span class="d">39:58</span></div><div class="it"><span class="n">04</span><span>Confidence intervals</span><span class="d">46:20</span></div><div class="it"><span class="n">05</span><span>Correlation</span><span class="d">40:44</span></div><div class="it"><span class="n">06</span><span>Simple regression</span><span class="d">45:09</span></div><div class="it on"><span class="n">07</span><span>Residuals and outliers</span><span class="d">44:05</span></div><div class="it"><span class="n">08</span><span>Multiple regression</span><span class="d">48:31</span></div></aside>
+    <div class="main">
+      <div class="player"><svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"><rect width="960" height="540" fill="#ffffff"/>
+<text x="40" y="50" font-size="28" font-weight="700" fill="#1a1a1a" font-family="Helvetica Neue, Arial, sans-serif">Hours studied per week vs exam score (n = 23)</text>
+<line x1="120" y1="460" x2="120" y2="466" stroke="#444"/><text x="115" y="484" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">0</text><line x1="264" y1="460" x2="264" y2="466" stroke="#444"/><text x="259" y="484" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">2</text><line x1="408" y1="460" x2="408" y2="466" stroke="#444"/><text x="403" y="484" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">4</text><line x1="552" y1="460" x2="552" y2="466" stroke="#444"/><text x="547" y="484" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">6</text><line x1="696" y1="460" x2="696" y2="466" stroke="#444"/><text x="691" y="484" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">8</text><line x1="840" y1="460" x2="840" y2="466" stroke="#444"/><text x="835" y="484" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">10</text><line x1="114" y1="460.0" x2="120" y2="460.0" stroke="#444"/><text x="84" y="465.0" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">0</text><line x1="120" y1="460.0" x2="840" y2="460.0" stroke="#eee"/><line x1="114" y1="388.0" x2="120" y2="388.0" stroke="#444"/><text x="84" y="393.0" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">20</text><line x1="120" y1="388.0" x2="840" y2="388.0" stroke="#eee"/><line x1="114" y1="316.0" x2="120" y2="316.0" stroke="#444"/><text x="84" y="321.0" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">40</text><line x1="120" y1="316.0" x2="840" y2="316.0" stroke="#eee"/><line x1="114" y1="244.0" x2="120" y2="244.0" stroke="#444"/><text x="84" y="249.0" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">60</text><line x1="120" y1="244.0" x2="840" y2="244.0" stroke="#eee"/><line x1="114" y1="172.0" x2="120" y2="172.0" stroke="#444"/><text x="84" y="177.0" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">80</text><line x1="120" y1="172.0" x2="840" y2="172.0" stroke="#eee"/><line x1="114" y1="100.0" x2="120" y2="100.0" stroke="#444"/><text x="84" y="105.0" font-size="14" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">100</text><line x1="120" y1="100.0" x2="840" y2="100.0" stroke="#eee"/>
+<line x1="120" y1="460" x2="840" y2="460" stroke="#444" stroke-width="2"/><line x1="120" y1="460" x2="120" y2="90" stroke="#444" stroke-width="2"/>
+<line x1="156.0" y1="316.0" x2="804.0" y2="146.8" stroke="#ff006e" stroke-width="2.5" stroke-dasharray="8 6"/>
+<circle cx="192" cy="309" r="7" fill="#3a86ff"/><circle cx="228" cy="287" r="7" fill="#3a86ff"/><circle cx="300" cy="280" r="7" fill="#3a86ff"/><circle cx="336" cy="262" r="7" fill="#3a86ff"/><circle cx="372" cy="251" r="7" fill="#3a86ff"/><circle cx="408" cy="244" r="7" fill="#3a86ff"/><circle cx="444" cy="233" r="7" fill="#3a86ff"/><circle cx="480" cy="226" r="7" fill="#3a86ff"/><circle cx="516" cy="222" r="7" fill="#3a86ff"/><circle cx="552" cy="208" r="7" fill="#3a86ff"/><circle cx="588" cy="201" r="7" fill="#3a86ff"/><circle cx="624" cy="194" r="7" fill="#3a86ff"/><circle cx="660" cy="183" r="7" fill="#3a86ff"/><circle cx="696" cy="176" r="7" fill="#3a86ff"/><circle cx="732" cy="165" r="7" fill="#3a86ff"/><circle cx="768" cy="158" r="7" fill="#3a86ff"/><circle cx="264" cy="294" r="7" fill="#3a86ff"/><circle cx="552" cy="215" r="7" fill="#3a86ff"/><circle cx="408" cy="255" r="7" fill="#3a86ff"/><circle cx="624" cy="186" r="7" fill="#3a86ff"/><circle cx="228" cy="136" r="7" fill="#3a86ff"/><circle cx="732" cy="359" r="7" fill="#3a86ff"/><circle cx="480" cy="395" r="7" fill="#3a86ff"/>
+<text x="838" y="446" font-size="15" fill="#444" text-anchor="end" font-family="Helvetica Neue, Arial, sans-serif">hours / week →</text>
+<text x="30" y="80" font-size="16" fill="#444" font-family="Helvetica Neue, Arial, sans-serif">score</text>
+<text x="700" y="128.8" font-size="15" fill="#ff006e" font-family="Helvetica Neue, Arial, sans-serif">fitted line, r = 0.61</text></svg><div class="cap"><span>before we talk about leverage, see if you can spot the points that don't fit</span></div></div>
+      <div class="tp"><span class="btn">⏮ 10</span><span class="btn">▶</span><span class="btn">10 ⏭</span><span>18:22</span><span class="bar"><i></i><u></u></span><span>44:05</span><span class="btn">1.25×</span><span class="btn">CC</span></div>
+      <div class="meta"><span><b>Lecture 7: Residuals and Outliers</b></span><span>Recorded Oct 7, 2026</span></div>
+      <div class="notes">📝 My notes: residual = observed − predicted. check plot before trusting r!</div>
+    </div>
+  </div>
+</body></html>

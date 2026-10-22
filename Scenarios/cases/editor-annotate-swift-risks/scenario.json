@@ -1,0 +1,48 @@
+{
+  "id": "editor-annotate-swift-risks",
+  "app": "editor",
+  "type": "annotate",
+  "routing": false,
+  "question": "point out what's risky in this file",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:39:27+05:30",
+    "utterance": "point out what's risky in this file",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "TrailListViewController.swift — Trailmark",
+      "document": "/Users/me/Developer/Trailmark/Trailmark/Map/TrailListViewController.swift"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/Trailmark",
+      "file": "/Users/me/Developer/Trailmark/Trailmark/Map/TrailListViewController.swift"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "line 12: the repeating Timer's closure captures self strongly and the timer is never invalidated, so the view controller leaks and keeps reloading",
+      "line 31: as! TrailCell force-casts the dequeued cell and crashes if the identifier or class is wrong",
+      "line 34: trail.distanceKm! force-unwraps an optional and crashes when a trail has no distance"
+    ],
+    "must_not": [
+      "flagging reload(), which already uses [weak self] and hops to the main queue"
+    ]
+  },
+  "notes": "Annotate: three distinct, visible risks; the safe reload() is a decoy."
+}

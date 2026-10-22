@@ -1,0 +1,47 @@
+{
+  "id": "spreadsheet-define-cagr",
+  "app": "spreadsheet",
+  "type": "define",
+  "routing": false,
+  "question": "what does cagr mean",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T14:22:51+05:30",
+    "utterance": "what does cagr mean",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Five Year Forecast.xlsx",
+      "document": "/Users/me/Documents/Five Year Forecast.xlsx"
+    },
+    "selection": {
+      "text": "CAGR",
+      "length": 4,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_677",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "compound annual growth rate",
+      "the steady yearly growth rate that takes the FY2026 value to the FY2031 value"
+    ],
+    "must_not": [
+      "inventing figures that are not on screen"
+    ]
+  }
+}

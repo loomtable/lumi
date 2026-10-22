@@ -1,0 +1,46 @@
+{
+  "id": "video-define-moral-hazard",
+  "app": "video",
+  "type": "define",
+  "routing": false,
+  "question": "what does moral hazard mean",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:20:13+05:30",
+    "utterance": "what does moral hazard mean",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "ECON 210 Lecture 11: Asymmetric Information — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=econ210-l11",
+      "host": "www.example-video.com",
+      "tab_title": "ECON 210 Lecture 11: Asymmetric Information — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_112013",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "people take more risk once they're insured because someone else bears the cost",
+      "it comes from hidden actions the insurer can't observe after the contract is signed"
+    ],
+    "must_not": [
+      "confusing it with adverse selection (hidden information before the contract)"
+    ]
+  }
+}

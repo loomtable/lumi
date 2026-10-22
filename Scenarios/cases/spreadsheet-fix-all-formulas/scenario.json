@@ -1,0 +1,42 @@
+{
+  "id": "spreadsheet-fix-all-formulas",
+  "app": "spreadsheet",
+  "type": "explain-code",
+  "routing": true,
+  "question": "fix all the broken formulas in this workbook",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T20:14:42+05:30",
+    "utterance": "fix all the broken formulas in this workbook",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "EU Orders Q3.xlsx",
+      "document": "/Users/me/Documents/EU Orders Q3.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_615",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hand-off: repair the #REF! formulas across the whole workbook (July, August, September and Summary tabs)",
+      "visible cause: the USD column multiplies by an exchange-rate cell that was deleted (F4 is =E4*#REF!); the rate 1.08 now sits in H2"
+    ],
+    "must_not": [
+      "claiming the whole workbook is fixed from the one visible sheet"
+    ]
+  },
+  "notes": "'fix all … in this workbook' needs every sheet and edits to the file → deep. E column sums to 20,351.25."
+}

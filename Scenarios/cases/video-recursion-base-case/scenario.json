@@ -1,0 +1,45 @@
+{
+  "id": "video-recursion-base-case",
+  "app": "video",
+  "type": "video-moment",
+  "routing": false,
+  "question": "what did she mean just now about the base case",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T23:05:51+05:30",
+    "utterance": "what did she mean just now about the base case",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Recursion for Beginners — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=recursion-101",
+      "host": "www.example-video.com",
+      "tab_title": "Recursion for Beginners — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_230551",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "the base case is `if n == 0: return 1`, the condition where factorial stops calling itself",
+      "every recursive call works toward it: factorial(3) → factorial(2) → factorial(1) → factorial(0), which returns 1",
+      "without the base case the calls never stop and Python raises a RecursionError (maximum recursion depth exceeded)"
+    ]
+  },
+  "notes": "Code on screen in a dark-mode player; caption carries the remark the user is asking about."
+}

@@ -1,0 +1,51 @@
+{
+  "id": "editor-apply-the-fix",
+  "app": "editor",
+  "type": "approval",
+  "routing": true,
+  "question": "ok apply the fix",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T12:31:55+05:30",
+    "utterance": "ok apply the fix",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "ProfileViewModel.swift — Trailmark",
+      "document": "/Users/me/Developer/Trailmark/Trailmark/Profile/ProfileViewModel.swift"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/Trailmark",
+      "file": "/Users/me/Developer/Trailmark/Trailmark/Profile/ProfileViewModel.swift"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_44",
+      "turn": 2,
+      "previous": [
+        "user: why am i getting these purple warnings",
+        "assistant: load(userID:) sets the @Published properties inside fetchProfile's completion, which runs on URLSession's background queue. Mark ProfileViewModel @MainActor, or hop to the main queue before assigning."
+      ]
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "shape": "rich",
+    "facts": [
+      "the change is to ProfileViewModel.swift: make the @Published updates in load(userID:) happen on the main thread (@MainActor on the class, or dispatch to the main queue in the completion)",
+      "editing the file needs Deep, and the change is shown for the user's OK before it is written"
+    ],
+    "must_not": [
+      "saying the file has already been changed",
+      "writing the edit without an approval step"
+    ]
+  },
+  "notes": "Routing: 'apply the fix' needs a file edit, so Deep, ending in an approval card (Apply / Cancel)."
+}

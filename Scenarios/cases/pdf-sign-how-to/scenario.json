@@ -1,0 +1,45 @@
+{
+  "id": "pdf-sign-how-to",
+  "app": "pdf",
+  "type": "how-to",
+  "routing": false,
+  "question": "how do i sign this",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "how do i sign this",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Tenancy_Renewal_Agreement_2026.pdf – Page 5 of 5",
+      "document": "/Users/me/Documents/Home/Tenancy_Renewal_Agreement_2026.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "click the Markup button (pen tip in a circle) in the toolbar",
+      "click Sign in the markup bar and pick a saved signature or create one (trackpad, camera or iPhone)",
+      "drag the signature onto the Tenant signature line and resize it"
+    ],
+    "must_not": [
+      "telling the user to print and scan it",
+      "signing on their behalf"
+    ]
+  },
+  "notes": "Step pointer: the ring goes on the real Markup button in the toolbar, then Sign."
+}

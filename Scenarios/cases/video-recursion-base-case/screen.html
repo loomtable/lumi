@@ -1,0 +1,78 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Recursion for Beginners — Clipstream</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: #0f0f0f; color: #f1f1f1; }
+  .chrome { height: 44px; background: #2b2b2d; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #aaa; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .url { margin: 0 220px 0 120px; background: #3a3a3c; border-radius: 6px; padding: 4px 12px; flex: 1; text-align: center; color: #f1f1f1; }
+  header { height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .logo { font-weight: 700; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
+  .logo b { background: #e62117; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+  .search { margin-left: 150px; width: 520px; height: 38px; border: 1px solid #272727; border-radius: 20px; padding: 8px 18px; color: #aaa; }
+  .hdr-r { margin-left: auto; display: flex; gap: 14px; align-items: center; color: #aaa; }
+  .me { width: 30px; height: 30px; border-radius: 50%; background: #7a5af5; color: #fff; text-align: center; line-height: 30px; font-weight: 600; }
+  main { display: flex; gap: 24px; padding: 4px 24px 0; }
+  .player { position: relative; width: 880px; height: 541px; background: #0f0f0f; border-radius: 12px; overflow: hidden; }
+  .player svg { display: block; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; padding: 0 70px; }
+  .cap span { background: rgba(8,8,8,.78); color: #fff; font-size: 21px; line-height: 1.45; padding: 2px 8px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #0f0f0f; color: #fff; }
+  .bar { position: absolute; left: 12px; right: 12px; top: 2px; height: 4px; background: rgba(255,255,255,.3); }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 43.8%; background: #e62117; }
+  .bar s { position: absolute; left: 0; top: 0; bottom: 0; width: 51.8%; background: rgba(255,255,255,.45); }
+  .bar u { position: absolute; left: calc(43.8% - 6px); top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #e62117; }
+  .row { position: absolute; left: 16px; right: 16px; bottom: 9px; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+  .row .r { margin-left: auto; display: flex; gap: 18px; }
+  .chap { color: #ddd; }
+  .cc { border-bottom: 2px solid #e62117; font-weight: 700; font-size: 12px; }
+  h1 { font-size: 20px; line-height: 1.3; margin: 10px 0 6px; width: 880px; }
+  .ch { display: flex; align-items: center; gap: 12px; }
+  .av { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; text-align: center; line-height: 40px; }
+  .cn { font-weight: 600; font-size: 15px; }
+  .subs { color: #aaa; font-size: 12px; }
+  .sub { background: #f1f1f1; color: #0f0f0f; border-radius: 18px; padding: 8px 16px; font-weight: 600; margin-left: 12px; }
+  .acts { margin-left: auto; display: flex; gap: 8px; }
+  .act { background: #272727; border-radius: 18px; padding: 8px 14px; font-weight: 500; }
+  .side { width: 328px; }
+  .chips { display: flex; gap: 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; }
+  .chip { background: #272727; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+  .chip.on { background: #f1f1f1; color: #0f0f0f; }
+  .un { display: flex; gap: 8px; margin-bottom: 10px; }
+  .th { position: relative; flex: none; width: 168px; height: 94px; border-radius: 8px; }
+  .dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+  .ut { font-weight: 600; font-size: 14px; line-height: 1.3; max-height: 37px; overflow: hidden; }
+  .uc { color: #aaa; font-size: 12px; margin-top: 3px; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">https://www.example-video.com/watch?v=recursion-101</span></div>
+  <header><div class="logo"><b>▶</b>Clipstream</div><div class="search">Search</div><div class="hdr-r"><span>＋ Create</span><span>🔔</span><span class="me">J</span></div></header>
+  <main>
+    <div>
+      <div class="player">
+        <svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"><rect width="960" height="540" fill="#1e1e1e"/>
+<rect width="960" height="40" fill="#252526"/><text x="20" y="26" font-size="15" fill="#ccc" font-family="Helvetica Neue, Arial, sans-serif">recursion.py</text>
+<text x="34" y="100" font-size="20" fill="#6e7681" font-family="Menlo, Monaco, monospace">1</text><text x="34" y="146" font-size="20" fill="#6e7681" font-family="Menlo, Monaco, monospace">2</text><text x="34" y="192" font-size="20" fill="#6e7681" font-family="Menlo, Monaco, monospace">3</text><text x="34" y="238" font-size="20" fill="#6e7681" font-family="Menlo, Monaco, monospace">4</text>
+<rect x="104" y="118" width="400" height="84" fill="none" stroke="#f9c74f" stroke-width="3" rx="6"/>
+<text x="112" y="270" font-size="18" fill="#f9c74f" font-family="Helvetica Neue, Arial, sans-serif">↑ lines 2–3 stop the recursion</text>
+<text x="70" y="100" font-size="26" font-family="Menlo, Monaco, monospace"><tspan fill="#c586c0">def</tspan><tspan fill="#dcdcaa"> factorial</tspan><tspan fill="#d4d4d4">(n):</tspan></text><text x="70" y="146" font-size="26" font-family="Menlo, Monaco, monospace" xml:space="preserve"><tspan fill="#d4d4d4">    </tspan><tspan fill="#c586c0">if</tspan><tspan fill="#d4d4d4"> n == 0:</tspan></text><text x="560" y="146" font-size="20" fill="#6a9955" font-family="Menlo, Monaco, monospace">#  base case</text><text x="70" y="192" font-size="26" font-family="Menlo, Monaco, monospace" xml:space="preserve"><tspan fill="#d4d4d4">        </tspan><tspan fill="#c586c0">return</tspan><tspan fill="#d4d4d4"> 1</tspan></text><text x="70" y="238" font-size="26" font-family="Menlo, Monaco, monospace" xml:space="preserve"><tspan fill="#d4d4d4">    </tspan><tspan fill="#c586c0">return</tspan><tspan fill="#d4d4d4"> n * factorial(n - 1)</tspan></text><text x="620" y="238" font-size="20" fill="#6a9955" font-family="Menlo, Monaco, monospace">#  recursive case</text>
+<rect x="560" y="268" width="370" height="160" rx="8" fill="#252526" stroke="#3c3c3c"/>
+<text x="576" y="296" font-size="16" fill="#9cdcfe" font-family="Helvetica Neue, Arial, sans-serif">call stack for factorial(3)</text>
+<g font-family="Menlo, Monaco, monospace" font-size="17" fill="#d4d4d4"><text x="576" y="326">factorial(3) → 3 * factorial(2)</text><text x="576" y="352">factorial(2) → 2 * factorial(1)</text><text x="576" y="378">factorial(1) → 1 * factorial(0)</text><text x="576" y="404" fill="#f9c74f">factorial(0) → 1   ← base case</text></g>
+<rect x="70" y="300" width="320" height="60" rx="8" fill="#3a1d1d" stroke="#f14c4c"/>
+<text x="84" y="326" font-size="15" fill="#f14c4c" font-family="Menlo, Monaco, monospace">RecursionError: maximum</text><text x="84" y="348" font-size="15" fill="#f14c4c" font-family="Menlo, Monaco, monospace">recursion depth exceeded</text>
+<text x="84" y="384" font-size="15" fill="#aaa" font-family="Helvetica Neue, Arial, sans-serif">↑ what you get without lines 2–3</text></svg>
+        <div class="cap"><span>without that base case the calls never stop, and Python eventually gives up with a RecursionError</span></div>
+        <div class="ctl"><div class="bar"><s></s><i></i><u></u></div>
+          <div class="row"><span>❚❚</span><span>⏭</span><span>🔊</span><span>7:18 / 16:40 <span class="chap">· The base case ›</span></span>
+            <span class="r"><span class="cc">CC</span><span>⚙</span><span>▭</span><span>⛶</span></span></div></div>
+      </div>
+      <h1>Recursion for Beginners: How a Function Calls Itself (Python)</h1>
+      <div class="ch"><div class="av" style="background:#c2410c">C</div>
+        <div><div class="cn">Code With Mara</div><div class="subs">96.3K subscribers</div></div>
+        <span class="sub">Subscribe</span>
+        <span class="acts"><span class="act">👍 3.1K</span><span class="act">↗ Share</span><span class="act">⤓ Save</span><span class="act">···</span></span></div>
+    </div>
+    <div class="side"><div class="chips"><span class="chip on">All</span><span class="chip">From this channel</span><span class="chip">Related</span><span class="chip">Recently uploaded</span></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b6ea5,#9cc3e6)"><span class="dur">13:22</span></div><div><div class="ut">Memoization: make recursion fast</div><div class="uc">Code With Mara</div><div class="uc">41K views · 3 weeks ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#a5523b,#f0c08a)"><span class="dur">9:48</span></div><div><div class="ut">Stack vs heap, visually</div><div class="uc">Bitwise Studio</div><div class="uc">220K views · 1 year ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b8a5a,#b6e3a0)"><span class="dur">11:05</span></div><div><div class="ut">Python for loops vs recursion</div><div class="uc">Code With Mara</div><div class="uc">33K views · 2 months ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#5b3ba5,#d0a8f0)"><span class="dur">15:37</span></div><div><div class="ut">Tower of Hanoi solved step by step</div><div class="uc">Puzzle Lab</div><div class="uc">502K views · 4 years ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#333,#888)"><span class="dur">12:00</span></div><div><div class="ut">Big-O notation in 12 minutes</div><div class="uc">Northgate CS</div><div class="uc">870K views · 2 years ago</div></div></div></div>
+  </main>
+</body></html>

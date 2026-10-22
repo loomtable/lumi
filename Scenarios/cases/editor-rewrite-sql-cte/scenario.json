@@ -1,0 +1,54 @@
+{
+  "id": "editor-rewrite-sql-cte",
+  "app": "editor",
+  "type": "rewrite",
+  "routing": false,
+  "question": "rewrite this so it's readable, put the paid orders in a cte",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T17:26:50+05:30",
+    "utterance": "rewrite this so it's readable, put the paid orders in a cte",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "revenue_by_region.sql — harbor-analytics",
+      "document": "/Users/me/Developer/harbor-analytics/queries/revenue_by_region.sql"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/harbor-analytics",
+      "file": "/Users/me/Developer/harbor-analytics/queries/revenue_by_region.sql"
+    },
+    "selection": {
+      "text": "select c.region, date_trunc('week', o.created_at) as week, sum(o.amount_cents)/100.0 as revenue,\ncount(distinct o.customer_id) as buyers from orders o join customers c on c.id = o.customer_id\nwhere o.status = 'paid' and o.created_at >= '2026-09-01' and c.region in (select region from regions\nwhere active) group by 1, 2 order by 2, 3 desc;",
+      "length": 340,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "a CTE selects the paid orders created on or after 2026-09-01",
+      "the main query still joins customers on c.id = o.customer_id and keeps only regions where active",
+      "it still returns region, week, revenue as sum(amount_cents)/100.0 and distinct buyers, grouped by region and week, ordered by week then revenue descending"
+    ],
+    "must_not": [
+      "changing what the query returns",
+      "touching the refunds query below"
+    ]
+  },
+  "notes": "Rewrite a selected query; the result must be equivalent and offered with Insert."
+}

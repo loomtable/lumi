@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Hero images</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; background: linear-gradient(160deg,#5b7fa6 0%,#8fa9c4 45%,#c9b79c 100%); font: 13px/1.35 -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif; color: #1d1d1f; }
+  .menubar { height: 25px; background: rgba(246,246,246,.82); color: #111; display: flex; align-items: center; gap: 18px; padding: 0 14px; font-size: 13px; }
+  .menubar b { font-weight: 700; }
+  .menubar .right { margin-left: auto; display: flex; gap: 14px; }
+  .win { position: absolute; left: 36px; top: 42px; width: 1208px; height: 738px; background: #ffffff; border-radius: 12px; overflow: hidden;
+         box-shadow: 0 22px 60px rgba(0,0,0,.45), 0 0 0 .5px rgba(0,0,0,.22); display: flex; }
+  .side { width: 196px; background: #e9e7ec; padding: 46px 10px 10px; color: #2b2b2d; flex: none; }
+  .lights { position: absolute; left: 16px; top: 18px; display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .side h6 { margin: 12px 8px 4px; font-size: 11px; font-weight: 600; color: #8a8a8e; }
+  .side div { padding: 4px 8px; border-radius: 6px; font-size: 13px; display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; }
+  .side div.on { background: rgba(0,0,0,.09); }
+  .side div span { width: 16px; text-align: center; font-size: 12px; filter: saturate(.6); }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .toolbar { height: 52px; background: #f6f5f7; border-bottom: 1px solid #dcdcdf; display: flex; align-items: center; gap: 14px; padding: 0 14px; flex: none; }
+  .toolbar .nav { color: #6e6e73; font-size: 18px; letter-spacing: 10px; }
+  .toolbar .title { font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .toolbar .sp { flex: 1; }
+  .tb { display: flex; gap: 2px; align-items: center; color: #6e6e73; }
+  .tb span { padding: 3px 7px; border-radius: 6px; font-size: 14px; }
+  .tb span.on { background: rgba(0,0,0,.09); color: #1d1d1f; }
+  .search { width: 170px; height: 26px; border-radius: 7px; background: #e6e5e9; color: #6e6e73; padding: 4px 10px; font-size: 12px; }
+  .body { flex: 1; display: flex; min-height: 0; }
+  .list { flex: 1; overflow: hidden; min-width: 0; }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th { text-align: left; font-weight: 500; font-size: 11.5px; color: #6e6e73; background: #fbfbfc; padding: 5px 10px; border-bottom: 1px solid #dcdcdf; border-right: 1px solid #dcdcdf; white-space: nowrap; }
+  th.sort::after { content: " ⌄"; }
+  td { padding: 3px 10px; height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #6e6e73; }
+  td.n { color: #1d1d1f; }
+  td.n .ic { display: inline-flex; vertical-align: middle; margin-right: 7px; width: 18px; justify-content: center; }
+  td.n .dis { display: inline-block; width: 12px; color: #6e6e73; font-size: 9px; }
+  tr:nth-child(even) td { background: #f4f4f6; }
+  tr.sel td { background: #0a63d6 !important; color: rgba(255,255,255,.85); }
+  tr.sel td.n { color: #ffffff; }
+  .cloud { color: #6e6e73; margin-left: 6px; font-size: 12px; }
+  .tag { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
+  .status { height: 26px; flex: none; background: #f6f5f7; border-top: 1px solid #dcdcdf; font-size: 11.5px; color: #6e6e73; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+  .status .path { white-space: nowrap; overflow: hidden; }
+  .status .count { margin-left: auto; white-space: nowrap; }
+  .pane { width: 300px; flex: none; border-left: 1px solid #dcdcdf; background: #fafafa; padding: 20px 18px; overflow: hidden; }
+  .pane .big { display: flex; justify-content: center; margin: 6px 0 14px; }
+  .pane h3 { font-size: 15px; margin: 0 0 2px; word-break: break-word; }
+  .pane .k { color: #6e6e73; font-size: 12px; margin-bottom: 12px; }
+  .pane .info { font-size: 12px; border-top: 1px solid #dcdcdf; padding-top: 10px; }
+  .pane .info div { display: flex; justify-content: space-between; padding: 2px 0; }
+  .pane .info div span:first-child { color: #6e6e73; }
+  .pane .more { color: #0a63d6; font-size: 12px; margin-top: 6px; }
+  .note { background: #ffffff; border: 1px solid #dcdcdf; border-radius: 4px; padding: 14px 14px; font: 12px/1.55 Menlo, monospace; color: #1d1d1f; white-space: pre-wrap; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, 150px); grid-auto-rows: 150px; gap: 8px 6px; padding: 22px 24px; align-content: start; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .cell .t { height: 96px; display: flex; align-items: center; justify-content: center; border-radius: 6px; padding: 4px; }
+  .cell.sel .t { background: rgba(0,0,0,.09); }
+  .cell .l { font-size: 12px; max-width: 140px; padding: 1px 6px; border-radius: 4px; line-height: 1.3; }
+  .cell.sel .l { background: #0a63d6; color: #fff; }
+  .cols { flex: 1; display: flex; min-width: 0; }
+  .col { width: 242px; flex: none; border-right: 1px solid #dcdcdf; padding: 4px 0; }
+  .col div { display: flex; align-items: center; gap: 7px; padding: 3px 10px; height: 24px; white-space: nowrap; }
+  .col div .ch { margin-left: auto; color: #6e6e73; font-size: 10px; }
+  .col div.path { background: rgba(0,0,0,.09); }
+  .col div.sel { background: #0a63d6; color: #fff; }
+  .col div.sel .ch { color: #fff; }
+</style></head>
+<body>
+  <div class="menubar"><svg width="13" height="15" viewBox="0 0 17 20"><circle cx="8.5" cy="10" r="6" fill="currentColor"/></svg><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+    <span class="right"><span>🔋</span><span>Wi‑Fi</span><span>Wed 14 Oct  10:42</span></span></div>
+  <div class="win">
+    <div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="side"><h6>Favorites</h6><div><span>📡</span>AirDrop</div><div><span>🕘</span>Recents</div><div><span>🅰</span>Applications</div><div><span>🖥</span>Desktop</div><div class="on"><span>📄</span>Documents</div><div><span>⬇</span>Downloads</div><h6>iCloud</h6><div><span>☁</span>iCloud Drive</div><div><span>👥</span>Shared</div><h6>Locations</h6><div><span>💽</span>Macintosh HD</div><div><span>🌐</span>Network</div><h6>Tags</h6><div><span>🔴</span>Red</div><div><span>🟠</span>Orange</div><div><span>🟢</span>Green</div><div><span>🔵</span>Blue</div></div>
+    <div class="main">
+      <div class="toolbar"><span class="nav">‹ ›</span><span class="title">Hero images</span><span class="sp"></span>
+        <div class="tb"><span class="on">▦</span><span class="">☰</span><span class="">▥</span><span class="">▭</span></div><div class="tb"><span>⊞ ⌄</span><span>⇪</span><span>◯</span><span>··· ⌄</span></div><div class="search">⌕ Search</div></div>
+      <div class="body"><div class="grid"><div class="cell"><div class="t"><svg width="84" height="84" viewBox="0 0 32 32"><path d="M2 8.5a2 2 0 0 1 2-2h8l2.5 2.5H28a2 2 0 0 1 2 2V25a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#5aa9f0"/><path d="M2 12a2 2 0 0 1 2-2h24a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#7cc0fa"/></svg></div><div class="l">Rejected</div></div><div class="cell sel"><div class="t"><svg width="112" height="84" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice" style="border-radius:2px"><rect width="160" height="120" fill="#f3a46b"/><rect width="160" height="60" fill="#c96f7d"/><rect width="160" height="30" fill="#5b4a7a"/><circle cx="118" cy="66" r="13" fill="#ffd98a"/><rect y="84" width="160" height="36" fill="#2b3a55"/><polygon points="58,84 62,40 70,40 74,84" fill="#f4efe8"/><rect x="60" y="52" width="12" height="6" fill="#c0392b"/><rect x="59" y="68" width="14" height="6" fill="#c0392b"/><rect x="61" y="33" width="10" height="7" fill="#ffe7a0"/><polygon points="60,33 66,26 72,33" fill="#333"/><polygon points="71,36 160,24 160,44" fill="#fff3c4" opacity=".35"/><rect y="84" width="160" height="2" fill="#f4c27a" opacity=".6"/></svg></div><div class="l">lighthouse-dusk-draft.png</div></div><div class="cell"><div class="t"><svg width="112" height="84" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice" style="border-radius:2px"><rect width="160" height="120" fill="#bfe0f2"/><rect y="70" width="160" height="50" fill="#3d7ea6"/><circle cx="34" cy="30" r="12" fill="#fff6c9"/><polygon points="70,72 90,40 92,72" fill="#fff"/><rect x="62" y="72" width="40" height="8" fill="#8a4b2f"/><polygon points="110,74 122,54 124,74" fill="#f6f6f6"/><rect x="104" y="74" width="26" height="5" fill="#2d2d2d"/></svg></div><div class="l">harbour-morning.jpg</div></div><div class="cell"><div class="t"><svg width="112" height="84" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice" style="border-radius:2px"><rect width="160" height="120" fill="#d7ecf7"/><path d="M0 70 Q40 50 80 68 T160 60 V120 H0z" fill="#e8cf98"/><path d="M0 90 Q50 72 100 92 T160 86 V120 H0z" fill="#d6b77a"/><path d="M30 70 l2-12 M36 68 l1-10 M120 64 l2-10" stroke="#6f8f3a" stroke-width="2"/></svg></div><div class="l">dunes-wide.jpg</div></div><div class="cell"><div class="t"><svg width="112" height="84" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice" style="border-radius:2px"><rect width="160" height="120" fill="#efe6da"/><rect x="18" y="62" width="90" height="34" rx="4" fill="#fbfbfb"/><rect x="18" y="52" width="90" height="16" rx="4" fill="#c9b8a3"/><rect x="112" y="20" width="36" height="46" fill="#a8d0e6" stroke="#fff" stroke-width="3"/><rect x="0" y="96" width="160" height="24" fill="#b9946c"/></svg></div><div class="l">room-suite-3.jpg</div></div><div class="cell"><div class="t"><svg width="72" height="72" viewBox="0 0 32 32"><path d="M7 2h13l7 7v19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fdfdfd" stroke="#c7c7cc"/><path d="M20 2v7h7" fill="#e8e8ec" stroke="#c7c7cc"/><rect x="5" y="19" width="22" height="8" rx="1" fill="#e5483f"/><text x="16" y="25" font-size="5" font-family="-apple-system,Helvetica" font-weight="700" fill="#fff" text-anchor="middle">PDF</text></svg></div><div class="l">hero-brief.pdf</div></div></div><div class="pane"><div class="big"><svg width="262" height="196" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice" style="border-radius:2px"><rect width="160" height="120" fill="#f3a46b"/><rect width="160" height="60" fill="#c96f7d"/><rect width="160" height="30" fill="#5b4a7a"/><circle cx="118" cy="66" r="13" fill="#ffd98a"/><rect y="84" width="160" height="36" fill="#2b3a55"/><polygon points="58,84 62,40 70,40 74,84" fill="#f4efe8"/><rect x="60" y="52" width="12" height="6" fill="#c0392b"/><rect x="59" y="68" width="14" height="6" fill="#c0392b"/><rect x="61" y="33" width="10" height="7" fill="#ffe7a0"/><polygon points="60,33 66,26 72,33" fill="#333"/><polygon points="71,36 160,24 160,44" fill="#fff3c4" opacity=".35"/><rect y="84" width="160" height="2" fill="#f4c27a" opacity=".6"/></svg></div><h3>lighthouse-dusk-draft.png</h3><div class="k">PNG image - 2.4 MB</div><div class="info"><div style="font-weight:600;color:inherit"><span style="color:inherit">Information</span><span></span></div><div><span>Created</span><span>Oct 12, 2026 at 6:02 PM</span></div><div><span>Modified</span><span>Oct 12, 2026 at 6:02 PM</span></div><div><span>Dimensions</span><span>2400×1600</span></div></div><div class="more">Show More</div></div></div>
+      <div class="status"><span class="path"><span>💽 Macintosh HD</span> <span>›</span> <span>📁 Users</span> <span>›</span> <span>📁 me</span> <span>›</span> <span>📁 Projects</span> <span>›</span> <span>📁 Saltmarsh Inn</span> <span>›</span> <span>📁 Website</span> <span>›</span> <span>📁 Hero images</span></span><span class="count">1 of 6 selected, 214.6 GB available</span></div>
+    </div>
+  </div>
+</body></html>

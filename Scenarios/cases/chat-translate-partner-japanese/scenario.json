@@ -1,0 +1,52 @@
+{
+  "id": "chat-translate-partner-japanese",
+  "app": "chat",
+  "type": "translate",
+  "routing": false,
+  "question": "translate this for me",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:51:20+05:30",
+    "utterance": "translate this for me",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "ext-kiso-manufacturing (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#ext-kiso-manufacturing",
+      "thread": null
+    },
+    "selection": {
+      "text": "いつもお世話になっております。サンプルの発送が10月28日に延期となりました。大変申し訳ございません。\nまた、修正後の数量（1,200個）で問題ないか、ご確認いただけますでしょうか。\n検査報告書は来週月曜日にお送りします。",
+      "length": 111,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c06",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "The sample shipment has been postponed to October 28, with an apology",
+      "She asks you to confirm the revised quantity of 1,200 units is OK",
+      "The inspection report will be sent next Monday"
+    ],
+    "must_not": [
+      "translate Luis's English message",
+      "change the date or quantity"
+    ]
+  }
+}

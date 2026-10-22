@@ -1,0 +1,44 @@
+{
+  "id": "pdf-letter-translate-spanish",
+  "app": "pdf",
+  "type": "translate",
+  "routing": false,
+  "question": "what does this say in english",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "what does this say in english",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Convocatoria_Junta_Extraordinaria_Las_Acacias.pdf – Page 1 of 2",
+      "document": "/Users/me/Documents/Flat/Convocatoria_Junta_Extraordinaria_Las_Acacias.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "it calls owners to an extraordinary general meeting on Wednesday 28 October 2026 in the building's ground-floor entrance, 19:00 first call and 19:30 second call",
+      "the agenda is approving a €84,600 (VAT included) roof repair quote from Construcciones Ribera S.L.",
+      "and a special levy to pay for it in three instalments (December, January, February), split by each flat's share",
+      "owners who can't attend can give someone their vote with the attached proxy form"
+    ],
+    "must_not": [
+      "changing the amount or dates"
+    ]
+  }
+}

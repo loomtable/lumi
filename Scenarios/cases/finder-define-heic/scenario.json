@@ -1,0 +1,48 @@
+{
+  "id": "finder-define-heic",
+  "app": "finder",
+  "type": "define",
+  "routing": false,
+  "question": "what's a heic file",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "what's a heic file",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Lisbon trip"
+    },
+    "finder": {
+      "folder": "/Users/me/Pictures/Imports/Lisbon trip",
+      "selected": [
+        "/Users/me/Pictures/Imports/Lisbon trip/IMG_4471.HEIC"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "HEIC is the High Efficiency Image format (HEIF), which iPhones use for photos by default",
+      "about half the size of a JPEG at similar quality; some non-Apple apps can't open it"
+    ],
+    "must_not": [
+      "describing the photo instead of the format"
+    ]
+  },
+  "notes": "Define from the Kind column and the selected file."
+}

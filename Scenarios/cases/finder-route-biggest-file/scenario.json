@@ -1,0 +1,46 @@
+{
+  "id": "finder-route-biggest-file",
+  "app": "finder",
+  "type": "compute",
+  "routing": true,
+  "question": "what's taking up the most space in this folder",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T23:02:26+05:30",
+    "utterance": "what's taking up the most space in this folder",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Hartley–Sato Wedding Exports"
+    },
+    "finder": {
+      "folder": "/Users/me/Movies/Client Work/Hartley–Sato Wedding Exports",
+      "selected": []
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_230226",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "wedding-teaser-4k-master.mov is the biggest, at 18.4 GB",
+      "the next largest are ceremony-multicam-proxy.mov (9.7 GB) and speeches-full-1080p.mp4 (6.2 GB)"
+    ],
+    "must_not": [
+      "handing off to Deep to run du on the folder"
+    ]
+  },
+  "notes": "Routing hard negative: sounds like a disk-usage job, but the folder has 11 files and no subfolders, all visible with sizes; the Size column shows 18.4 GB as the largest → quick."
+}

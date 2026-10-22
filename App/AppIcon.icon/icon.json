@@ -1,0 +1,56 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "srgb:1.00000,0.99608,0.98431,1.00000",
+      "srgb:0.93333,0.91765,0.89020,1.00000"
+    ]
+  },
+  "fill-specializations" : [
+    {
+      "appearance" : "dark",
+      "value" : {
+        "linear-gradient" : [
+          "srgb:0.13725,0.14510,0.17255,1.00000",
+          "srgb:0.06667,0.07451,0.09020,1.00000"
+        ]
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : false,
+          "image-name" : "eyes-light.png",
+          "image-name-specializations" : [ { "appearance" : "dark", "value" : "eyes-dark.png" } ],
+          "name" : "eyes"
+        },
+        {
+          "glass" : false,
+          "image-name" : "orb-light.png",
+          "image-name-specializations" : [ { "appearance" : "dark", "value" : "orb-dark.png" } ],
+          "name" : "orb"
+        }
+      ],
+      "name" : "Lumi",
+      "shadow" : { "kind" : "neutral", "opacity" : 0.35 },
+      "translucency" : { "enabled" : false, "value" : 0.5 }
+    },
+    {
+      "layers" : [
+        {
+          "glass" : false,
+          "image-name" : "glow-light.svg",
+          "image-name-specializations" : [ { "appearance" : "dark", "value" : "glow-dark.svg" } ],
+          "name" : "glow"
+        }
+      ],
+      "name" : "Glow",
+      "shadow" : { "kind" : "none", "opacity" : 0.5 },
+      "translucency" : { "enabled" : false, "value" : 0.5 }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [ "macOS" ]
+  }
+}

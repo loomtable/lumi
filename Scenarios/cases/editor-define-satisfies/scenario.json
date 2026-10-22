@@ -1,0 +1,52 @@
+{
+  "id": "editor-define-satisfies",
+  "app": "editor",
+  "type": "define",
+  "routing": false,
+  "question": "what does satisfies mean here",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:14:36+05:30",
+    "utterance": "what does satisfies mean here",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "routes.ts — tillpoint",
+      "document": "/Users/me/Developer/tillpoint/src/config/routes.ts"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/tillpoint",
+      "file": "/Users/me/Developer/tillpoint/src/config/routes.ts"
+    },
+    "selection": {
+      "text": "satisfies",
+      "length": 9,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "satisfies checks that the routes object matches Record<RouteName, RouteConfig> without changing the type TypeScript infers for it",
+      "so a missing or misspelled route name is a compile error, while routes keeps its exact keys and values"
+    ],
+    "must_not": [
+      "saying it converts or casts the object like `as`"
+    ]
+  },
+  "notes": "Define a language keyword selected in code."
+}

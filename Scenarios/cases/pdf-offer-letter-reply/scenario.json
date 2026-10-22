@@ -1,0 +1,50 @@
+{
+  "id": "pdf-offer-letter-reply",
+  "app": "pdf",
+  "type": "draft-reply",
+  "routing": false,
+  "question": "draft a reply accepting but asking if i can start on the 16th instead",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "draft a reply accepting but asking if i can start on the 16th instead",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Offer_Letter_Tidewater_Robotics.pdf – Page 1 of 3",
+      "document": "/Users/me/Documents/Jobs/Offer_Letter_Tidewater_Robotics.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "recent": [
+      {
+        "app": "Mail",
+        "title": "Your offer from Tidewater Robotics"
+      }
+    ],
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "addressed to Hannah, accepting the Senior Firmware Engineer offer",
+      "asks to start on Monday 16 November 2026 instead of Monday 2 November",
+      "short and warm, in a reply the user can insert (it is not sent)"
+    ],
+    "must_not": [
+      "sending the email",
+      "renegotiating salary or other terms the user didn't mention"
+    ]
+  }
+}

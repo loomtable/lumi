@@ -1,0 +1,55 @@
+{
+  "id": "browser-route-pr-what-changed",
+  "app": "browser",
+  "type": "summarise",
+  "routing": true,
+  "question": "what does this pr actually change",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T15:20:05+05:30",
+    "utterance": "what does this pr actually change",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Move cart totals to server-side pricing by tomasz-k · Pull Request #412 · orbitpay/checkout-web"
+    },
+    "browser": {
+      "url": "https://code.example.com/orbitpay/checkout-web/pull/412",
+      "host": "code.example.com",
+      "tab_title": "Move cart totals to server-side pricing · Pull Request #412"
+    },
+    "cursor": {
+      "x": 640,
+      "y": 330,
+      "element": {
+        "role": "AXGroup",
+        "label": "Pull request description"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_r01",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hands off to open the Files changed tab (47 files, 9 commits) of PR #412 and read the diff",
+      "the visible description only says details are in the diff, so the title is all there is on screen"
+    ],
+    "must_not": [
+      "summarising what the 47 files change from the title alone",
+      "inventing specific files or functions that were changed"
+    ]
+  },
+  "notes": "Routing: deep. Sounds like 'summarise this page', but the change lives in the diff on a tab that isn't open; the description says 'details in the diff'."
+}

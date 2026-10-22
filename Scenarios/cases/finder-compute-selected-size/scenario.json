@@ -1,0 +1,53 @@
+{
+  "id": "finder-compute-selected-size",
+  "app": "finder",
+  "type": "compute",
+  "routing": true,
+  "question": "how much space do the selected ones take up together",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "how much space do the selected ones take up together",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Downloads"
+    },
+    "finder": {
+      "folder": "/Users/me/Downloads",
+      "selected": [
+        "/Users/me/Downloads/conference-keynote.mov",
+        "/Users/me/Downloads/Fieldnotes-Installer-3.2.dmg",
+        "/Users/me/Downloads/brand-assets-v2.zip",
+        "/Users/me/Downloads/dataset_sample.csv",
+        "/Users/me/Downloads/onboarding-flow.pdf"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "549 MB in total (549.0 MB)",
+      "5 selected files: 342.9 + 118.3 + 56 + 24.6 + 7.2 MB"
+    ],
+    "must_not": [
+      "handing off to Deep or running du to measure the files",
+      "including the unselected invoice or boarding pass"
+    ]
+  },
+  "notes": "Routing hard negative: sounds like a file-system task, but the sizes are visible, so Quick adds them."
+}

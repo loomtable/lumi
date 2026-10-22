@@ -1,0 +1,48 @@
+{
+  "id": "spreadsheet-translate-supplier-note",
+  "app": "spreadsheet",
+  "type": "translate",
+  "routing": false,
+  "question": "what does this say in english",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:36:18+05:30",
+    "utterance": "what does this say in english",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Preisliste Brenner Metallbau 2026.xlsx",
+      "document": "/Users/me/Downloads/Preisliste Brenner Metallbau 2026.xlsx"
+    },
+    "selection": {
+      "text": "Alle Preise netto zzgl. MwSt. Gültig bis 31.12.2026. Mindestbestellmenge 50 Stück pro Artikel. Ab einem Bestellwert von 500 € entfallen die Versandkosten.",
+      "length": 154,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_914",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "all prices are net, plus VAT, and valid until 31 December 2026",
+      "minimum order is 50 pieces per item",
+      "shipping is free for orders of €500 or more"
+    ],
+    "must_not": [
+      "translating the whole price list when only the note is selected"
+    ]
+  }
+}

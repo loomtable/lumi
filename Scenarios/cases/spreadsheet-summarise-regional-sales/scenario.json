@@ -1,0 +1,44 @@
+{
+  "id": "spreadsheet-summarise-regional-sales",
+  "app": "spreadsheet",
+  "type": "summarise",
+  "routing": false,
+  "question": "give me the gist of this sheet",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T08:47:15+05:30",
+    "utterance": "give me the gist of this sheet",
+    "app": {
+      "name": "Numbers",
+      "bundle": "com.apple.iWork.Numbers",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Regional Sales 2025.numbers",
+      "document": "/Users/me/Documents/Regional Sales 2025.numbers"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_292",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "2025 sales totalled $1,942K, rising every quarter from $437K in Q1 to $541K in Q4",
+      "East is the largest region at $629K",
+      "West grew fastest, from $76K to $121K (+59.2%)",
+      "South is the only region declining, from $98K to $87K (−11.2%)"
+    ],
+    "must_not": [
+      "inventing deal- or rep-level detail from the other tabs"
+    ]
+  }
+}

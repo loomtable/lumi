@@ -1,0 +1,47 @@
+{
+  "id": "chat-route-pasted-snippet-bug",
+  "app": "chat",
+  "type": "explain-code",
+  "routing": true,
+  "question": "whats wrong with leo's code",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T14:08:40+05:30",
+    "utterance": "whats wrong with leo's code",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "dev-help (Channel) - Fernhill - Slack"
+    },
+    "chat": {
+      "channel": "#dev-help"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_r05",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "a product with no reviews passes an empty list, so len(reviews) is 0 and line 5 divides by zero",
+      "that's why it only happens on brand-new products, as Leo says",
+      "guard it, for example `if not reviews: return None` (or 0) before dividing"
+    ],
+    "must_not": [
+      "handing off to the repo: the whole function and the traceback are in the message",
+      "blaming the 'stars' key or the data format"
+    ]
+  },
+  "notes": "Routing hard negative: code plus a traceback sounds like repo work, but the function is pasted in full and the cause is readable."
+}

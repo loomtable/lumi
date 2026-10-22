@@ -1,0 +1,47 @@
+{
+  "id": "finder-annotate-duplicates",
+  "app": "finder",
+  "type": "annotate",
+  "routing": false,
+  "question": "mark the duplicates in here",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "mark the duplicates in here",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Invoices to file"
+    },
+    "finder": {
+      "folder": "/Users/me/Desktop/Invoices to file",
+      "selected": []
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "marks three likely duplicates: Invoice_HL-2291 copy.pdf, Invoice_HL-2304 (1).pdf and Receipt_Kestrel_Print 2.pdf",
+      "each has the same size and modified time as its original"
+    ],
+    "must_not": [
+      "deleting or moving any files",
+      "marking Invoice_HL-2318.pdf or Statement_Sept.pdf"
+    ]
+  },
+  "notes": "Annotate a Finder list with numbered marks; no file changes."
+}

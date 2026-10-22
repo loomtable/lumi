@@ -1,0 +1,52 @@
+{
+  "id": "chat-draft-reply-warmer-followup",
+  "app": "chat",
+  "type": "draft-reply",
+  "routing": false,
+  "question": "make it less stiff and say the fix ships in 4.12 on the 21st",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:38:02+05:30",
+    "utterance": "make it less stiff and say the fix ships in 4.12 on the 21st",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "ext-brightmart (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#ext-brightmart",
+      "thread": "CSV exports still drop the timezone column for us"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c04",
+      "turn": 2,
+      "previous": [
+        "User: draft a reply to tomasz",
+        "Lumi (draft reply): Dear Tomasz, thank you for your patience. We acknowledge the issue with CSV exports omitting the timezone column and are actively working on a resolution. We will update you shortly. Kind regards, Sam"
+      ]
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "A revised draft to Tomasz in a warmer, plainer tone than the previous one",
+      "Says the timezone-column fix ships in version 4.12 on Oct 21",
+      "Acknowledges it has been three weeks and finance has been reconciling by hand"
+    ],
+    "must_not": [
+      "send the reply",
+      "start a new draft that ignores the previous turn",
+      "promise anything beyond 4.12 on the 21st"
+    ]
+  },
+  "notes": "Follow-up at turn 2: edits the draft from turn 1 using facts from the utterance."
+}

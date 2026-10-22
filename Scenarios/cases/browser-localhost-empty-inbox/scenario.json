@@ -1,0 +1,71 @@
+{
+  "id": "browser-localhost-empty-inbox",
+  "app": "browser",
+  "type": "explain-code",
+  "routing": true,
+  "question": "why is this list empty",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T23:31:12+05:30",
+    "utterance": "why is this list empty",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Tasklane – Inbox"
+    },
+    "browser": {
+      "url": "http://localhost:5173/inbox",
+      "host": "localhost",
+      "tab_title": "Tasklane – Inbox"
+    },
+    "local_server": {
+      "port": 5173,
+      "pid": 48211,
+      "cwd": "/Users/me/Developer/tasklane/web",
+      "command": "vite"
+    },
+    "cursor": {
+      "x": 760,
+      "y": 470,
+      "element": {
+        "role": "AXList",
+        "label": "Inbox tasks"
+      }
+    },
+    "recent": [
+      {
+        "app": "Visual Studio Code",
+        "title": "useInbox.ts — web"
+      },
+      {
+        "app": "Ghostty",
+        "cwd": "/Users/me/Developer/tasklane/web",
+        "command": "npm run dev"
+      }
+    ],
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_379",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hands off to the repo at /Users/me/Developer/tasklane/web to find why the Inbox list renders empty",
+      "the sidebar and header say 12 open tasks, so the data exists but the list isn't getting it (fetch, filter or mapping in the inbox code)"
+    ],
+    "must_not": [
+      "guessing a specific cause without looking at the code"
+    ]
+  },
+  "notes": "Routing: clear deep case, localhost bug to repo. Dark page."
+}

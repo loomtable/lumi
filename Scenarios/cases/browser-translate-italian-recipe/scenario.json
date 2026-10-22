@@ -1,0 +1,52 @@
+{
+  "id": "browser-translate-italian-recipe",
+  "app": "browser",
+  "type": "translate",
+  "routing": false,
+  "question": "translate this bit into english",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T19:02:11+05:30",
+    "utterance": "translate this bit into english",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Risotto alla zucca e salvia – La Cucina di Nonna Elsa"
+    },
+    "browser": {
+      "url": "https://www.example-cucina.com/ricette/risotto-zucca-salvia",
+      "host": "www.example-cucina.com",
+      "tab_title": "Risotto alla zucca e salvia – La Cucina di Nonna Elsa"
+    },
+    "selection": {
+      "text": "Tostate il riso in una pentola con metà del burro per due minuti, poi sfumate con il vino bianco. Aggiungete la zucca a cubetti e un mestolo di brodo caldo alla volta, mescolando spesso, per circa diciotto minuti.",
+      "length": 213,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_651",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "toast the rice in a pan with half the butter for two minutes, then deglaze with the white wine",
+      "add the diced pumpkin and hot stock one ladle at a time, stirring often, for about eighteen minutes"
+    ],
+    "must_not": [
+      "translating the whole page instead of the selected step"
+    ]
+  },
+  "notes": "Italian recipe step; source language must be detected from the selection."
+}

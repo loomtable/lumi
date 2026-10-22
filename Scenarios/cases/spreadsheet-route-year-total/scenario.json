@@ -1,0 +1,44 @@
+{
+  "id": "spreadsheet-route-year-total",
+  "app": "spreadsheet",
+  "type": "compute",
+  "routing": true,
+  "question": "how much did we spend in total over the whole year",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:20:32+05:30",
+    "utterance": "how much did we spend in total over the whole year",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Kestrel Studio Expenses 2025.xlsx",
+      "document": "/Users/me/Documents/Kestrel Studio Expenses 2025.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_112032",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "$40,406.00 for the year",
+      "the sum of the twelve Month total cells, F4:F15 (January 2,896.00 … December 4,506.00)"
+    ],
+    "must_not": [
+      "handing off to Deep to open the workbook",
+      "giving only December's total"
+    ]
+  },
+  "notes": "Routing hard negative: 'the whole year' sounds like it needs the file, but all 12 month totals are on screen; Quick adds them (2896 + 3442 + 3201 + 2872 + 3937 + 3455 + 2913 + 2861 + 3840 + 3425 + 3058 + 4506 = 40406)."
+}

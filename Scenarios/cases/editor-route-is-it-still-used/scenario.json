@@ -1,0 +1,54 @@
+{
+  "id": "editor-route-is-it-still-used",
+  "app": "editor",
+  "type": "explain-code",
+  "routing": true,
+  "question": "is anything still calling this",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T12:51:09+05:30",
+    "utterance": "is anything still calling this",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "legacy_export.py — fernhill",
+      "document": "/Users/me/Developer/fernhill/fernhill/reports/legacy_export.py"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/fernhill",
+      "file": "/Users/me/Developer/fernhill/fernhill/reports/legacy_export.py"
+    },
+    "cursor": {
+      "x": 300,
+      "y": 230,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Editor content"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_r08",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hands off to search the fernhill workspace (/Users/me/Developer/fernhill) for callers of export_csv_v1",
+      "the open file only shows the definition and a TODO to remove it once partners are on the v2 exporter; no usages are visible"
+    ],
+    "must_not": [
+      "saying it's unused (or used) without searching the repo"
+    ]
+  },
+  "notes": "Routing: deep. Short yes/no question about the visible function, but answering means searching other files in the repo."
+}

@@ -1,0 +1,13 @@
+# Categories for GitHub's generated release notes, by pull request label.
+changelog:
+  exclude:
+    labels: [ignore-for-release]
+  categories:
+    - title: New
+      labels: [enhancement]
+    - title: Fixed
+      labels: [bug]
+    - title: Docs, recipes and translations
+      labels: [documentation, recipe, translation]
+    - title: Everything else
+      labels: ["*"]

@@ -1,0 +1,43 @@
+{
+  "id": "video-architecture-go-deep",
+  "app": "video",
+  "type": "diagram",
+  "routing": true,
+  "question": "go deep on this, where would this break at black friday traffic",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T22:14:09+05:30",
+    "utterance": "go deep on this, where would this break at black friday traffic",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Scaling Stateful Services — Ana Kowalczyk — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=orbit26-stateful",
+      "host": "www.example-video.com",
+      "tab_title": "Scaling Stateful Services — Ana Kowalczyk — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_221409",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "the hand-off is about stress-testing the checkout architecture on screen at 5× the 4,200 req/s peak",
+      "likely pressure points to examine: the single load balancer, the single Postgres primary taking all writes, Redis holding sessions and carts, and the async replica's ~2 s lag"
+    ]
+  },
+  "notes": "Routing override: the diagram is fully visible and a quick gist would be possible, but 'go deep' asks for careful multi-step analysis."
+}

@@ -1,0 +1,45 @@
+{
+  "id": "terminal-research-webpack-to-vite",
+  "app": "terminal",
+  "type": "research",
+  "routing": true,
+  "question": "research whether we should move this from webpack to vite and write me a report",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T14:47:20+05:30",
+    "utterance": "research whether we should move this from webpack to vite and write me a report",
+    "app": {
+      "name": "iTerm2",
+      "bundle": "com.googlecode.iterm2",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "atlas-dashboard (-zsh)"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/atlas-dashboard",
+      "command": "-zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_t12",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "a report on migrating atlas-dashboard from webpack 5 to Vite",
+      "the current production build takes about 94 seconds and warns about oversized bundles"
+    ],
+    "must_not": [
+      "giving a time estimate for the research"
+    ]
+  },
+  "notes": "Routing: explicit 'research … write me a report' goes to the research lane."
+}

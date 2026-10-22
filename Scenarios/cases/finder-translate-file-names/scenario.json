@@ -1,0 +1,47 @@
+{
+  "id": "finder-translate-file-names",
+  "app": "finder",
+  "type": "translate",
+  "routing": false,
+  "question": "what do these file names mean in english",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "what do these file names mean in english",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Documentos Feria Valencia"
+    },
+    "finder": {
+      "folder": "/Users/me/Downloads/Documentos Feria Valencia",
+      "selected": []
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "Presupuesto_stand_2027 = 2027 stand budget; Contrato firmado = signed contract",
+      "Acta de reunión 3 oct = minutes of the October 3 meeting; Plano del pabellón = hall (pavilion) floor plan",
+      "Fotos del montaje = setup photos; Lista de invitados = guest list; the folder is Valencia trade fair documents"
+    ],
+    "must_not": [
+      "translating the contents of the files"
+    ]
+  },
+  "notes": "Translate visible Spanish file names."
+}

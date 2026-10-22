@@ -1,0 +1,44 @@
+{
+  "id": "spreadsheet-route-open-tickets",
+  "app": "spreadsheet",
+  "type": "compute",
+  "routing": true,
+  "question": "how many tickets are still open",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T18:44:09+05:30",
+    "utterance": "how many tickets are still open",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Helpdesk Tickets Q3.xlsx",
+      "document": "/Users/me/Documents/Support/Helpdesk Tickets Q3.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_184409",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "14 tickets are still open",
+      "the Status filter is set to Open: '14 of 486 records found'"
+    ],
+    "must_not": [
+      "handing off to Deep to count all 486 rows",
+      "answering 486"
+    ]
+  },
+  "notes": "Routing hard negative: 486 tickets sounds like a whole-file count, but the Status filter is already on Open and the status bar says 14 of 486 records found → quick."
+}

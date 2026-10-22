@@ -1,0 +1,53 @@
+{
+  "id": "editor-test-fails-needs-other-file",
+  "app": "editor",
+  "type": "explain-code",
+  "routing": true,
+  "question": "why does this test fail",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:05:12+05:30",
+    "utterance": "why does this test fail",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "test_discounts.py — ledgerline",
+      "document": "/Users/me/Developer/ledgerline/tests/test_discounts.py"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/ledgerline",
+      "file": "/Users/me/Developer/ledgerline/tests/test_discounts.py"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "recent": [
+      {
+        "app": "Visual Studio Code",
+        "title": "test_discounts.py — ledgerline"
+      }
+    ],
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "test_applies_percentage_discount expects 85.0 but apply_discount returned 90.0 for code LOYAL15",
+      "the cause is inside apply_discount in billing/discounts.py, which is not open, so Deep needs to read that file (and rerun the test)"
+    ],
+    "must_not": [
+      "stating a specific root cause inside billing/discounts.py as fact without reading it",
+      "blaming the fixture totals, which add up to 100.0 as the passing test shows"
+    ]
+  },
+  "notes": "Routing: the failure is visible but its cause lives in an unopened file, so Quick should hand off to Deep."
+}

@@ -1,0 +1,42 @@
+{
+  "id": "spreadsheet-route-client-owes-most",
+  "app": "spreadsheet",
+  "type": "compute",
+  "routing": true,
+  "question": "which client owes us the most",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:52:18+05:30",
+    "utterance": "which client owes us the most",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Accounts Receivable.xlsx",
+      "document": "/Users/me/Documents/Finance/Accounts Receivable.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_095218",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "only rows 4–25 (22 invoices) of a much longer list are visible: Count: 287 in column B and a small scroll thumb",
+      "hand-off: total the Balance column by client across the whole Open invoices sheet"
+    ],
+    "must_not": [
+      "naming a client from the 22 visible rows as the biggest debtor"
+    ]
+  },
+  "notes": "Routing: sounds like a glance question, but the sheet runs to ~286 invoices and only 22 are on screen; grouping balances by client needs the file → deep."
+}

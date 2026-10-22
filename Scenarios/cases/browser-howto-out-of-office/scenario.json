@@ -1,0 +1,48 @@
+{
+  "id": "browser-howto-out-of-office",
+  "app": "browser",
+  "type": "how-to",
+  "routing": false,
+  "question": "how do i set up an out of office reply in this",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T17:44:05+05:30",
+    "utterance": "how do i set up an out of office reply in this",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Settings – Postbird Mail"
+    },
+    "browser": {
+      "url": "https://mail.example-postbird.com/settings/general",
+      "host": "mail.example-postbird.com",
+      "tab_title": "Settings – Postbird Mail"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_990",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "select 'Vacation responder on' in the Vacation responder section",
+      "fill in the first day (and optional last day), subject and message",
+      "click Save changes"
+    ],
+    "must_not": [
+      "describing settings tabs that are not on screen"
+    ]
+  },
+  "notes": "How-to with the real controls visible; answer should ring them step by step."
+}

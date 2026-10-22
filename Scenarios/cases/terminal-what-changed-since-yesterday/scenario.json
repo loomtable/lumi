@@ -1,0 +1,46 @@
+{
+  "id": "terminal-what-changed-since-yesterday",
+  "app": "terminal",
+  "type": "summarise",
+  "routing": true,
+  "question": "what changed since yesterday",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:31:06+05:30",
+    "utterance": "what changed since yesterday",
+    "app": {
+      "name": "Terminal",
+      "bundle": "com.apple.Terminal",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "fernway-app — -zsh — 132×40"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/fernway-app",
+      "command": "-zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_t08",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "shape": "card",
+    "facts": [
+      "needs the git history (commits since yesterday) in /Users/me/Developer/fernway-app, not just the pull summary",
+      "the pull fast-forwarded main from 4e1a2b0 to c93f7d1, 23 files changed"
+    ],
+    "must_not": [
+      "inventing what the commits did from the file names alone"
+    ]
+  },
+  "notes": "Routing: the screen shows which files moved but not the commits or their dates; git log is needed."
+}

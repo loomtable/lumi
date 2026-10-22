@@ -1,0 +1,55 @@
+{
+  "id": "editor-run-single-test",
+  "app": "editor",
+  "type": "how-to",
+  "routing": false,
+  "question": "how do i run just this one test",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:58:21+05:30",
+    "utterance": "how do i run just this one test",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "test_forecast.py — stockroom",
+      "document": "/Users/me/Developer/stockroom/tests/test_forecast.py"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/stockroom",
+      "file": "/Users/me/Developer/stockroom/tests/test_forecast.py"
+    },
+    "cursor": {
+      "x": 470,
+      "y": 455,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Editor content"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "click \"Run Test\" in the small grey link just above def test_reorder_point_rounds_up",
+      "or click the green ▶ in the gutter next to that line; \"Debug Test\" runs it under the debugger"
+    ],
+    "must_not": [
+      "telling the user to run the whole file or the whole suite"
+    ]
+  },
+  "notes": "How-to with real controls on screen: the code lens and gutter run buttons for the test under the cursor."
+}

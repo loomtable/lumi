@@ -1,0 +1,68 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>tidepool (-zsh)</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1280px; height: 800px; overflow: hidden; background: #1c1d22; color: #d6d8de;
+         font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  .win { width: 1280px; height: 800px; display: flex; flex-direction: column; }
+  .titlebar { height: 30px; background: #2a2b31; color: #a9abb3; display: flex; align-items: center;
+              position: relative; font-size: 13px; font-weight: 600; border-bottom: 1px solid #111216; }
+  .titlebar .ttl { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+  .dots { display: flex; gap: 8px; padding: 0 14px; z-index: 1; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .d1 { background: #ff5f57; } .d2 { background: #febc2e; } .d3 { background: #28c840; }
+  .tabs { display: flex; }
+  .strip { height: 28px; background: #232429; border-bottom: 1px solid #111216; }
+  .strip .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px;
+                color: #a9abb3; border-right: 1px solid #111216; }
+  .strip .tab.active { background: #1c1d22; color: #d6d8de; font-weight: 600; }
+  .ghost { height: 38px; }
+  .ghost .tabs { flex: 1; height: 100%; gap: 2px; padding-right: 10px; }
+  .ghost .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500;
+                margin: 6px 0; border-radius: 6px; color: #a9abb3; }
+  .ghost .tab.active { background: #1c1d22; color: #d6d8de; }
+  .plus { padding: 0 14px; font-size: 16px; font-weight: 400; }
+  pre { flex: 1; margin: 0; padding: 10px 14px; font: 13px/1.5 "SF Mono", Menlo, Monaco, monospace;
+        white-space: pre; overflow: hidden; }
+  .r { color: #ff6b6b; } .g { color: #8bd17c; } .y { color: #e9c46a; } .b { color: #6cb6ff; }
+  .m { color: #d38cff; } .c { color: #56d4dd; } .dim { color: #7d808a; } .bold { font-weight: 700; }
+  .u { text-decoration: underline; }
+  .hl { background: #264f78; }
+  .cur { background: #d6d8de; color: #1c1d22; }
+</style></head>
+<body><div class="win">
+<div class="titlebar"><span class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span><span class="ttl">tidepool (-zsh)</span></div><div class="tabs strip"><div class="tab active">1  tidepool (-zsh)</div><div class="tab">2  cargo watch</div><div class="tab">3  ssh</div></div>
+<pre><span class="g bold">➜</span>  <span class="c bold">tidepool</span> <span class="b bold">git:(</span><span class="r">main</span><span class="b bold">)</span> <span class="y">✗</span> cargo build
+<span class="g bold">   Compiling</span> tidepool v0.4.1 (/Users/me/Developer/tidepool)
+<span class="y bold">warning</span><span class="bold">: unused import: `std::time::Instant`</span>
+ <span class="b">--&gt;</span> src/sync/worker.rs:3:5
+  <span class="b">|</span>
+<span class="b">3</span> <span class="b">|</span> use std::time::Instant;
+  <span class="b">|</span>     <span class="y">^^^^^^^^^^^^^^^^^^</span>
+
+<span class="r bold">error[E0308]</span><span class="bold">: mismatched types</span>
+  <span class="b">--&gt;</span> src/sync/queue.rs:57:24
+   <span class="b">|</span>
+<span class="b">57</span> <span class="b">|</span>         self.pending = batch.len();
+   <span class="b">|</span>                        <span class="r">^^^^^^^^^^^</span> <span class="r">expected `u32`, found `usize`</span>
+
+<span class="r bold">error[E0425]</span><span class="bold">: cannot find function `parse_manifest` in this scope</span>
+  <span class="b">--&gt;</span> src/main.rs:22:19
+   <span class="b">|</span>
+<span class="b">22</span> <span class="b">|</span>     let manifest = parse_manifest(&amp;path)?;
+   <span class="b">|</span>                    <span class="r">^^^^^^^^^^^^^^</span> <span class="r">not found in this scope</span>
+   <span class="b">|</span>
+<span class="c bold">help</span>: consider importing this function
+   <span class="b">|</span>
+<span class="b">1 </span> <span class="b">+</span> <span class="g">use crate::config::parse_manifest;</span>
+
+<span class="r bold">error[E0599]</span><span class="bold">: no method named `retry_after` found for struct `HttpError` in the current scope</span>
+  <span class="b">--&gt;</span> src/net/client.rs:88:30
+   <span class="b">|</span>
+<span class="b">88</span> <span class="b">|</span>             if let Some(d) = err.retry_after() {
+   <span class="b">|</span>                              <span class="r">^^^^^^^^^^^</span> <span class="r">method not found in `HttpError`</span>
+
+<span class="bold">Some errors have detailed explanations: E0308, E0425, E0599.</span>
+<span class="r bold">error</span><span class="bold">: could not compile `tidepool` (bin "tidepool") due to 3 previous errors; 1 warning emitted</span>
+<span class="r bold">➜</span>  <span class="c bold">tidepool</span> <span class="b bold">git:(</span><span class="r">main</span><span class="b bold">)</span> <span class="y">✗</span> <span class="cur"> </span></pre>
+</div></body></html>

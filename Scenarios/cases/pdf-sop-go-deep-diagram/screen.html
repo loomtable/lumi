@@ -1,0 +1,60 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Larkspur_Clinic_Incident_Reporting_SOP.pdf</title>
+<style>
+  :root { --chrome:#ececec; --line:#c9c9c9; --side:#f2f2f2; --canvas:#d9d9d9; --text:#1d1d1f; --sub:#6e6e73; --icon:#555; --sel:#b4d5ff; --thsel:#d4d4d8; --field:#fff; }
+  .dark { --chrome:#323234; --line:#121214; --side:#2a2a2c; --canvas:#1e1e20; --text:#e8e8ea; --sub:#98989d; --icon:#c7c7cc; --sel:#3f6fb5; --thsel:#48484c; --field:#232325; }
+  body { margin:0; width:1280px; height:800px; overflow:hidden; font:13px/1.4 -apple-system, "Helvetica Neue", sans-serif; background:var(--canvas); color:var(--text); }
+  .win { width:1280px; height:800px; display:flex; flex-direction:column; background:var(--canvas); }
+  .tb { height:52px; flex:none; display:flex; align-items:center; gap:14px; padding:0 14px; background:var(--chrome); border-bottom:1px solid var(--line); }
+  .lights { display:flex; gap:8px; margin-right:10px; }
+  .lights span { width:12px; height:12px; border-radius:50%; display:block; }
+  .ttl { display:flex; flex-direction:column; line-height:1.2; }
+  .ttl b { font-size:13px; font-weight:600; }
+  .ttl i { font-style:normal; font-size:11px; color:var(--sub); }
+  .sp { flex:1; }
+  .ic { width:30px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:var(--icon); }
+  .ic.on { background:var(--thsel); }
+  .ic svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .search { width:170px; height:24px; border-radius:6px; background:var(--field); border:1px solid var(--line); color:var(--sub); font-size:12px; display:flex; align-items:center; padding:0 8px; gap:6px; box-sizing:border-box; }
+  .body { flex:1; display:flex; overflow:hidden; }
+  .side { width:150px; flex:none; background:var(--side); border-right:1px solid var(--line); padding:12px 0; overflow:hidden; }
+  .th { display:flex; flex-direction:column; align-items:center; margin-bottom:6px; }
+  .th .pg { width:60px; height:78px; background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.18); padding:8px 7px; box-sizing:border-box; }
+  .th .pg.lines { background:#fff repeating-linear-gradient(#fff 0 5px, #c7c7c7 5px 6px) content-box; }
+  .th .pg.blank { background:#fff; }
+  .th .pg.scan { background:#e9e4d8 repeating-linear-gradient(#e9e4d8 0 5px, #b3ad9f 5px 6px) content-box; filter:blur(.6px); }
+  .th .wrap { padding:5px; border-radius:6px; }
+  .th.cur .wrap { background:var(--thsel); }
+  .th .n { font-size:11px; color:var(--sub); margin-top:3px; }
+  .th.cur .n { color:var(--text); font-weight:600; }
+  .main { flex:1; overflow:hidden; display:flex; justify-content:center; padding-top:22px; }
+  .page { width:720px; min-height:1000px; flex:none; background:#fff; color:#141414; box-shadow:0 1px 6px rgba(0,0,0,.25); padding:40px 70px; box-sizing:border-box; font:13.5px/1.55 Georgia, "Times New Roman", serif; }
+  .page h1 { font-size:19px; margin:0 0 4px; letter-spacing:.02em; }
+  .page h2 { font-size:14px; margin:14px 0 5px; letter-spacing:.04em; text-transform:uppercase; }
+  .page p { margin:0 0 9px; text-align:justify; }
+  .page .cl { display:flex; gap:12px; margin:0 0 8px; text-align:justify; }
+  .page .cl b { flex:none; width:30px; font-weight:600; }
+  .page .run { font:10.5px/1.3 -apple-system, sans-serif; color:#888; display:flex; justify-content:space-between; margin-bottom:16px; }
+  .page mark { background:var(--sel); color:inherit; }
+  .dark .page mark { background:#9cc3f5; }
+  .page table { border-collapse:collapse; width:100%; font:12.5px/1.4 -apple-system, "Helvetica Neue", sans-serif; }
+  .page td, .page th { padding:7px 8px; border-bottom:1px solid #ddd; text-align:left; }
+  .page th { font-weight:600; background:#f4f4f2; }
+  .page .r { text-align:right; }
+</style></head>
+<body class="dark">
+<div class="win">
+  <div class="tb">
+    <div class="lights"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+    <span class="ic"><svg viewBox="0 0 20 20"><rect x="2" y="3.5" width="16" height="13" rx="2.5"/><path d="M7.5 3.5v13"/></svg></span>
+    <div class="ttl"><b>Larkspur_Clinic_Incident_Reporting_SOP.pdf</b><i>Page 3 of 9</i></div>
+    <div class="sp"></div>
+    <span class="ic" title="info"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.2v.1"/></svg></span><span class="ic" title="zout"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M12.5 12.5l4.5 4.5M6 8.5h5"/></svg></span><span class="ic" title="zin"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M12.5 12.5l4.5 4.5M6 8.5h5M8.5 6v5"/></svg></span><span class="ic" title="share"><svg viewBox="0 0 20 20"><path d="M10 2.5v10M6.5 6L10 2.5 13.5 6M5.5 9H4.5v8.5h11V9h-1"/></svg></span><span class="ic" title="hl"><svg viewBox="0 0 20 20"><path d="M12 3l5 5-7.5 7.5H4.5v-5z"/><path d="M3 18h14"/></svg></span><span class="ic" title="rotate"><svg viewBox="0 0 20 20"><path d="M4 10a6 6 0 1 0 2-4.5M4 3v3.5h3.5"/></svg></span><span class="ic" title="markup"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><path d="M7.2 12.8l.6-2.7 4.8-4.8 2.1 2.1-4.8 4.8z"/></svg></span>
+    <div class="search"><svg viewBox="0 0 20 20" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M12.5 12.5l4.5 4.5"/></svg>Search</div>
+  </div>
+  <div class="body">
+    <div class="side"><div class="th"><div class="wrap"><div class="pg lines"></div></div><div class="n">1</div></div><div class="th"><div class="wrap"><div class="pg lines"></div></div><div class="n">2</div></div><div class="th cur"><div class="wrap"><div class="pg lines"></div></div><div class="n">3</div></div><div class="th"><div class="wrap"><div class="pg lines"></div></div><div class="n">4</div></div><div class="th"><div class="wrap"><div class="pg lines"></div></div><div class="n">5</div></div><div class="th"><div class="wrap"><div class="pg lines"></div></div><div class="n">6</div></div></div>
+    <div class="main"><div class="page"><div class="run"><span>Larkspur Clinic · SOP-CL-014 Incident reporting · v2.3</span><span>3</span></div><h2>4. Procedure</h2><div class="cl"><b>4.1</b><span>Any member of staff who witnesses or is told of an incident must record it on the Incident Log within twenty-four (24) hours.</span></div><div class="cl"><b>4.2</b><span>The Duty Manager reviews each new report by the end of the next working day and assigns a severity of Low, Moderate or Severe using the matrix in Appendix A.</span></div><div class="cl"><b>4.3</b><span><b>Low:</b> the Duty Manager records any immediate action taken and closes the report within seven (7) days.</span></div><div class="cl"><b>4.4</b><span><b>Moderate:</b> the Ward Lead investigates and submits findings within five (5) working days. If the investigation finds that harm was more serious than first thought, the report is re-graded as Severe.</span></div><div class="cl"><b>4.5</b><span><b>Severe:</b> the Duty Manager notifies the Clinical Director within one (1) hour. The Clinical Director appoints a reviewer, who completes a root cause analysis within thirty (30) days.</span></div><div class="cl"><b>4.6</b><span>Moderate and Severe reports are closed only when actions from the investigation or root cause analysis are agreed and assigned an owner.</span></div><div class="cl"><b>4.7</b><span>Learning from all closed Moderate and Severe incidents is shared at the monthly Patient Safety Meeting and recorded in its minutes.</span></div></div></div>
+  </div>
+</div>
+</body></html>

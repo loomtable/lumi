@@ -1,0 +1,53 @@
+{
+  "id": "pdf-contract-rewrite-fairer",
+  "app": "pdf",
+  "type": "rewrite",
+  "routing": false,
+  "question": "rewrite this clause fairer",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:44:31+05:30",
+    "utterance": "rewrite this clause fairer",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Halden_Northwind_MSA_v3.pdf – Page 6 of 14",
+      "document": "/Users/me/Documents/Legal/Halden_Northwind_MSA_v3.pdf"
+    },
+    "selection": {
+      "text": "Subject to clause 9.1, the Provider’s total aggregate liability arising under or in connection with this Agreement shall not exceed the Fees paid by the Customer in the one (1) month preceding the event giving rise to the claim.",
+      "length": 228,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 2,
+      "previous": [
+        "user: anything risky?",
+        "Lumi: I've marked five: 7.2 the 24-month auto-renewal, 8.2 fee rises on 15 days' notice, 8.3 4% a month late interest, 9.2 and 9.3 one-sided liability, and 10.1 the perpetual data licence."
+      ]
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "the rewritten cap applies to both parties (mutual), not only the Provider",
+      "the cap is raised to a meaningful amount, e.g. the Fees paid or payable in the preceding twelve (12) months",
+      "it keeps the 'subject to clause 9.1' carve-out for death, personal injury and fraud"
+    ],
+    "must_not": [
+      "rewriting other clauses than the selected 9.2",
+      "dropping the clause 9.1 carve-out"
+    ]
+  },
+  "notes": "A fairer rewrite of one clause, before/after with Insert."
+}

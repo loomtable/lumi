@@ -1,0 +1,54 @@
+{
+  "id": "finder-how-to-copy-path",
+  "app": "finder",
+  "type": "how-to",
+  "routing": false,
+  "question": "how do i copy the full path of this file",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "how do i copy the full path of this file",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Q3"
+    },
+    "finder": {
+      "folder": "/Users/me/Documents/Finance/Reports/2026/Q3",
+      "selected": [
+        "/Users/me/Documents/Finance/Reports/2026/Q3/Q3 Variance Report.xlsx"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    },
+    "cursor": {
+      "x": 420,
+      "y": 152,
+      "element": {
+        "role": "AXRow",
+        "label": "Q3 Variance Report.xlsx"
+      }
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "right-click (Control-click) Q3 Variance Report.xlsx and hold Option",
+      "choose Copy \"Q3 Variance Report.xlsx\" as Pathname, or press Option-Command-C"
+    ],
+    "must_not": []
+  },
+  "notes": "How-to with a selected file; the ring belongs on the selected row."
+}

@@ -1,0 +1,42 @@
+# Build
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/xcuserdata/
+build/
+dist/
+*.app
+*.dmg
+*.zip
+
+# Local notes and logs stay out of the repo
+*.log
+*.trace
+/scratch/
+
+# macOS
+.DS_Store
+
+# Secrets and keys
+.env*
+*.pem
+*.p12
+*.key
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+
+# Tool caches
+.playwright-mcp/
+
+# Python
+__pycache__/
+*.pyc
+
+# Private terms the scenario validator also bans (Tools/scenarios/validate.py)
+Tools/scenarios/banned-local.txt

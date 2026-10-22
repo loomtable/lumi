@@ -1,0 +1,56 @@
+{
+  "id": "chat-summarise-postmortem-quick",
+  "app": "chat",
+  "type": "summarise",
+  "routing": true,
+  "question": "quick answer what does that postmortem say",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:22:51+05:30",
+    "utterance": "quick answer what does that postmortem say",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "eng-announcements (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#eng-announcements",
+      "thread": null
+    },
+    "cursor": {
+      "x": 700,
+      "y": 560,
+      "element": {
+        "role": "AXLink",
+        "label": "Postmortem: INC-2291 checkout latency (Oct 9)"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_c05",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "On Oct 9 (14:05–15:20 UTC) p99 checkout latency hit 8.4 s and about 3% of checkouts timed out",
+      "Cause: the DB connection-pool limit was lowered from 200 to 50 in config release cfg-1187; rolled back at 15:12",
+      "Action items: pool-saturation alert (Henrik), second reviewer for pool settings (Ravi), load test before DB config releases (Chloe)"
+    ],
+    "must_not": [
+      "hand off to Deep to open the full doc: the user asked for a quick answer",
+      "claim to have read the full postmortem rather than the preview and message"
+    ]
+  },
+  "notes": "\"quick answer\" override: Deep could read the full doc, but the unfurl and message are enough."
+}

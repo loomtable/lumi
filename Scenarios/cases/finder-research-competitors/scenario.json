@@ -1,0 +1,46 @@
+{
+  "id": "finder-research-competitors",
+  "app": "finder",
+  "type": "research",
+  "routing": true,
+  "question": "research the main meal kit competitors in europe and write me a report comparing their pricing, i'll keep it in this folder",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "research the main meal kit competitors in europe and write me a report comparing their pricing, i'll keep it in this folder",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Market scan"
+    },
+    "finder": {
+      "folder": "/Users/me/Documents/Sprout Box/Strategy/Market scan",
+      "selected": []
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "starts a background research job on European meal kit competitors and their pricing",
+      "the report is meant for the Sprout Box Market scan folder"
+    ],
+    "must_not": [
+      "answering from the three files in the folder alone",
+      "giving a time estimate"
+    ]
+  },
+  "notes": "Routing: explicit research and report request."
+}

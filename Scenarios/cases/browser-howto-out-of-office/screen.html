@@ -1,0 +1,51 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Settings – Postbird Mail</title>
+<style>
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.5 -apple-system, "Helvetica Neue", sans-serif; background: #fff; color: #1f2937; }
+  .tabs { height: 38px; background: #dee1e6; display: flex; align-items: flex-end; padding: 0 10px; gap: 4px; font-size: 12px; }
+  .tab { background: #c8ccd2; padding: 7px 14px; border-radius: 8px 8px 0 0; width: 200px; } .tab.on { background: #fff; }
+  .bar { height: 40px; display: flex; align-items: center; padding: 0 14px; gap: 14px; border-bottom: 1px solid #ddd; color: #666; }
+  .omni { flex: 1; background: #f1f3f4; border-radius: 18px; padding: 6px 16px; color: #222; }
+  .app { display: flex; height: 722px; }
+  .side { width: 220px; background: #f8fafc; border-right: 1px solid #e5e7eb; padding: 16px; }
+  .logo { font-weight: 800; color: #0f766e; font-size: 18px; margin-bottom: 18px; }
+  .side div.i { padding: 6px 10px; border-radius: 6px; color: #475569; }
+  main { flex: 1; padding: 20px 36px; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  .stabs { display: flex; gap: 22px; border-bottom: 1px solid #e5e7eb; margin-bottom: 8px; color: #64748b; }
+  .stabs span { padding: 8px 0; } .stabs .on { color: #0f766e; border-bottom: 2px solid #0f766e; font-weight: 600; }
+  .row { display: flex; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
+  .lab { width: 220px; font-weight: 600; color: #334155; }
+  .ctl { flex: 1; color: #475569; }
+  .radio { display: block; margin-bottom: 6px; } .radio b { display: inline-block; width: 13px; height: 13px; border: 2px solid #94a3b8; border-radius: 50%; vertical-align: -3px; margin-right: 6px; }
+  .radio b.on { border-color: #0f766e; background: radial-gradient(#0f766e 40%, #fff 45%); }
+  input, .ta { border: 1px solid #cbd5e1; border-radius: 6px; padding: 5px 9px; font: inherit; color: #94a3b8; background: #fff; }
+  .ta { height: 70px; width: 520px; margin-top: 6px; }
+  .dates { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
+  .save { margin-top: 14px; display: flex; gap: 10px; }
+  .b1 { background: #0f766e; color: #fff; padding: 7px 16px; border-radius: 6px; font-weight: 600; } .b2 { border: 1px solid #cbd5e1; padding: 7px 16px; border-radius: 6px; }
+</style></head>
+<body>
+  <div class="tabs"><div class="tab on">Settings – Postbird Mail</div><div class="tab">Team calendar</div></div>
+  <div class="bar"><span>←</span><span>→</span><span>↻</span><span class="omni">mail.example-postbird.com/settings/general</span></div>
+  <div class="app">
+    <div class="side"><div class="logo">✉ Postbird</div><div class="i">Inbox · 14</div><div class="i">Starred</div><div class="i">Sent</div><div class="i">Drafts · 2</div><div class="i">Archive</div><div class="i">Spam</div></div>
+    <main>
+      <h1>Settings</h1>
+      <div class="stabs"><span class="on">General</span><span>Labels</span><span>Filters</span><span>Accounts</span><span>Signatures</span><span>Security</span></div>
+      <div class="row"><div class="lab">Language</div><div class="ctl">English (UK) ▾</div></div>
+      <div class="row"><div class="lab">Conversation view</div><div class="ctl"><span class="radio"><b class="on"></b>On</span><span class="radio"><b></b>Off</span></div></div>
+      <div class="row"><div class="lab">Undo send</div><div class="ctl">Cancel period: 10 seconds ▾</div></div>
+      <div class="row"><div class="lab">Vacation responder<br><span style="font-weight:400;color:#94a3b8;font-size:12px">Sends an automated reply to incoming messages</span></div>
+        <div class="ctl">
+          <span class="radio"><b class="on"></b>Vacation responder off</span>
+          <span class="radio"><b></b>Vacation responder on</span>
+          <div class="dates">First day: <input value="dd/mm/yyyy"> <label>☐ Last day:</label> <input value="dd/mm/yyyy"></div>
+          <div>Subject: <input style="width:440px" value="e.g. Out of office until Monday"></div>
+          <div class="ta">Message…</div>
+          <div style="margin-top:6px">☐ Only send a response to people in my Contacts</div>
+        </div></div>
+      <div class="save"><span class="b1">Save changes</span><span class="b2">Cancel</span></div>
+    </main>
+  </div>
+</body></html>

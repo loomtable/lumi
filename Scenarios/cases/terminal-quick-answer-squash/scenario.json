@@ -1,0 +1,47 @@
+{
+  "id": "terminal-quick-answer-squash",
+  "app": "terminal",
+  "type": "how-to",
+  "routing": true,
+  "question": "quick answer how do i squash my last three commits into one",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T17:55:18+05:30",
+    "utterance": "quick answer how do i squash my last three commits into one",
+    "app": {
+      "name": "Terminal",
+      "bundle": "com.apple.Terminal",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "orbit-cli — -zsh — 132×40"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/orbit-cli",
+      "command": "-zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_t05",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "`git reset --soft HEAD~3` then `git commit` with one message (or `git rebase -i HEAD~3` and mark the last two as squash/fixup)",
+      "the three commits are 9e7c1f0, 2d4b8a6 and 7c1d2e4, all on feature/retry-flags above origin/main",
+      "the branch has no upstream (only origin/main is shown), so they look unpushed and no force-push should be needed"
+    ],
+    "must_not": [
+      "handing off to deep or running the squash itself: the user asked for a quick answer"
+    ]
+  },
+  "notes": "Routing override: 'quick answer' keeps it in Quick even though Deep could do the squash."
+}

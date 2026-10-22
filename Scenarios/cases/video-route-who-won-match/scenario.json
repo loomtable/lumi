@@ -1,0 +1,47 @@
+{
+  "id": "video-route-who-won-match",
+  "app": "video",
+  "type": "video-moment",
+  "routing": true,
+  "question": "who won this match",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T20:05:51+05:30",
+    "utterance": "who won this match",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Calder vs Novak — Full Match | Example Open 2026 Final — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=eo26-final-full",
+      "host": "www.example-video.com",
+      "tab_title": "Calder vs Novak — Full Match | Example Open 2026 Final — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_200551",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "the replay is only at 38:20 of 2:41:05, early in set 2, so the result isn't on screen",
+      "hand-off: find the final result (later in the video or on the web)"
+    ],
+    "must_not": [
+      "naming Calder the winner because she took the first set 6–4",
+      "reading the current score as the result"
+    ]
+  },
+  "notes": "Routing: sounds like a one-word answer, but the visible scoreboard is mid-match (set 2, 2–3); the result needs the rest of the video or the web → deep."
+}

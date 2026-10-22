@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Stockroom – Orders</title>
+<style>
+body{margin:0;width:1280px;height:800px;overflow:hidden;font:14px/1.5 -apple-system,"Helvetica Neue",sans-serif;background:#0f1115;color:#d1d5db}
+.tabs{height:38px;background:#1d1f24;display:flex;align-items:flex-end;padding:0 10px 0 80px;gap:4px;font-size:12px;color:#aaa;position:relative}
+.lights{position:absolute;left:14px;top:13px;display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.tab{background:#26282d;padding:7px 14px;border-radius:8px 8px 0 0;width:200px}.tab.on{background:#35363a;color:#eee}
+.bar{height:40px;background:#35363a;display:flex;align-items:center;padding:0 14px;gap:14px;color:#aaa}
+.omni{flex:1;background:#202124;border-radius:18px;padding:6px 16px;color:#e8eaed}
+.page{height:430px;display:flex}
+.side{width:210px;background:#16181d;border-right:1px solid #262a31;padding:16px 12px;font-size:13px}
+.logo{font-weight:800;color:#34d399;font-size:17px;padding:0 8px 14px}
+.nav div{padding:6px 10px;border-radius:6px;color:#9ca3af}.nav .on{background:#1f2937;color:#f9fafb}
+main{flex:1;padding:22px 32px}
+h1{margin:0 0 14px;font-size:22px;color:#f9fafb}
+.err{border:1px solid #7f1d1d;background:#2a1215;color:#fca5a5;border-radius:8px;padding:14px 18px;display:flex;gap:12px;align-items:center;width:560px}
+.err b{color:#fecaca}.retry{margin-left:auto;border:1px solid #7f1d1d;padding:4px 12px;border-radius:6px}
+.skel{margin-top:18px}.skel div{height:34px;background:#171a20;border-radius:6px;margin-bottom:8px;width:900px}
+.dt{height:292px;background:#242424;border-top:1px solid #3c3c3c;font:12px/1.45 Menlo,monospace;color:#e3e3e3}
+.dtt{height:28px;display:flex;align-items:center;gap:18px;padding:0 10px;background:#2b2b2b;border-bottom:1px solid #3c3c3c;font:12px -apple-system,sans-serif;color:#a8a8a8}
+.dtt .on{color:#e3e3e3;border-bottom:2px solid #7cacf8;padding:6px 0 4px}
+.dtt .cnt{margin-left:auto;color:#f28b82}
+.filter{height:26px;display:flex;align-items:center;gap:10px;padding:0 10px;border-bottom:1px solid #3c3c3c;color:#9aa0a6;font:12px -apple-system,sans-serif}
+.filter .f{background:#1e1e1e;border:1px solid #3c3c3c;border-radius:4px;padding:1px 8px;width:220px;color:#777}
+.ln{padding:4px 10px 4px 28px;border-bottom:1px solid #3a3a3a;position:relative;white-space:pre-wrap}
+.ln.e{background:#4e3534;border-color:#5c3b3b;color:#f9dedc}.ln.e:before{content:"✖";position:absolute;left:9px;color:#f28b82;font-size:11px}
+.ln.i{color:#c4c4c4}.src{float:right;color:#9aa0a6;text-decoration:underline;margin-left:20px}
+.u{text-decoration:underline;color:#f6aea9}
+.prompt{padding:4px 10px;color:#7cacf8}
+</style></head><body>
+<div class="tabs"><span class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><div class="tab on">Stockroom – Orders</div><div class="tab">Go net/http docs</div></div>
+<div class="bar"><span>←</span><span>→</span><span>↻</span><span class="omni">localhost:5173/orders</span></div>
+<div class="page"><div class="side"><div class="logo">▣ Stockroom</div><div class="nav"><div>Dashboard</div><div class="on">Orders</div><div>Products</div><div>Suppliers</div><div>Settings</div></div></div>
+<main><h1>Orders</h1><div class="err">⚠ <span><b>Couldn't load orders.</b> Network error — check your connection.</span><span class="retry">Retry</span></div>
+<div class="skel"><div></div><div></div><div></div><div style="width:700px"></div></div></main></div>
+<div class="dt"><div class="dtt"><span>Elements</span><span class="on">Console</span><span>Sources</span><span>Network</span><span>Application</span><span class="cnt">✖ 2</span></div>
+<div class="filter"><span>⊘</span><span>top ▾</span><span class="f">Filter</span><span>Default levels ▾</span></div>
+<div class="ln i">[vite] connected.<span class="src">client:912</span></div>
+<div class="ln e"><span class="src">orders:1</span>Access to fetch at '<span class="u">http://localhost:8080/api/orders?status=open</span>' from origin '<span class="u">http://localhost:5173</span>' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.</div>
+<div class="ln e"><span class="src">useOrders.ts:18</span>GET <span class="u">http://localhost:8080/api/orders?status=open</span> net::ERR_FAILED 200 (OK)</div>
+<div class="ln i"><span class="src">useOrders.ts:24</span>TypeError: Failed to fetch
+    at useOrders (useOrders.ts:18:23)</div>
+<div class="prompt">›</div>
+</div></body></html>

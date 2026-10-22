@@ -1,0 +1,49 @@
+{
+  "id": "pdf-lease-define-force-majeure",
+  "app": "pdf",
+  "type": "define",
+  "routing": true,
+  "question": "quick answer what does force majeure mean here",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "quick answer what does force majeure mean here",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Larkfield_Trade_Park_Unit4_Lease.pdf – Page 19 of 34",
+      "document": "/Users/me/Documents/Leases/Larkfield_Trade_Park_Unit4_Lease.pdf"
+    },
+    "selection": {
+      "text": "Force Majeure Event",
+      "length": 19,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "an event beyond the affected party's reasonable control (with a list in Schedule 5, which is not on screen), excluding lack of funds or insolvency",
+      "it excuses delays in performance, but the tenant still has to pay rent and service charge (21.3)"
+    ],
+    "must_not": [
+      "handing off to Deep to read Schedule 5 despite 'quick answer'",
+      "inventing what Schedule 5 lists"
+    ]
+  },
+  "notes": "Routing override: Deep could read Schedule 5, but 'quick answer' keeps it Quick; it should say Schedule 5 holds the list."
+}

@@ -1,0 +1,48 @@
+{
+  "id": "video-redox-explain-last-minute",
+  "app": "video",
+  "type": "video-moment",
+  "routing": true,
+  "question": "explain the last minute",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T20:31:05+05:30",
+    "utterance": "explain the last minute",
+    "app": {
+      "name": "Google Chrome",
+      "bundle": "com.google.Chrome",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Redox Reactions Part 2: Half-Equations — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=redox-pt2",
+      "host": "www.example-video.com",
+      "tab_title": "Redox Reactions Part 2: Half-Equations — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_203105",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "the equation Fe²⁺ + MnO₄⁻ → Fe³⁺ + Mn²⁺ was balanced in acid by splitting it into an oxidation and a reduction half-reaction",
+      "the iron half-reaction was multiplied by 5 so the 5 electrons lost match the 5 gained",
+      "adding the halves and cancelling electrons gives 5Fe²⁺ + MnO₄⁻ + 8H⁺ → 5Fe³⁺ + Mn²⁺ + 4H₂O"
+    ],
+    "must_not": [
+      "handing off to deep to fetch the transcript when the whole worked example is on the board"
+    ]
+  },
+  "notes": "Routing hard negative: 'the last minute' sounds like it needs the transcript, but the chapter started at 13:00 and the board shows every step up to 14:02, so frame + caption suffice."
+}

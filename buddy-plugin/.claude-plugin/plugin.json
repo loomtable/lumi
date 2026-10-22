@@ -1,0 +1,8 @@
+{
+  "name": "buddy",
+  "version": "0.1.0",
+  "description": "Lumi: answers questions about what is on the user's screen, for the Lumi Mac app.",
+  "author": { "name": "Loomtable" },
+  "homepage": "https://lumi.loomtable.com",
+  "license": "GPL-3.0-or-later"
+}

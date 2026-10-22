@@ -1,0 +1,47 @@
+{
+  "id": "editor-research-idempotency",
+  "app": "editor",
+  "type": "research",
+  "routing": true,
+  "question": "research how payment apis handle idempotency keys and write me a report on what we should do here",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:51:02+05:30",
+    "utterance": "research how payment apis handle idempotency keys and write me a report on what we should do here",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "charge.go — relaywire",
+      "document": "/Users/me/Developer/relaywire/internal/payments/charge.go"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/relaywire",
+      "file": "/Users/me/Developer/relaywire/internal/payments/charge.go"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "a background research job on how payment APIs handle idempotency keys",
+      "applied to the Charge handler in internal/payments/charge.go, where client retries caused double charges (INC-212)"
+    ],
+    "must_not": [
+      "answering inline in Quick instead of starting research",
+      "giving a time estimate"
+    ]
+  },
+  "notes": "Routing: explicit research + report request, so the research lane even though code is on screen."
+}

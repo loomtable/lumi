@@ -1,0 +1,63 @@
+{
+  "id": "browser-rewrite-complaint-form",
+  "app": "browser",
+  "type": "rewrite",
+  "routing": false,
+  "question": "make this calmer but keep all the details",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T18:22:30+05:30",
+    "utterance": "make this calmer but keep all the details",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Contact us – Larkline Rail"
+    },
+    "browser": {
+      "url": "https://help.example-larkline.com/contact/refund",
+      "host": "help.example-larkline.com",
+      "tab_title": "Contact us – Larkline Rail"
+    },
+    "selection": {
+      "text": "This is RIDICULOUS. Your 14:05 from Ashby to Kingsmere was cancelled with zero warning AGAIN and I stood on the platform for an hour like an idiot. Nobody from your staff could tell me anything. I missed my sister's birthday dinner. I want my £86.40 back in full and frankly I want an explanation, because this is the third time this month and I'm sick of it.",
+      "length": 359,
+      "truncated": false
+    },
+    "cursor": {
+      "x": 640,
+      "y": 470,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Your message"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_480",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "calmer, polite tone without the capitals or 'ridiculous'",
+      "keeps: the 14:05 Ashby to Kingsmere was cancelled without warning, an hour's wait, no information from staff, a missed family dinner",
+      "keeps the request for a full £86.40 refund and an explanation, and that it is the third time this month",
+      "offered with Insert to replace the message"
+    ],
+    "must_not": [
+      "dropping the refund amount or the 'third time this month' detail",
+      "sending the form"
+    ]
+  },
+  "notes": "Rewrite in a web form textarea; insert must replace the selected text."
+}

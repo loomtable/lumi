@@ -1,0 +1,43 @@
+{
+  "id": "pdf-paper-research-report",
+  "app": "pdf",
+  "type": "research",
+  "routing": true,
+  "question": "research what other groups have found on moisture tolerant sulfide electrolytes and write me a report",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "research what other groups have found on moisture tolerant sulfide electrolytes and write me a report",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Okonjo_2026_moisture_tolerant_sulfide_electrolytes.pdf – Page 1 of 14",
+      "document": "/Users/me/Documents/Papers/Okonjo_2026_moisture_tolerant_sulfide_electrolytes.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "starts a research job on moisture-tolerant sulfide electrolytes for sodium solid-state batteries",
+      "the report should set other groups' results against this paper's claims (92% conductivity retained after 24 h at 30% RH)"
+    ],
+    "must_not": [
+      "answering inline from this one paper",
+      "giving a time estimate"
+    ]
+  },
+  "notes": "Routing: an explicit 'research … write me a report' request goes to the Research lane."
+}

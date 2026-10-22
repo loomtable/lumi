@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in Lumi doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. For a security problem, email security@loomtable.com instead of opening an issue.
+        Please leave out anything private: screenshots of your screen, tokens, file contents.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Tap the Lumi key and ask …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description: Apple menu › About This Mac.
+      placeholder: macOS 26.1
+    validations:
+      required: true
+  - type: input
+    id: lumi
+    attributes:
+      label: Lumi version
+      description: Select Lumi in Applications and choose File › Get Info.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: claude-code
+    attributes:
+      label: Claude Code version
+      description: Run `claude --version` in Terminal.
+      placeholder: "2.1.259"
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Mac
+      description: The chip and memory, if it matters.
+      placeholder: M2, 16 GB
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Settings you changed, voice in use, error messages, or the trace log if you turned it on.

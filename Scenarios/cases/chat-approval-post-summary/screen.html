@@ -1,0 +1,93 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>design-crit (Channel) - Kestrel Labs - Slack</title>
+<style>:root{--bg:#ffffff;--fg:#1d1c1d;--muted:#616061;--line:#e8e8e8;--side:#3f0e40;--sidefg:#cfc3cf;--sideact:#1164a3;
+--rail:#350d36;--top:#350d36;--search:#5d3a5e;--hover:#f8f8f8;--code:#f6f6f6;--codefg:#c7254e;--link:#1264a3;
+--mention:#fdf1c7;--mentionfg:#1264a3;--sel:#b4d5ff;--card:#ffffff;--compose:#ffffff;--unfurl:#dddddd}
+*{box-sizing:border-box}
+body{margin:0;width:1280px;height:800px;overflow:hidden;font:15px/1.46 -apple-system,"Helvetica Neue",Lato,sans-serif;background:var(--bg);color:var(--fg)}
+.top{height:40px;background:var(--top);display:flex;align-items:center;padding:0 14px;gap:8px}
+.tl{width:12px;height:12px;border-radius:50%}
+.nav{color:#bba9bb;font-size:14px;margin-left:58px;letter-spacing:10px}
+.search{margin:0 auto;width:640px;height:26px;border-radius:6px;background:var(--search);color:#d6cbd6;font-size:13px;display:flex;align-items:center;padding:0 12px;transform:translateX(-80px)}
+.wrap{display:flex;height:760px}
+.rail{width:70px;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding-top:12px;gap:14px}
+.ws{width:38px;height:38px;border-radius:9px;background:#e8a33d;color:#3f0e40;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 0 3px var(--rail),0 0 0 5px #fff}
+.ri{width:38px;color:#cdbdcd;font-size:10px;text-align:center}.ri i{display:block;font-style:normal;font-size:18px;width:36px;height:36px;line-height:36px;margin:0 auto;border-radius:8px}
+.ri.on i{background:rgba(255,255,255,.18)}
+.side{width:262px;background:var(--side);color:var(--sidefg);padding:0;font-size:15px;position:relative}
+.sh{height:52px;display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:800;font-size:18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sh small{margin-left:6px;font-size:12px}
+.sec{padding:10px 10px 0}.sec h4{margin:6px 8px 4px;font-size:14px;font-weight:600;color:var(--sidefg)}
+.it{display:flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;gap:8px}
+.it .h{opacity:.75;width:14px;text-align:center}
+.it.on{background:var(--sideact);color:#fff}
+.it.un{color:#fff;font-weight:800}
+.it .badge{margin-left:auto;background:#cd2553;color:#fff;font-size:12px;font-weight:700;border-radius:9px;padding:0 7px;line-height:18px}
+.it .sq{width:18px;height:18px;border-radius:4px;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.meb{position:absolute;bottom:0;left:0;right:0;height:52px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff;font-size:14px}
+.meb .dot{width:9px;height:9px;border-radius:50%;background:#2bac76;margin-left:-16px;margin-top:22px;border:2px solid var(--side)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--line)}
+.ch{height:52px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0}
+.ch b{font-size:18px;white-space:nowrap}.ch .topic{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .mem{margin-left:auto;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:13px;color:var(--muted);white-space:nowrap}
+.tabs{height:34px;border-bottom:1px solid var(--line);display:flex;gap:18px;padding:0 20px;font-size:13px;color:var(--muted);align-items:flex-end;flex-shrink:0}
+.tabs span{padding-bottom:7px}.tabs .on{color:var(--fg);border-bottom:2px solid #007a5a;font-weight:600}
+.msgs{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:6px}
+.msg{display:flex;gap:10px;padding:6px 20px;position:relative}
+.msg.cont{padding-top:1px;padding-bottom:1px}
+.msg.hl{background:var(--mention)}
+.msg.hov{background:var(--hover)}
+.ct{width:36px;flex-shrink:0;font-size:11px;color:transparent}
+.av{border-radius:6px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mb{min-width:0;flex:1}
+.mh b{font-weight:900;margin-right:8px}.mh .t{font-size:12px;color:var(--muted)}
+.ext{font-size:11px;border-radius:4px;padding:0 5px;margin-right:8px;background:#e8e8e8;color:#555;font-weight:600}
+.app{font-size:10px;border-radius:3px;padding:0 4px;margin-right:8px;background:var(--line);color:var(--muted);font-weight:700}
+.mt{white-space:normal}
+.mt p{margin:0 0 4px}
+.at{background:rgba(29,155,209,.1);color:var(--mentionfg);border-radius:3px;padding:0 2px}
+.at.me{background:#f2c744;color:#1d1c1d}
+a{color:var(--link);text-decoration:none}
+code{font:12.5px/1.4 Menlo,Monaco,monospace;background:var(--code);border:1px solid var(--line);color:var(--codefg);border-radius:3px;padding:0 3px}
+pre{font:12.5px/1.5 Menlo,Monaco,monospace;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:4px 0;white-space:pre;color:var(--fg);overflow:hidden}
+mark{background:var(--sel);color:inherit}
+.rep{display:flex;align-items:center;gap:4px;font-size:13px;margin-top:4px}
+.rep .av{border-radius:4px}.rep a{font-weight:700;margin-left:4px}.rep span{color:var(--muted);margin-left:6px}
+.reacts{display:flex;gap:4px;margin-top:4px}
+.r{font-size:12px;border:1px solid var(--line);background:var(--hover);border-radius:12px;padding:0 8px;line-height:22px}
+.day{position:relative;text-align:center;margin:8px 0 4px;height:26px}
+.day:before{content:"";position:absolute;left:0;right:0;top:13px;border-top:1px solid var(--line)}
+.day span{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:2px 14px;font-size:13px;font-weight:700}
+.unfurl{border-left:4px solid var(--unfurl);padding:2px 12px;margin-top:6px;font-size:14px}
+.unfurl .src{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.unfurl .ttl{font-weight:700;color:var(--link)}
+.compose{margin:0 20px 18px;border:1px solid #bbb;border-radius:8px;background:var(--compose);flex-shrink:0}
+.compose .bar{height:32px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 10px;color:var(--muted);font-size:14px;font-weight:700}
+.compose .txt{min-height:42px;padding:9px 12px;color:var(--fg)}
+.compose .ph{color:var(--muted)}
+.compose .foot{height:34px;display:flex;align-items:center;padding:0 10px;gap:12px;color:var(--muted);font-size:15px}
+.compose .send{margin-left:auto;background:#007a5a;color:#fff;border-radius:4px;padding:0 10px;font-size:13px;line-height:24px}
+.thread{width:480px;font-size:14px;line-height:1.38;display:flex;flex-direction:column;flex-shrink:0;background:var(--bg)}
+.thread .ch b{font-size:17px}
+.thread .x{margin-left:auto;color:var(--muted);font-size:18px}
+.tmsgs{flex:1;overflow:hidden;padding-top:6px}
+.tmsgs .msg{padding:4px 16px}
+.compose.slim .txt{min-height:0;padding:9px 12px}
+.cnt{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:2px 16px 6px}
+.cnt:after{content:"";flex:1;border-top:1px solid var(--line)}
+.thread .compose{margin:0 16px 16px}
+</style></head>
+<body>
+<div class="top"><span class="tl" style="background:#ff5f57"></span><span class="tl" style="background:#febc2e"></span><span class="tl" style="background:#28c840"></span><span class="nav">← → ◷</span><div class="search">🔍&nbsp; Search Kestrel Labs</div></div>
+<div class="wrap">
+<div class="rail"><div class="ws">K</div><div class="ri on"><i>⌂</i>Home</div><div class="ri"><i>✉</i>DMs</div><div class="ri"><i>🔔</i>Activity</div><div class="ri"><i>⋯</i>More</div></div>
+<div class="side"><div class="sh">Kestrel Labs<small>⌄</small></div>
+<div class="sec"><div class="it"><span class="h">💬</span>Threads</div><div class="it"><span class="h">@</span>Mentions &amp; reactions</div><div class="it"><span class="h">➤</span>Drafts &amp; sent</div></div>
+<div class="sec"><h4>▾ Channels</h4><div class="it "><span class="h">#</span>general</div><div class="it "><span class="h">#</span>random</div><div class="it "><span class="h">#</span>eng-announcements</div><div class="it "><span class="h">#</span>launch-aurora</div><div class="it "><span class="h">#</span>design-system</div><div class="it on"><span class="h">#</span>design-crit</div><div class="it "><span class="h">#</span>payments-eng</div><div class="it "><span class="h">#</span>backend</div><div class="it "><span class="h">#</span>sre-alerts</div><div class="it "><span class="h">#</span>team-platform</div><div class="it "><span class="h">#</span>mobile-platform</div></div>
+<div class="sec"><h4>▾ Direct messages</h4><div class="it "><span class="sq" style="background:#9d174d">DW</span>Dana Whitcombe</div><div class="it "><span class="sq" style="background:#b4451f">PR</span>Priya Raman</div><div class="it "><span class="sq" style="background:#1f7a4f">HD</span>Henrik Dahl</div><div class="it "><span class="sq" style="background:#0e7490">CN</span>Chloe Nguyen</div></div>
+<div class="meb"><div class="av" style="background:#2f6488;width:30px;height:30px;font-size:12px">SO</div><span class="dot"></span><span>Sam Okafor</span></div></div>
+<div class="main"><div class="ch"><b># design-crit ⌄</b><span class="topic">Async design critique · crit live on Thursdays 3pm</span><span class="mem">👥 27</span></div><div class="tabs"><span class="on">Messages</span><span>Files</span><span>Pins</span><span>＋</span></div><div class="msgs"><div class="day"><span>Yesterday</span></div><div class="msg hov"><div class="av" style="background:#7a3e9d;width:36px;height:36px;font-size:14px">MK</div><div class="mb"><div class="mh"><b>Marta Kowalczyk</b><span class="t">4:40 PM</span></div><div class="mt">Settings redesign crit 🎨 Option A (list) vs Option B (cards). Please vote and leave comments by EOD Wed.</div><div class="rep"><div class="av" style="background:#c2410c;width:20px;height:20px;font-size:8px">JF</div><div class="av" style="background:#0e7490;width:20px;height:20px;font-size:8px">CN</div><div class="av" style="background:#b4451f;width:20px;height:20px;font-size:8px">PR</div><a>5 replies</a><span>Last reply today at 9:41 AM</span></div></div></div><div class="day"><span>Today</span></div><div class="msg "><div class="av" style="background:#0f766e;width:36px;height:36px;font-size:14px">IM</div><div class="mb"><div class="mh"><b>Ines Moreau</b><span class="t">9:10 AM</span></div><div class="mt">Onboarding illustrations v2 for feedback, see the Figma page “Onboarding / Oct”.</div></div></div></div><div class="compose"><div class="bar"><span>B</span><span><i>I</i></span><span><s>S</s></span><span>🔗</span><span>☰</span><span>&lt;/&gt;</span></div><div class="txt"><span class="ph">Message #design-crit</span></div><div class="foot"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>🎥</span><span>🎤</span><span class="send">➤</span></div></div></div>
+<div class="thread"><div class="ch"><b>Thread</b><span class="topic"># design-crit</span><span class="x">✕</span></div><div class="tmsgs"><div class="msg "><div class="av" style="background:#7a3e9d;width:36px;height:36px;font-size:14px">MK</div><div class="mb"><div class="mh"><b>Marta Kowalczyk</b><span class="t">Yesterday 4:40 PM</span></div><div class="mt">Settings redesign crit 🎨 Option A (list) vs Option B (cards). Please vote and leave comments by EOD Wed.</div><div style="display:flex;gap:8px;margin-top:6px"><svg width="120" height="76"><rect width="120" height="76" rx="6" fill="#eef1f5" stroke="#ccc"/><rect x="10" y="12" width="100" height="8" rx="2" fill="#bcc5d1"/><rect x="10" y="28" width="100" height="8" rx="2" fill="#bcc5d1"/><rect x="10" y="44" width="100" height="8" rx="2" fill="#bcc5d1"/><text x="10" y="70" font-size="9" fill="#555">A · list</text></svg><svg width="120" height="76"><rect width="120" height="76" rx="6" fill="#eef1f5" stroke="#ccc"/><rect x="10" y="10" width="45" height="26" rx="4" fill="#9fb4cc"/><rect x="65" y="10" width="45" height="26" rx="4" fill="#9fb4cc"/><rect x="10" y="40" width="45" height="22" rx="4" fill="#9fb4cc"/><text x="65" y="70" font-size="9" fill="#555">B · cards</text></svg></div></div></div><div class="cnt">5 replies</div><div class="msg "><div class="av" style="background:#c2410c;width:36px;height:36px;font-size:14px">JF</div><div class="mb"><div class="mh"><b>Jonah Feld</b><span class="t">5:02 PM</span></div><div class="mt">B. Scans faster, and the cards give us room for the plan badges.</div></div></div><div class="msg "><div class="av" style="background:#0e7490;width:36px;height:36px;font-size:14px">CN</div><div class="mb"><div class="mh"><b>Chloe Nguyen</b><span class="t">5:15 PM</span></div><div class="mt">B, but cards need a visible focus ring for keyboard users.</div></div></div><div class="msg "><div class="av" style="background:#b4451f;width:36px;height:36px;font-size:14px">PR</div><div class="mb"><div class="mh"><b>Priya Raman</b><span class="t">9:20 AM</span></div><div class="mt">Going with <b>Option B</b>. Marta, can you add the focus ring to the spec?</div></div></div><div class="msg "><div class="av" style="background:#7a3e9d;width:36px;height:36px;font-size:14px">MK</div><div class="mb"><div class="mh"><b>Marta Kowalczyk</b><span class="t">9:34 AM</span></div><div class="mt">Will do. Still open: the icon set. I prefer outline, Jonah prefers filled.</div></div></div><div class="msg "><div class="av" style="background:#c2410c;width:36px;height:36px;font-size:14px">JF</div><div class="mb"><div class="mh"><b>Jonah Feld</b><span class="t">9:41 AM</span></div><div class="mt">Filled reads better at 16px imo. Let's decide at Thursday's crit.</div></div></div></div><div class="compose slim"><div class="txt"><span class="ph">Reply…</span><span style="float:right">☺ @ ➤</span></div></div></div>
+</div>
+
+</body></html>

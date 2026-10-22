@@ -1,0 +1,46 @@
+{
+  "id": "editor-summarise-migration",
+  "app": "editor",
+  "type": "summarise",
+  "routing": false,
+  "question": "summarise what this migration does",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T18:02:44+05:30",
+    "utterance": "summarise what this migration does",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "20261012_split_customer_name.sql — parcelpost",
+      "document": "/Users/me/Developer/parcelpost/db/migrations/20261012_split_customer_name.sql"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/parcelpost",
+      "file": "/Users/me/Developer/parcelpost/db/migrations/20261012_split_customer_name.sql"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "adds first_name and last_name columns to customers",
+      "fills them by splitting full_name at the first space, then makes first_name NOT NULL, all in one transaction",
+      "builds an index on last_name concurrently after the commit",
+      "full_name is kept for one release and dropped later in PP-1191"
+    ]
+  },
+  "notes": "Summarise a short but dense SQL migration, bottom line first."
+}

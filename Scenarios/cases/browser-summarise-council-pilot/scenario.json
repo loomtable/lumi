@@ -1,0 +1,49 @@
+{
+  "id": "browser-summarise-council-pilot",
+  "app": "browser",
+  "type": "summarise",
+  "routing": false,
+  "question": "can you sum this up for me",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T08:15:32+05:30",
+    "utterance": "can you sum this up for me",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Riverton approves four-day week pilot for 1,200 council workers"
+    },
+    "browser": {
+      "url": "https://www.example-tribune.com/local/riverton-four-day-week",
+      "host": "www.example-tribune.com",
+      "tab_title": "Riverton approves four-day week pilot for 1,200 council workers"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_590",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "Riverton council voted 9–4 for a six-month four-day week pilot for about 1,200 staff starting January 5",
+      "hours drop from 37 to 32 with no pay cut",
+      "bins, libraries and the contact centre keep their current hours; the trial ends early if missed bin collections rise more than 10%",
+      "the aim is to cut about $2.1 million a year in agency costs and help hiring; results from Northgate University in August 2027"
+    ],
+    "must_not": [
+      "summarising the 'Most read' sidebar as part of the article"
+    ]
+  },
+  "notes": "News article summary with a sidebar distractor."
+}

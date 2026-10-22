@@ -1,0 +1,53 @@
+{
+  "id": "editor-translate-comments",
+  "app": "editor",
+  "type": "translate",
+  "routing": false,
+  "question": "translate these comments",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T12:03:48+05:30",
+    "utterance": "translate these comments",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "forecast.py — stockroom",
+      "document": "/Users/me/Developer/stockroom/stockroom/forecast.py"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/stockroom",
+      "file": "/Users/me/Developer/stockroom/stockroom/forecast.py"
+    },
+    "selection": {
+      "text": "# Calcula el punto de reorden para cada producto.\n# Usamos la demanda media de las últimas 8 semanas, no la del año completo,\n# porque los productos de temporada distorsionan el promedio.\n# OJO: si el proveedor tarda más de 21 días, duplicamos el stock de seguridad.",
+      "length": 266,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "\"Calculates the reorder point for each product.\"",
+      "\"We use average demand over the last 8 weeks, not the whole year, because seasonal products skew the average.\"",
+      "\"Careful: if the supplier takes more than 21 days, we double the safety stock.\""
+    ],
+    "must_not": [
+      "translating or changing the code itself"
+    ]
+  },
+  "notes": "Translate Spanish comments left by a teammate; the code below confirms the meaning."
+}

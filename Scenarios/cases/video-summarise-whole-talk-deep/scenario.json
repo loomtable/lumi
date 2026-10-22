@@ -1,0 +1,46 @@
+{
+  "id": "video-summarise-whole-talk-deep",
+  "app": "video",
+  "type": "summarise",
+  "routing": true,
+  "question": "summarise this whole talk for me",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T13:47:22+05:30",
+    "utterance": "summarise this whole talk for me",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Shipping on Fridays: what 3 years of incident data taught us — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=dod26-friday-ships",
+      "host": "www.example-video.com",
+      "tab_title": "Shipping on Fridays: what 3 years of incident data taught us — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_134722",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "only the title slide is visible, 3:12 into a 41:50 talk, so the whole talk needs the full transcript",
+      "the talk is 'Shipping on Fridays: what 3 years of incident data taught us' by Tomás Ferreira of Larkspur Logistics"
+    ],
+    "must_not": [
+      "inventing the talk's conclusions or statistics from the title alone"
+    ]
+  },
+  "notes": "Routing: summarising a 42-minute talk from its title slide needs the transcript, so hand off to deep."
+}

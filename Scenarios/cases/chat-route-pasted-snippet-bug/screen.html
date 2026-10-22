@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>dev-help (Channel) - Fernhill - Slack</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;width:1280px;height:800px;overflow:hidden;font:15px/1.46 -apple-system,"Helvetica Neue",Lato,sans-serif;background:#fff;color:#1d1c1d}
+.top{height:40px;background:#350d36;display:flex;align-items:center;padding:0 14px;gap:8px}
+.tl{width:12px;height:12px;border-radius:50%}
+.search{margin:0 auto;width:600px;height:26px;border-radius:6px;background:#5d3a5e;color:#d6cbd6;font-size:13px;display:flex;align-items:center;padding:0 12px}
+.wrap{display:flex;height:760px}
+.rail{width:70px;background:#350d36;display:flex;flex-direction:column;align-items:center;padding-top:12px;gap:14px}
+.ws{width:38px;height:38px;border-radius:9px;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px}
+.side{width:250px;background:#3f0e40;color:#cfc3cf;font-size:15px}
+.sh{height:52px;display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:800;font-size:18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sec{padding:10px 10px 0}.sec h4{margin:6px 8px 4px;font-size:14px;font-weight:600}
+.it{display:flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;gap:8px}
+.it.on{background:#1164a3;color:#fff}.it.un{color:#fff;font-weight:800}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.ch{height:52px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 20px;gap:10px}
+.ch b{font-size:18px}.ch .topic{color:#616061;font-size:13px}
+.msgs{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:6px;overflow:hidden}
+.day{text-align:center;font-size:13px;font-weight:700;margin:8px 0;color:#1d1c1d}
+.msg{display:flex;gap:10px;padding:6px 20px}
+.av{width:36px;height:36px;border-radius:6px;flex:none;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.nm{font-weight:900}.tm{color:#616061;font-size:12px;margin-left:6px}
+.tx{margin-top:1px}
+a{color:#1264a3;text-decoration:none}
+pre{font:12.5px/1.5 Menlo,Monaco,monospace;background:#f8f8f8;border:1px solid #e0e0e0;border-radius:4px;padding:8px 10px;margin:4px 0;white-space:pre;color:#1d1c1d}
+code{font:12px Menlo,monospace;color:#c7254e;background:#f6f6f6;border:1px solid #e0e0e0;border-radius:3px;padding:0 3px}
+.reac{display:inline-flex;gap:4px;align-items:center;border:1px solid #e0e0e0;border-radius:12px;padding:0 8px;font-size:12px;margin-top:4px;margin-right:4px;background:#f8f8f8}
+.thread{font-size:13px;color:#1264a3;font-weight:700;margin-top:4px;display:flex;align-items:center;gap:6px}
+.compose{margin:0 20px 18px;border:1px solid #bbbabb;border-radius:8px;height:84px;padding:10px 12px;color:#868686;font-size:14px}
+</style></head><body>
+<div class="top"><span class="tl" style="background:#ff5f57"></span><span class="tl" style="background:#febc2e"></span><span class="tl" style="background:#28c840"></span><span class="search">Search Fernhill</span></div>
+<div class="wrap"><div class="rail"><div class="ws" style="background:#15803d">F</div></div>
+<div class="side"><div class="sh">Fernhill ⌄</div><div class="sec"><h4>▾ Channels</h4>
+<div class="it"># general</div><div class="it on"># dev-help</div><div class="it un"># deploys</div><div class="it"># storefront</div><div class="it"># watercooler</div></div>
+<div class="sec"><h4>▾ Direct messages</h4><div class="it">● Leo Park</div><div class="it">○ Asha Menon</div></div></div>
+<div class="main"><div class="ch"><b># dev-help</b><span class="topic">Ask anything. Paste the error, not a screenshot of it.</span></div>
+<div class="msgs"><div class="day">Today</div>
+<div class="msg"><div class="av" style="background:#b45309">AM</div><div><span class="nm">Asha Menon</span><span class="tm">1:31 PM</span>
+<div class="tx">Reminder: storefront deploy freeze from 6pm for the sale 🛍️</div></div></div>
+<div class="msg"><div class="av" style="background:#4338ca">LP</div><div><span class="nm">Leo Park</span><span class="tm">1:52 PM</span>
+<div class="tx">Product pages are 500ing for some items and I can't see why. This is the helper:</div>
+<pre><span style="color:#8250df">def</span> average_rating(reviews):
+    total = 0
+    <span style="color:#8250df">for</span> r <span style="color:#8250df">in</span> reviews:
+        total += r[<span style="color:#0a3069">"stars"</span>]
+    <span style="color:#8250df">return</span> total / len(reviews)</pre>
+<div class="tx">and the error from the logs:</div>
+<pre>Traceback (most recent call last):
+  File "storefront/views/product.py", line 61, in product_detail
+    rating = average_rating(product.reviews)
+  File "storefront/ratings.py", line 5, in average_rating
+    return total / len(reviews)
+ZeroDivisionError: division by zero</pre>
+<div class="tx">only seems to happen on the brand-new products 🤔 the old ones are fine</div>
+<div class="reac">👀 1</div></div></div>
+</div><div class="compose">Message #dev-help</div></div></div>
+</body></html>

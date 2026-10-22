@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>fernway-app — -zsh — 132×40</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1280px; height: 800px; overflow: hidden; background: #ffffff; color: #1d1d1f;
+         font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  .win { width: 1280px; height: 800px; display: flex; flex-direction: column; }
+  .titlebar { height: 30px; background: #e8e8e8; color: #4a4a4a; display: flex; align-items: center;
+              position: relative; font-size: 13px; font-weight: 600; border-bottom: 1px solid #c4c4c4; }
+  .titlebar .ttl { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+  .dots { display: flex; gap: 8px; padding: 0 14px; z-index: 1; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .d1 { background: #ff5f57; } .d2 { background: #febc2e; } .d3 { background: #28c840; }
+  .tabs { display: flex; }
+  .strip { height: 28px; background: #dcdcdc; border-bottom: 1px solid #c4c4c4; }
+  .strip .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px;
+                color: #4a4a4a; border-right: 1px solid #c4c4c4; }
+  .strip .tab.active { background: #f6f6f6; color: #1d1d1f; font-weight: 600; }
+  .ghost { height: 38px; }
+  .ghost .tabs { flex: 1; height: 100%; gap: 2px; padding-right: 10px; }
+  .ghost .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500;
+                margin: 6px 0; border-radius: 6px; color: #4a4a4a; }
+  .ghost .tab.active { background: #f6f6f6; color: #1d1d1f; }
+  .plus { padding: 0 14px; font-size: 16px; font-weight: 400; }
+  pre { flex: 1; margin: 0; padding: 10px 14px; font: 13px/1.5 "SF Mono", Menlo, Monaco, monospace;
+        white-space: pre; overflow: hidden; }
+  .r { color: #c4262e; } .g { color: #2f7d32; } .y { color: #9a6a00; } .b { color: #1d5fbf; }
+  .m { color: #8e3fb5; } .c { color: #0a7f8a; } .dim { color: #8a8a8e; } .bold { font-weight: 700; }
+  .u { text-decoration: underline; }
+  .hl { background: #b4d5ff; }
+  .cur { background: #1d1d1f; color: #ffffff; }
+</style></head>
+<body><div class="win">
+<div class="titlebar"><span class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span><span class="ttl">fernway-app — -zsh — 132×40</span></div><div class="tabs strip"><div class="tab active">fernway-app — -zsh</div><div class="tab">rails s</div></div>
+<pre>Updating 4e1a2b0..c93f7d1
+Fast-forward
+ Gemfile.lock                                        |   8 <span class="g">++</span><span class="r">--</span>
+ app/assets/stylesheets/trips.css                    |  14 <span class="g">++</span><span class="r">-</span>
+ app/controllers/api/v2/itineraries_controller.rb    |  41 <span class="g">+++++</span><span class="r">-</span>
+ app/controllers/trips_controller.rb                 |  64 <span class="g">++++++++</span><span class="r">---</span>
+ app/javascript/controllers/fare_alert_controller.js |  33 <span class="g">+++++</span>
+ app/jobs/fare_refresh_job.rb                        |  57 <span class="g">+++++++</span>
+ app/mailers/fare_alert_mailer.rb                    |  21 <span class="g">+++</span>
+ app/models/fare_alert.rb                            |  38 <span class="g">+++++</span>
+ app/models/trip.rb                                  |  22 <span class="g">+++</span><span class="r">-</span>
+ app/services/pricing/quote.rb                       | 103 <span class="g">++++++++++</span><span class="r">----</span>
+ app/views/fare_alert_mailer/price_drop.html.erb     |  24 <span class="g">+++</span>
+ app/views/trips/_card.html.erb                      |  19 <span class="g">++</span><span class="r">-</span>
+ app/views/trips/show.html.erb                       |  31 <span class="g">+++</span><span class="r">--</span>
+ config/locales/en.yml                               |  12 <span class="g">++</span>
+ config/routes.rb                                    |   6 <span class="g">+</span>
+ config/schedule.yml                                 |   4 <span class="g">+</span>
+ db/migrate/20261013094211_create_fare_alerts.rb     |  16 <span class="g">++</span>
+ db/schema.rb                                        |  18 <span class="g">++</span>
+ spec/jobs/fare_refresh_job_spec.rb                  |  44 <span class="g">+++++</span>
+ spec/mailers/fare_alert_mailer_spec.rb              |  26 <span class="g">+++</span>
+ spec/models/fare_alert_spec.rb                      |  29 <span class="g">++++</span>
+ spec/requests/itineraries_spec.rb                   |  37 <span class="g">++++</span><span class="r">-</span>
+ spec/services/pricing/quote_spec.rb                 |  58 <span class="g">+++++</span><span class="r">---</span>
+ 23 files changed, 603 insertions(+), 122 deletions(-)
+ create mode 100644 app/javascript/controllers/fare_alert_controller.js
+ create mode 100644 app/jobs/fare_refresh_job.rb
+ create mode 100644 app/mailers/fare_alert_mailer.rb
+ create mode 100644 app/models/fare_alert.rb
+ create mode 100644 app/views/fare_alert_mailer/price_drop.html.erb
+ create mode 100644 db/migrate/20261013094211_create_fare_alerts.rb
+ create mode 100644 spec/jobs/fare_refresh_job_spec.rb
+ create mode 100644 spec/mailers/fare_alert_mailer_spec.rb
+ create mode 100644 spec/models/fare_alert_spec.rb
+me@studio fernway-app % <span class="cur"> </span></pre>
+</div></body></html>

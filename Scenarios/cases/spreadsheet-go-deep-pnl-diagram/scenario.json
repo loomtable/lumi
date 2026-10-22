@@ -1,0 +1,42 @@
+{
+  "id": "spreadsheet-go-deep-pnl-diagram",
+  "app": "spreadsheet",
+  "type": "diagram",
+  "routing": true,
+  "question": "go deep and diagram how net income gets calculated on this sheet",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T16:18:30+05:30",
+    "utterance": "go deep and diagram how net income gets calculated on this sheet",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Lumen Studio P&L FY2026.xlsx",
+      "document": "/Users/me/Documents/Lumen Studio P&L FY2026.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_599",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hand-off: diagram the calculation chain from revenue to net income on the P&L sheet",
+      "visible chain: revenue 480,000 − COGS 192,000 = gross profit 288,000; minus operating expenses 218,000 = operating income 70,000; minus tax 17,500 = net income 52,500"
+    ],
+    "must_not": [
+      "answering in Quick despite 'go deep'"
+    ]
+  },
+  "notes": "'go deep' override: Quick could draw this from the screen, but the user asked for Deep."
+}

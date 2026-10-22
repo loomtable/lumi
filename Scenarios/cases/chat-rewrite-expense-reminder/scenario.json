@@ -1,0 +1,60 @@
+{
+  "id": "chat-rewrite-expense-reminder",
+  "app": "chat",
+  "type": "rewrite",
+  "routing": false,
+  "question": "make this less passive aggressive",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:26:15+05:30",
+    "utterance": "make this less passive aggressive",
+    "app": {
+      "name": "Slack",
+      "bundle": "com.tinyspeck.slackmacgap",
+      "kind": "chat"
+    },
+    "window": {
+      "title": "team-platform (Channel) - Kestrel Labs - Slack"
+    },
+    "chat": {
+      "channel": "#team-platform",
+      "thread": null
+    },
+    "selection": {
+      "text": "As I've said MULTIPLE times, expenses need to be in by Oct 31. I'm not going to chase everyone individually again. If yours is late it won't get reimbursed this quarter, simple as that.",
+      "length": 185,
+      "truncated": false
+    },
+    "cursor": {
+      "x": 620,
+      "y": 700,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Message #team-platform"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_c08",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "Keeps the Oct 31 deadline for expenses",
+      "Keeps the consequence that late expenses won't be reimbursed this quarter, stated neutrally",
+      "Drops the blame and the shouty caps (\"As I've said MULTIPLE times\", \"simple as that\")"
+    ],
+    "must_not": [
+      "change the deadline",
+      "send the message instead of offering Insert"
+    ]
+  }
+}

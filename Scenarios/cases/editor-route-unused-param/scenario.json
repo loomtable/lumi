@@ -1,0 +1,57 @@
+{
+  "id": "editor-route-unused-param",
+  "app": "editor",
+  "type": "explain-code",
+  "routing": true,
+  "question": "why is retries greyed out",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:16:02+05:30",
+    "utterance": "why is retries greyed out",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "uploader.ts — shoebox",
+      "document": "/Users/me/Developer/shoebox/src/sync/uploader.ts"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/shoebox",
+      "file": "/Users/me/Developer/shoebox/src/sync/uploader.ts"
+    },
+    "cursor": {
+      "x": 210,
+      "y": 202,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Editor content"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_r06",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "TypeScript greys it out because `retries` is declared but never read (ts6133): nothing in uploadBatch uses it",
+      "so uploadBatch never retries: one failed fetch throws UploadError straight away, whatever retries is set to",
+      "either add a retry loop that uses it or remove the parameter"
+    ],
+    "must_not": [
+      "handing off: the whole function is on screen",
+      "saying it's greyed out because it has a default value"
+    ]
+  },
+  "notes": "Routing hard negative: an editor/project question, but the warning and the entire function body are visible."
+}

@@ -1,0 +1,44 @@
+{
+  "id": "spreadsheet-sum-q3-spend",
+  "app": "spreadsheet",
+  "type": "compute",
+  "routing": true,
+  "question": "whats the total q3 spend across all these line items",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:12:40+05:30",
+    "utterance": "whats the total q3 spend across all these line items",
+    "app": {
+      "name": "Numbers",
+      "bundle": "com.apple.iWork.Numbers",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Marketing Budget 2026.numbers",
+      "document": "/Users/me/Documents/Marketing Budget 2026.numbers"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_404",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "total Q3 spend is $60,150",
+      "it is the sum of the eight Q3 actual values (column D)"
+    ],
+    "must_not": [
+      "handing off to Deep: every cell needed is visible",
+      "including the Q2 column in the total"
+    ]
+  },
+  "notes": "Hard negative: looks like a workbook question, but all eight values are on screen. 12,400+8,750+15,200+6,300+1,150+9,800+4,500+2,050 = 60,150."
+}

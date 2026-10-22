@@ -1,0 +1,47 @@
+{
+  "id": "editor-compute-backoff-total",
+  "app": "editor",
+  "type": "compute",
+  "routing": false,
+  "question": "if every call fails how long does this wait in total before giving up",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T19:07:13+05:30",
+    "utterance": "if every call fails how long does this wait in total before giving up",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "retry.ts — tillpoint",
+      "document": "/Users/me/Developer/tillpoint/src/net/retry.ts"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/tillpoint",
+      "file": "/Users/me/Developer/tillpoint/src/net/retry.ts"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "6,750 ms in total (about 6.75 seconds)",
+      "five sleeps of 250 + 500 + 1,000 + 2,000 + 3,000 ms; the last would be 4,000 but MAX_DELAY_MS caps it at 3,000"
+    ],
+    "must_not": [
+      "forgetting that it also sleeps after the fifth failure"
+    ]
+  },
+  "notes": "Compute from visible constants; the cap and the sleep after the last attempt are the traps."
+}

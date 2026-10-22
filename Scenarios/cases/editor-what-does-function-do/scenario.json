@@ -1,0 +1,56 @@
+{
+  "id": "editor-what-does-function-do",
+  "app": "editor",
+  "type": "explain-code",
+  "routing": true,
+  "question": "what does this function do",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T14:22:40+05:30",
+    "utterance": "what does this function do",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "bucket.go — relaywire",
+      "document": "/Users/me/Developer/relaywire/internal/ratelimit/bucket.go"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/relaywire",
+      "file": "/Users/me/Developer/relaywire/internal/ratelimit/bucket.go"
+    },
+    "cursor": {
+      "x": 520,
+      "y": 520,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Editor content"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "Allow is a token-bucket check: it adds tokens for the time since the last call (elapsed × refill per second), capped at capacity",
+      "if fewer than 1 token is left it returns false; otherwise it spends one token and returns true",
+      "the mutex makes it safe to call from many handlers at once"
+    ],
+    "must_not": [
+      "handing off to Deep: the whole function is visible"
+    ]
+  },
+  "notes": "Routing hard negative: looks like a code question but everything needed is on screen."
+}

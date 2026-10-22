@@ -1,0 +1,46 @@
+{
+  "id": "terminal-docker-untagged-size",
+  "app": "terminal",
+  "type": "compute",
+  "routing": false,
+  "question": "how much space would i get back if i delete the untagged ones",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T18:22:30+05:30",
+    "utterance": "how much space would i get back if i delete the untagged ones",
+    "app": {
+      "name": "Ghostty",
+      "bundle": "com.mitchellh.ghostty",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "~/Developer/cinder-ml"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/cinder-ml",
+      "command": "zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_t09",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "about 2.46 GB across the four <none> images",
+      "1.21 GB + 845 MB + 312 MB + 96.4 MB",
+      "possibly less in practice, since images can share layers"
+    ],
+    "must_not": [
+      "counting the tagged images"
+    ]
+  }
+}

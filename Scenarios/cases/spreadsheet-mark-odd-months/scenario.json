@@ -1,0 +1,44 @@
+{
+  "id": "spreadsheet-mark-odd-months",
+  "app": "spreadsheet",
+  "type": "annotate",
+  "routing": false,
+  "question": "anything look off in these numbers",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:27:55+05:30",
+    "utterance": "anything look off in these numbers",
+    "app": {
+      "name": "Numbers",
+      "bundle": "com.apple.iWork.Numbers",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Ridgeback Coffee Sales 2026.numbers",
+      "document": "/Users/me/Documents/Ridgeback Coffee Sales 2026.numbers"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_129",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "April revenue (4,290) is about a tenth of the other months, likely a dropped digit",
+      "June bags sold is negative (-2,015)",
+      "July revenue (118,900) is more than double the other months while bags sold is normal"
+    ],
+    "must_not": [
+      "flagging the normal months (Jan–Mar, May, Aug, Sep) as problems"
+    ]
+  },
+  "notes": "'I've marked three': B7, C5, C8."
+}

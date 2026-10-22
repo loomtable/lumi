@@ -1,0 +1,23 @@
+name: Feature request
+description: An idea that would make Lumi better.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you're trying to do
+      description: The task or moment where Lumi falls short today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: How you'd like Lumi to handle it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do now
+      description: Workarounds or other tools you use for this.

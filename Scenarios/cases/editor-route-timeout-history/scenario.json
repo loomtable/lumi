@@ -1,0 +1,54 @@
+{
+  "id": "editor-route-timeout-history",
+  "app": "editor",
+  "type": "explain-code",
+  "routing": true,
+  "question": "when did this get bumped to ninety seconds and why",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T16:33:47+05:30",
+    "utterance": "when did this get bumped to ninety seconds and why",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "http.ts — harbor-api",
+      "document": "/Users/me/Developer/harbor-api/src/config/http.ts"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/harbor-api",
+      "file": "/Users/me/Developer/harbor-api/src/config/http.ts"
+    },
+    "cursor": {
+      "x": 420,
+      "y": 98,
+      "element": {
+        "role": "AXTextArea",
+        "label": "Editor content"
+      }
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_r07",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "hands off to check the git history (blame / log) of REQUEST_TIMEOUT_MS in src/config/http.ts in /Users/me/Developer/harbor-api",
+      "nothing on screen says when or why it changed: there's no blame annotation or comment, only the value 90_000"
+    ],
+    "must_not": [
+      "guessing a date, author or reason for the change"
+    ]
+  },
+  "notes": "Routing: deep. A one-line question about one visible constant, but the answer is in git history, which isn't on screen."
+}

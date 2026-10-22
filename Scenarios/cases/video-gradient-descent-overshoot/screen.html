@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Gradient Descent, Intuitively (Lecture 4) — Clipstream</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: #ffffff; color: #0f0f0f; }
+  .chrome { height: 44px; background: #e3e3e1; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #606060; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .url { margin: 0 220px 0 120px; background: #ffffff; border-radius: 6px; padding: 4px 12px; flex: 1; text-align: center; color: #0f0f0f; }
+  header { height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .logo { font-weight: 700; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
+  .logo b { background: #e62117; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+  .search { margin-left: 150px; width: 520px; height: 38px; border: 1px solid #e5e5e5; border-radius: 20px; padding: 8px 18px; color: #606060; }
+  .hdr-r { margin-left: auto; display: flex; gap: 14px; align-items: center; color: #606060; }
+  .me { width: 30px; height: 30px; border-radius: 50%; background: #7a5af5; color: #fff; text-align: center; line-height: 30px; font-weight: 600; }
+  main { display: flex; gap: 24px; padding: 4px 24px 0; }
+  .player { position: relative; width: 880px; height: 541px; background: #0f0f0f; border-radius: 12px; overflow: hidden; }
+  .player svg { display: block; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; padding: 0 70px; }
+  .cap span { background: rgba(8,8,8,.78); color: #fff; font-size: 21px; line-height: 1.45; padding: 2px 8px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #0f0f0f; color: #fff; }
+  .bar { position: absolute; left: 12px; right: 12px; top: 2px; height: 4px; background: rgba(255,255,255,.3); }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 33.3%; background: #e62117; }
+  .bar s { position: absolute; left: 0; top: 0; bottom: 0; width: 41.3%; background: rgba(255,255,255,.45); }
+  .bar u { position: absolute; left: calc(33.3% - 6px); top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #e62117; }
+  .row { position: absolute; left: 16px; right: 16px; bottom: 9px; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+  .row .r { margin-left: auto; display: flex; gap: 18px; }
+  .chap { color: #ddd; }
+  .cc { border-bottom: 2px solid #e62117; font-weight: 700; font-size: 12px; }
+  h1 { font-size: 20px; line-height: 1.3; margin: 10px 0 6px; width: 880px; }
+  .ch { display: flex; align-items: center; gap: 12px; }
+  .av { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; text-align: center; line-height: 40px; }
+  .cn { font-weight: 600; font-size: 15px; }
+  .subs { color: #606060; font-size: 12px; }
+  .sub { background: #0f0f0f; color: #ffffff; border-radius: 18px; padding: 8px 16px; font-weight: 600; margin-left: 12px; }
+  .acts { margin-left: auto; display: flex; gap: 8px; }
+  .act { background: #f2f2f2; border-radius: 18px; padding: 8px 14px; font-weight: 500; }
+  .side { width: 328px; }
+  .chips { display: flex; gap: 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; }
+  .chip { background: #f2f2f2; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+  .chip.on { background: #0f0f0f; color: #ffffff; }
+  .un { display: flex; gap: 8px; margin-bottom: 10px; }
+  .th { position: relative; flex: none; width: 168px; height: 94px; border-radius: 8px; }
+  .dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+  .ut { font-weight: 600; font-size: 14px; line-height: 1.3; max-height: 37px; overflow: hidden; }
+  .uc { color: #606060; font-size: 12px; margin-top: 3px; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">https://www.example-video.com/watch?v=gd4-overshoot</span></div>
+  <header><div class="logo"><b>▶</b>Clipstream</div><div class="search">Search</div><div class="hdr-r"><span>＋ Create</span><span>🔔</span><span class="me">J</span></div></header>
+  <main>
+    <div>
+      <div class="player">
+        <svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"><rect width="960" height="540" fill="#fbfbf8"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#d93025"/></marker></defs>
+<text x="40" y="58" font-size="32" font-weight="700" fill="#202124" font-family="Helvetica Neue, Arial, sans-serif">Gradient descent: choosing the step size</text>
+<line x1="40" y1="74" x2="920" y2="74" stroke="#1a73e8" stroke-width="3"/>
+<line x1="150" y1="470" x2="810" y2="470" stroke="#555" stroke-width="2"/><line x1="150" y1="470" x2="150" y2="110" stroke="#555" stroke-width="2"/>
+<text x="700" y="460" font-size="16" fill="#555" font-family="Helvetica Neue, Arial, sans-serif">weight w →</text><text x="60" y="120" font-size="16" fill="#555" font-family="Helvetica Neue, Arial, sans-serif">loss L(w)</text>
+<path d="M180 140 Q480 740 780 140" fill="none" stroke="#202124" stroke-width="3"/>
+<line x1="480" y1="440" x2="480" y2="470" stroke="#188038" stroke-width="2" stroke-dasharray="5 4"/><text x="452" y="462" font-size="14" fill="#188038" font-family="Helvetica Neue, Arial, sans-serif">minimum</text>
+<line x1="240" y1="248" x2="690" y2="293" stroke="#d93025" stroke-width="3" marker-end="url(#ah)"/><line x1="690" y1="293" x2="300" y2="332" stroke="#d93025" stroke-width="3" marker-end="url(#ah)"/><line x1="300" y1="332" x2="630" y2="365" stroke="#d93025" stroke-width="3" marker-end="url(#ah)"/><line x1="630" y1="365" x2="360" y2="392" stroke="#d93025" stroke-width="3" marker-end="url(#ah)"/><circle cx="240" cy="248" r="9" fill="#1a73e8" stroke="#fff" stroke-width="2"/><text x="252" y="238" font-size="15" fill="#1a73e8" font-family="Helvetica Neue, Arial, sans-serif">w0</text><circle cx="690" cy="293" r="9" fill="#1a73e8" stroke="#fff" stroke-width="2"/><text x="702" y="283" font-size="15" fill="#1a73e8" font-family="Helvetica Neue, Arial, sans-serif">w1</text><circle cx="300" cy="332" r="9" fill="#1a73e8" stroke="#fff" stroke-width="2"/><text x="312" y="322" font-size="15" fill="#1a73e8" font-family="Helvetica Neue, Arial, sans-serif">w2</text><circle cx="630" cy="365" r="9" fill="#1a73e8" stroke="#fff" stroke-width="2"/><text x="642" y="355" font-size="15" fill="#1a73e8" font-family="Helvetica Neue, Arial, sans-serif">w3</text><circle cx="360" cy="392" r="9" fill="#1a73e8" stroke="#fff" stroke-width="2"/><text x="372" y="382" font-size="15" fill="#1a73e8" font-family="Helvetica Neue, Arial, sans-serif">w4</text>
+<rect x="610" y="96" width="320" height="120" rx="10" fill="#fff" stroke="#dadce0" stroke-width="2"/>
+<text x="630" y="132" font-size="22" fill="#202124" font-family="Menlo, Monaco, monospace">w ← w − η · ∇L(w)</text>
+<text x="630" y="170" font-size="20" fill="#d93025" font-weight="700" font-family="Helvetica Neue, Arial, sans-serif">η = 0.8  (too large)</text>
+<text x="630" y="198" font-size="15" fill="#5f6368" font-family="Helvetica Neue, Arial, sans-serif">each step jumps past the minimum</text>
+<text x="920" y="28" font-size="14" fill="#9aa0a6" text-anchor="end" font-family="Helvetica Neue, Arial, sans-serif">Dr. Priya Raman · ML Foundations, Lecture 4</text></svg>
+        <div class="cap"><span>the learning rate is too big, so every step jumps right past the minimum</span></div>
+        <div class="ctl"><div class="bar"><s></s><i></i><u></u></div>
+          <div class="row"><span>❚❚</span><span>⏭</span><span>🔊</span><span>12:41 / 38:05 <span class="chap">· Step size ›</span></span>
+            <span class="r"><span class="cc">CC</span><span>⚙</span><span>▭</span><span>⛶</span></span></div></div>
+      </div>
+      <h1>Gradient Descent, Intuitively (Lecture 4) | ML Foundations</h1>
+      <div class="ch"><div class="av" style="background:#1a73e8">P</div>
+        <div><div class="cn">Priya Raman Lectures</div><div class="subs">212K subscribers</div></div>
+        <span class="sub">Subscribe</span>
+        <span class="acts"><span class="act">👍 8.4K</span><span class="act">↗ Share</span><span class="act">⤓ Save</span><span class="act">···</span></span></div>
+    </div>
+    <div class="side"><div class="chips"><span class="chip on">All</span><span class="chip">From this channel</span><span class="chip">Related</span><span class="chip">Recently uploaded</span></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b6ea5,#9cc3e6)"><span class="dur">41:12</span></div><div><div class="ut">Lecture 5: Momentum and Adam, explained</div><div class="uc">Priya Raman Lectures</div><div class="uc">96K views · 1 week ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#a5523b,#f0c08a)"><span class="dur">14:09</span></div><div><div class="ut">Why your loss curve looks like a sawtooth</div><div class="uc">Tensor Tinkerers</div><div class="uc">310K views · 4 months ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b8a5a,#b6e3a0)"><span class="dur">22:47</span></div><div><div class="ut">Linear regression from scratch in NumPy</div><div class="uc">Code With Mara</div><div class="uc">58K views · 2 years ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#5b3ba5,#d0a8f0)"><span class="dur">19:58</span></div><div><div class="ut">Calculus you need for ML, in 20 minutes</div><div class="uc">Northgate Math</div><div class="uc">1.1M views · 3 years ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#333,#888)"><span class="dur">36:30</span></div><div><div class="ut">Lecture 3: Loss functions</div><div class="uc">Priya Raman Lectures</div><div class="uc">120K views · 2 weeks ago</div></div></div></div>
+  </main>
+</body></html>

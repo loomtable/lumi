@@ -1,0 +1,49 @@
+{
+  "id": "browser-compare-hosting-quick",
+  "app": "browser",
+  "type": "compare",
+  "routing": true,
+  "question": "quick answer which of these is the cheapest with at least 8 gigs of ram",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T11:27:40+05:30",
+    "utterance": "quick answer which of these is the cheapest with at least 8 gigs of ram",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "Pricing – Nimbusbox Cloud"
+    },
+    "browser": {
+      "url": "https://www.example-nimbusbox.com/pricing",
+      "host": "www.example-nimbusbox.com",
+      "tab_title": "Pricing – Nimbusbox Cloud"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_355",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "Memory plan at $21/mo is the cheapest with 8 GB RAM",
+      "Standard is also 8 GB but costs $24/mo, with 2 vCPU and 160 GB SSD versus Memory's 1 vCPU and 40 GB",
+      "Starter has only 2 GB RAM, so it doesn't qualify"
+    ],
+    "must_not": [
+      "going to the deep lane or searching the web for other providers",
+      "picking Standard just because it is marked Most popular"
+    ]
+  },
+  "notes": "Routing: 'quick answer' override. A comparison that could tempt a web search; the user asked for quick."
+}

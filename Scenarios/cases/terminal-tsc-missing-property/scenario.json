@@ -1,0 +1,48 @@
+{
+  "id": "terminal-tsc-missing-property",
+  "app": "terminal",
+  "type": "explain-code",
+  "routing": true,
+  "question": "why is the build failing",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T09:12:44+05:30",
+    "utterance": "why is the build failing",
+    "app": {
+      "name": "Ghostty",
+      "bundle": "com.mitchellh.ghostty",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "~/Developer/ledgerline"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/ledgerline",
+      "command": "zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_t01",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "TypeScript error TS2551 in src/billing/invoice-mailer.ts at line 42",
+      "the Customer type has no `email` property; it declares `emails: string[]` (src/types/customer.ts:14)",
+      "fix line 42 to read from `emails`, for example `invoice.customer.emails[0]`"
+    ],
+    "must_not": [
+      "handing off to deep: the cause and the declaration are both visible in the output",
+      "blaming vite, since tsc failed before vite build ran"
+    ]
+  },
+  "notes": "Routing hard negative: looks like a build failure that needs the repo, but tsc printed the cause and the declaration."
+}

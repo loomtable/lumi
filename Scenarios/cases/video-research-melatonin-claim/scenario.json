@@ -1,0 +1,46 @@
+{
+  "id": "video-research-melatonin-claim",
+  "app": "video",
+  "type": "research",
+  "routing": true,
+  "question": "research whether this claim actually holds up and write me a short report",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T23:48:02+05:30",
+    "utterance": "research whether this claim actually holds up and write me a short report",
+    "app": {
+      "name": "Safari",
+      "bundle": "com.apple.Safari",
+      "kind": "browser"
+    },
+    "window": {
+      "title": "The 9 PM Phone Rule That Fixed My Sleep — Clipstream"
+    },
+    "browser": {
+      "url": "https://www.example-video.com/watch?v=9pm-phone-rule",
+      "host": "www.example-video.com",
+      "tab_title": "The 9 PM Phone Rule That Fixed My Sleep — Clipstream"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_234802",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "research",
+    "facts": [
+      "the claim to check is that screens after 9 PM cut melatonin by 50%",
+      "the video's only cited source is \"one study\", with blue light as the proposed mechanism"
+    ],
+    "must_not": [
+      "giving a verdict on the claim in the quick hand-off"
+    ]
+  },
+  "notes": "Routing: explicit research and report request."
+}

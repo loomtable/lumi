@@ -1,0 +1,52 @@
+{
+  "id": "finder-diagram-project-structure",
+  "app": "finder",
+  "type": "diagram",
+  "routing": true,
+  "question": "go deep and draw me a diagram of how this whole project fits together",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "go deep and draw me a diagram of how this whole project fits together",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "api"
+    },
+    "finder": {
+      "folder": "/Users/me/Developer/tidepool-app/api",
+      "selected": []
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    },
+    "recent": [
+      {
+        "app": "Visual Studio Code",
+        "title": "README.md — tidepool-app"
+      }
+    ]
+  },
+  "expected": {
+    "lane": "deep",
+    "shape": "rich",
+    "facts": [
+      "Deep reads the tidepool-app repo at /Users/me/Developer/tidepool-app",
+      "the diagram covers how api, web, shared, infra and docs relate"
+    ],
+    "must_not": [
+      "drawing connections from folder names alone without reading the repo"
+    ]
+  },
+  "notes": "Routing override: \"go deep\" sends it to Deep; the folder tree alone can't show how parts connect."
+}

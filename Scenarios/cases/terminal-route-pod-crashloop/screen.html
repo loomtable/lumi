@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>~/Developer/tillwise-infra</title><style>
+html,body{margin:0;padding:0}
+body{width:1280px;height:800px;overflow:hidden;background:#1c1d22;color:#d6d8de;font-family:-apple-system,"Helvetica Neue",sans-serif}
+.win{width:1280px;height:800px;display:flex;flex-direction:column}
+.titlebar{height:38px;background:#2a2b31;color:#a9abb3;display:flex;align-items:center;border-bottom:1px solid #111216}
+.dots{display:flex;gap:8px;padding:0 14px}.dots i{width:12px;height:12px;border-radius:50%;display:block}
+.tabs{flex:1;display:flex;height:100%;gap:2px;padding-right:10px}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;margin:6px 0;border-radius:6px}
+.tab.active{background:#1c1d22;color:#d6d8de}
+pre{flex:1;margin:0;padding:10px 14px;font:13px/1.5 "SF Mono",Menlo,Monaco,monospace;white-space:pre;overflow:hidden}
+.r{color:#ff6b6b}.g{color:#8bd17c}.y{color:#e9c46a}.b{color:#6cb6ff}.m{color:#d38cff}.c{color:#56d4dd}.dim{color:#7d808a}.bold{font-weight:700}
+.cur{background:#d6d8de;color:#1c1d22}
+</style></head>
+<body><div class="win"><div class="titlebar"><span class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><div class="tabs"><div class="tab active">tillwise-infra</div><div class="tab">k9s</div><div class="tab">~</div></div></div>
+<pre><span class="c bold">~/Developer/tillwise-infra</span> on <span class="m bold"> main</span> <span class="b">⎈ staging-eu</span>
+<span class="g bold">❯</span> kubectl get pods -n checkout
+NAME                               READY   STATUS             RESTARTS        AGE
+checkout-api-7d9f6c8b5-x2kqm       0/1     <span class="r">CrashLoopBackOff</span>   14 (41s ago)    47m
+checkout-web-5c7b9d6f4-q8wzr       1/1     <span class="g">Running</span>            0               3d
+checkout-worker-6f8d7b9c6-mtl4p    1/1     <span class="g">Running</span>            0               3d
+
+<span class="c bold">~/Developer/tillwise-infra</span> on <span class="m bold"> main</span> <span class="b">⎈ staging-eu</span>
+<span class="g bold">❯</span> kubectl logs checkout-api-7d9f6c8b5-x2kqm -n checkout --previous
+<span class="dim">2026-10-14T07:59:02Z</span> <span class="g">INFO </span> starting checkout-api v2.8.0 (commit 4be19a0)
+<span class="dim">2026-10-14T07:59:02Z</span> <span class="g">INFO </span> loading config from environment
+<span class="dim">2026-10-14T07:59:02Z</span> <span class="g">INFO </span> postgres: connected to checkout-db.checkout.svc:5432
+<span class="dim">2026-10-14T07:59:02Z</span> <span class="g">INFO </span> redis: connected to checkout-cache.checkout.svc:6379
+<span class="dim">2026-10-14T07:59:02Z</span> <span class="r">ERROR</span> config: required environment variable PAYMENTS_WEBHOOK_SECRET is not set
+<span class="dim">2026-10-14T07:59:02Z</span> <span class="r bold">FATAL</span> refusing to start without webhook verification; exiting with code 1
+
+<span class="c bold">~/Developer/tillwise-infra</span> on <span class="m bold"> main</span> <span class="b">⎈ staging-eu</span>
+<span class="g bold">❯</span> <span class="cur"> </span></pre></div></body></html>

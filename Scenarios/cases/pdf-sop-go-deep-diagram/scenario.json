@@ -1,0 +1,42 @@
+{
+  "id": "pdf-sop-go-deep-diagram",
+  "app": "pdf",
+  "type": "diagram",
+  "routing": true,
+  "question": "go deep and turn this process into a diagram",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "go deep and turn this process into a diagram",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Larkspur_Clinic_Incident_Reporting_SOP.pdf – Page 3 of 9",
+      "document": "/Users/me/Documents/Clinic/Larkspur_Clinic_Incident_Reporting_SOP.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "Deep because the user said 'go deep', even though section 4 is fully visible",
+      "the diagram is about the incident flow: log within 24 h → Duty Manager grades Low / Moderate / Severe → branch per severity → learning shared at the monthly Patient Safety Meeting"
+    ],
+    "must_not": [
+      "answering in Quick despite the override"
+    ]
+  },
+  "notes": "Routing override: 'go deep' forces Deep. Dark appearance."
+}

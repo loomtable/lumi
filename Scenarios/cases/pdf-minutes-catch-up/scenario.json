@@ -1,0 +1,43 @@
+{
+  "id": "pdf-minutes-catch-up",
+  "app": "pdf",
+  "type": "catch-up",
+  "routing": false,
+  "question": "catch me up on this",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "catch me up on this",
+    "app": {
+      "name": "Preview",
+      "bundle": "com.apple.Preview",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Riverside_Garden_Committee_Minutes_2026-10-07.pdf – Page 1 of 1",
+      "document": "/Users/me/Documents/Garden/Riverside_Garden_Committee_Minutes_2026-10-07.pdf"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "decided: full plot fee goes from £35 to £40 from 1 January 2027 (half plots £20 to £23), and four compost bays for £1,200",
+      "open: the shed roof (one quote of £2,350, Joe getting a second by 4 November) and the disputed council water meter",
+      "next actions: Priya emails members about fees by 21 October; next meeting 4 November"
+    ],
+    "must_not": [
+      "saying the shed roof was approved"
+    ]
+  }
+}

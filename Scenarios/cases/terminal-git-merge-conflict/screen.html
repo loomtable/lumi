@@ -1,0 +1,63 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harbor-api — -zsh — 132×40</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1280px; height: 800px; overflow: hidden; background: #ffffff; color: #1d1d1f;
+         font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  .win { width: 1280px; height: 800px; display: flex; flex-direction: column; }
+  .titlebar { height: 30px; background: #e8e8e8; color: #4a4a4a; display: flex; align-items: center;
+              position: relative; font-size: 13px; font-weight: 600; border-bottom: 1px solid #c4c4c4; }
+  .titlebar .ttl { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+  .dots { display: flex; gap: 8px; padding: 0 14px; z-index: 1; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .d1 { background: #ff5f57; } .d2 { background: #febc2e; } .d3 { background: #28c840; }
+  .tabs { display: flex; }
+  .strip { height: 28px; background: #dcdcdc; border-bottom: 1px solid #c4c4c4; }
+  .strip .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px;
+                color: #4a4a4a; border-right: 1px solid #c4c4c4; }
+  .strip .tab.active { background: #f6f6f6; color: #1d1d1f; font-weight: 600; }
+  .ghost { height: 38px; }
+  .ghost .tabs { flex: 1; height: 100%; gap: 2px; padding-right: 10px; }
+  .ghost .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500;
+                margin: 6px 0; border-radius: 6px; color: #4a4a4a; }
+  .ghost .tab.active { background: #f6f6f6; color: #1d1d1f; }
+  .plus { padding: 0 14px; font-size: 16px; font-weight: 400; }
+  pre { flex: 1; margin: 0; padding: 10px 14px; font: 13px/1.5 "SF Mono", Menlo, Monaco, monospace;
+        white-space: pre; overflow: hidden; }
+  .r { color: #c4262e; } .g { color: #2f7d32; } .y { color: #9a6a00; } .b { color: #1d5fbf; }
+  .m { color: #8e3fb5; } .c { color: #0a7f8a; } .dim { color: #8a8a8e; } .bold { font-weight: 700; }
+  .u { text-decoration: underline; }
+  .hl { background: #b4d5ff; }
+  .cur { background: #1d1d1f; color: #ffffff; }
+</style></head>
+<body><div class="win">
+<div class="titlebar"><span class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span><span class="ttl">harbor-api — -zsh — 132×40</span></div><div class="tabs strip"><div class="tab active">harbor-api — -zsh</div><div class="tab">uvicorn</div></div>
+<pre>Last login: Wed Oct 14 10:58:31 on ttys002
+me@studio harbor-api % git pull origin main
+remote: Enumerating objects: 19, done.
+remote: Counting objects: 100% (19/19), done.
+remote: Compressing objects: 100% (7/7), done.
+remote: Total 11 (delta 6), reused 0 (delta 0), pack-reused 0
+Unpacking objects: 100% (11/11), 2.84 KiB | 485.00 KiB/s, done.
+From git.example.com:northwind/harbor-api
+ * branch            main       -&gt; FETCH_HEAD
+   8d41c07..e2b9f15  main       -&gt; origin/main
+Auto-merging requirements.txt
+Auto-merging src/routes/bookings.py
+CONFLICT (content): Merge conflict in src/routes/bookings.py
+Automatic merge failed; fix conflicts and then commit the result.
+me@studio harbor-api % git status
+On branch feature/booking-limits
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	<span class="g">modified:   requirements.txt</span>
+
+Unmerged paths:
+  (use "git add &lt;file&gt;..." to mark resolution)
+	<span class="r">both modified:   src/routes/bookings.py</span>
+
+me@studio harbor-api % <span class="cur"> </span></pre>
+</div></body></html>

@@ -1,0 +1,42 @@
+{
+  "id": "spreadsheet-midterm-average-all-periods",
+  "app": "spreadsheet",
+  "type": "compute",
+  "routing": true,
+  "question": "what's the midterm average across all three periods",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T15:03:11+05:30",
+    "utterance": "what's the midterm average across all three periods",
+    "app": {
+      "name": "Microsoft Excel",
+      "bundle": "com.microsoft.Excel",
+      "kind": "document"
+    },
+    "window": {
+      "title": "Algebra II Grades Fall 2026.xlsx",
+      "document": "/Users/me/Documents/Algebra II Grades Fall 2026.xlsx"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_897",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "the Period 2 and Period 3 sheets are not visible, so the workbook has to be read",
+      "hand-off: average the Midterm column across the Period 1, Period 2 and Period 3 tabs"
+    ],
+    "must_not": [
+      "presenting the Period 1 midterm average (82) as the all-period average"
+    ]
+  },
+  "notes": "Needs other sheets that are not on screen → deep. Only Period 1 is visible (its midterm average is 82)."
+}

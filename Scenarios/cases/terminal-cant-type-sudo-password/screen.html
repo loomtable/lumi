@@ -1,0 +1,47 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>sudo nginx -s reload</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1280px; height: 800px; overflow: hidden; background: #1c1d22; color: #d6d8de;
+         font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  .win { width: 1280px; height: 800px; display: flex; flex-direction: column; }
+  .titlebar { height: 30px; background: #2a2b31; color: #a9abb3; display: flex; align-items: center;
+              position: relative; font-size: 13px; font-weight: 600; border-bottom: 1px solid #111216; }
+  .titlebar .ttl { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+  .dots { display: flex; gap: 8px; padding: 0 14px; z-index: 1; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .d1 { background: #ff5f57; } .d2 { background: #febc2e; } .d3 { background: #28c840; }
+  .tabs { display: flex; }
+  .strip { height: 28px; background: #232429; border-bottom: 1px solid #111216; }
+  .strip .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px;
+                color: #a9abb3; border-right: 1px solid #111216; }
+  .strip .tab.active { background: #1c1d22; color: #d6d8de; font-weight: 600; }
+  .ghost { height: 38px; }
+  .ghost .tabs { flex: 1; height: 100%; gap: 2px; padding-right: 10px; }
+  .ghost .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500;
+                margin: 6px 0; border-radius: 6px; color: #a9abb3; }
+  .ghost .tab.active { background: #1c1d22; color: #d6d8de; }
+  .plus { padding: 0 14px; font-size: 16px; font-weight: 400; }
+  pre { flex: 1; margin: 0; padding: 10px 14px; font: 13px/1.5 "SF Mono", Menlo, Monaco, monospace;
+        white-space: pre; overflow: hidden; }
+  .r { color: #ff6b6b; } .g { color: #8bd17c; } .y { color: #e9c46a; } .b { color: #6cb6ff; }
+  .m { color: #d38cff; } .c { color: #56d4dd; } .dim { color: #7d808a; } .bold { font-weight: 700; }
+  .u { text-decoration: underline; }
+  .hl { background: #264f78; }
+  .cur { background: #d6d8de; color: #1c1d22; }
+</style></head>
+<body><div class="win">
+<div class="titlebar ghost"><span class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span><div class="tabs"><div class="tab active">sudo</div><div class="tab">hugo server</div></div><span class="plus">+</span></div>
+<pre><span class="c bold">~/Developer/driftwood-site</span> on <span class="m bold"> main</span>
+<span class="g bold">❯</span> nginx -t
+nginx: the configuration file /opt/homebrew/etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /opt/homebrew/etc/nginx/nginx.conf test is successful
+
+<span class="c bold">~/Developer/driftwood-site</span> on <span class="m bold"> main</span>
+<span class="g bold">❯</span> nginx -s reload
+nginx: [alert] kill(612, 1) failed (1: Operation not permitted)
+
+<span class="c bold">~/Developer/driftwood-site</span> on <span class="m bold"> main</span>
+<span class="r bold">❯</span> sudo nginx -s reload
+Password: 🔑<span class="cur"> </span></pre>
+</div></body></html>

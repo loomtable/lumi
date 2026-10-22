@@ -1,0 +1,46 @@
+{
+  "id": "terminal-cargo-make-build-pass",
+  "app": "terminal",
+  "type": "explain-code",
+  "routing": true,
+  "question": "can you make the build pass",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T16:40:02+05:30",
+    "utterance": "can you make the build pass",
+    "app": {
+      "name": "iTerm2",
+      "bundle": "com.googlecode.iterm2",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "tidepool (-zsh)"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/tidepool",
+      "command": "-zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_t03",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "shape": "card",
+    "facts": [
+      "three compile errors across src/sync/queue.rs, src/main.rs and src/net/client.rs",
+      "fixing them means editing files in /Users/me/Developer/tidepool and re-running cargo build"
+    ],
+    "must_not": [
+      "claiming the build passes without changing files and re-running cargo build"
+    ]
+  },
+  "notes": "Routing: 'make the build pass' asks for changes to the repo, so deep even though errors are visible."
+}

@@ -1,0 +1,46 @@
+{
+  "id": "editor-go-deep-compare-caches",
+  "app": "editor",
+  "type": "compare",
+  "routing": true,
+  "question": "go deep and compare these two caches, which one should we keep for the product catalog",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T13:44:18+05:30",
+    "utterance": "go deep and compare these two caches, which one should we keep for the product catalog",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "lru.ts — tillpoint",
+      "document": "/Users/me/Developer/tillpoint/src/cache/lru.ts"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/tillpoint",
+      "file": "/Users/me/Developer/tillpoint/src/cache/lru.ts"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "facts": [
+      "compares LruCache in src/cache/lru.ts (size-bounded, max 500, evicts least recently used) with TtlCache in src/cache/ttl-cache.ts (entries expire after 60 s but nothing bounds its size)",
+      "Deep should look at how the product catalog uses the cache before recommending one"
+    ],
+    "must_not": [
+      "answering in Quick: the user said go deep"
+    ]
+  },
+  "notes": "Routing override: a compare Quick could attempt from the split view, but 'go deep' sends it to Deep."
+}

@@ -1,0 +1,51 @@
+{
+  "id": "finder-summarise-meeting-notes",
+  "app": "finder",
+  "type": "summarise",
+  "routing": true,
+  "question": "summarise what these three meetings decided",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T10:42:07+05:30",
+    "utterance": "summarise what these three meetings decided",
+    "app": {
+      "name": "Finder",
+      "bundle": "com.apple.finder",
+      "kind": "finder"
+    },
+    "window": {
+      "title": "Meetings"
+    },
+    "finder": {
+      "folder": "/Users/me/Documents/Clients/Brightwater Co-op/Meetings",
+      "selected": [
+        "/Users/me/Documents/Clients/Brightwater Co-op/Meetings/2026-09-30 Pricing workshop.docx",
+        "/Users/me/Documents/Clients/Brightwater Co-op/Meetings/2026-10-07 Steering committee.docx",
+        "/Users/me/Documents/Clients/Brightwater Co-op/Meetings/2026-10-13 Launch readiness.docx"
+      ]
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "deep",
+    "shape": "card",
+    "facts": [
+      "the decisions are inside the three selected Word documents, which are not open on screen",
+      "Deep needs to open and read Pricing workshop (Sep 30), Steering committee (Oct 7) and Launch readiness (Oct 13)"
+    ],
+    "must_not": [
+      "inventing decisions from the file names",
+      "summarising the meetings from Quick without reading the files"
+    ]
+  },
+  "notes": "Routing: the question is about file contents that are not visible, so it needs Deep to read the files."
+}

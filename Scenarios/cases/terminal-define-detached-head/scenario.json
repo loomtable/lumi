@@ -1,0 +1,50 @@
+{
+  "id": "terminal-define-detached-head",
+  "app": "terminal",
+  "type": "define",
+  "routing": false,
+  "question": "what does detached head mean",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T12:08:45+05:30",
+    "utterance": "what does detached head mean",
+    "app": {
+      "name": "Terminal",
+      "bundle": "com.apple.Terminal",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "quillstack — -zsh — 132×40"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/quillstack",
+      "command": "-zsh"
+    },
+    "selection": {
+      "text": "detached HEAD",
+      "length": 13,
+      "truncated": false
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "light"
+    },
+    "conversation": {
+      "id": "c_t07",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "chip",
+    "facts": [
+      "HEAD points straight at a commit (3f2a9c1) instead of a branch",
+      "new commits made here belong to no branch unless you create one, e.g. `git switch -c <name>`"
+    ],
+    "must_not": [
+      "saying the repository is broken or that work has been lost"
+    ]
+  }
+}

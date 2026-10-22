@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Shipping on Fridays: what 3 years of incident data taught us — Clipstream</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font: 14px/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; background: #ffffff; color: #0f0f0f; }
+  .chrome { height: 44px; background: #e3e3e1; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #606060; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .url { margin: 0 220px 0 120px; background: #ffffff; border-radius: 6px; padding: 4px 12px; flex: 1; text-align: center; color: #0f0f0f; }
+  header { height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .logo { font-weight: 700; font-size: 19px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
+  .logo b { background: #e62117; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 13px; }
+  .search { margin-left: 150px; width: 520px; height: 38px; border: 1px solid #e5e5e5; border-radius: 20px; padding: 8px 18px; color: #606060; }
+  .hdr-r { margin-left: auto; display: flex; gap: 14px; align-items: center; color: #606060; }
+  .me { width: 30px; height: 30px; border-radius: 50%; background: #7a5af5; color: #fff; text-align: center; line-height: 30px; font-weight: 600; }
+  main { display: flex; gap: 24px; padding: 4px 24px 0; }
+  .player { position: relative; width: 880px; height: 541px; background: #0f0f0f; border-radius: 12px; overflow: hidden; }
+  .player svg { display: block; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; padding: 0 70px; }
+  .cap span { background: rgba(8,8,8,.78); color: #fff; font-size: 21px; line-height: 1.45; padding: 2px 8px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #0f0f0f; color: #fff; }
+  .bar { position: absolute; left: 12px; right: 12px; top: 2px; height: 4px; background: rgba(255,255,255,.3); }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 7.7%; background: #e62117; }
+  .bar s { position: absolute; left: 0; top: 0; bottom: 0; width: 15.7%; background: rgba(255,255,255,.45); }
+  .bar u { position: absolute; left: calc(7.7% - 6px); top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #e62117; }
+  .row { position: absolute; left: 16px; right: 16px; bottom: 9px; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+  .row .r { margin-left: auto; display: flex; gap: 18px; }
+  .chap { color: #ddd; }
+  .cc { border-bottom: 2px solid #e62117; font-weight: 700; font-size: 12px; }
+  h1 { font-size: 20px; line-height: 1.3; margin: 10px 0 6px; width: 880px; }
+  .ch { display: flex; align-items: center; gap: 12px; }
+  .av { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; text-align: center; line-height: 40px; }
+  .cn { font-weight: 600; font-size: 15px; }
+  .subs { color: #606060; font-size: 12px; }
+  .sub { background: #0f0f0f; color: #ffffff; border-radius: 18px; padding: 8px 16px; font-weight: 600; margin-left: 12px; }
+  .acts { margin-left: auto; display: flex; gap: 8px; }
+  .act { background: #f2f2f2; border-radius: 18px; padding: 8px 14px; font-weight: 500; }
+  .side { width: 328px; }
+  .chips { display: flex; gap: 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; }
+  .chip { background: #f2f2f2; border-radius: 8px; padding: 5px 10px; font-size: 13px; }
+  .chip.on { background: #0f0f0f; color: #ffffff; }
+  .un { display: flex; gap: 8px; margin-bottom: 10px; }
+  .th { position: relative; flex: none; width: 168px; height: 94px; border-radius: 8px; }
+  .dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+  .ut { font-weight: 600; font-size: 14px; line-height: 1.3; max-height: 37px; overflow: hidden; }
+  .uc { color: #606060; font-size: 12px; margin-top: 3px; }
+</style></head>
+<body>
+  <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">https://www.example-video.com/watch?v=dod26-friday-ships</span></div>
+  <header><div class="logo"><b>▶</b>Clipstream</div><div class="search">Search</div><div class="hdr-r"><span>＋ Create</span><span>🔔</span><span class="me">J</span></div></header>
+  <main>
+    <div>
+      <div class="player">
+        <svg width="880" height="495" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"><rect width="960" height="540" fill="#14213d"/>
+<rect x="0" y="0" width="12" height="540" fill="#fca311"/>
+<text x="70" y="90" font-size="20" fill="#fca311" font-weight="700" font-family="Helvetica Neue, Arial, sans-serif">DEVOPSDAYS EXAMPLE 2026 · TRACK B</text>
+<text x="70" y="170" font-size="46" font-weight="800" fill="#fff" font-family="Helvetica Neue, Arial, sans-serif">Shipping on Fridays:</text>
+<text x="70" y="226" font-size="38" font-weight="600" fill="#e5e5e5" font-family="Helvetica Neue, Arial, sans-serif">what 3 years of incident data taught us</text>
+<circle cx="110" cy="340" r="40" fill="#fca311"/><text x="88" y="353" font-size="34" fill="#14213d" font-weight="800" font-family="Helvetica Neue, Arial, sans-serif">TF</text>
+<text x="170" y="332" font-size="24" fill="#fff" font-weight="700" font-family="Helvetica Neue, Arial, sans-serif">Tomás Ferreira</text>
+<text x="170" y="362" font-size="18" fill="#bfc6d6" font-family="Helvetica Neue, Arial, sans-serif">Platform Lead, Larkspur Logistics</text>
+<rect x="690" y="290" width="220" height="170" rx="10" fill="#22325a"/>
+<circle cx="800" cy="350" r="38" fill="#e0b896"/><rect x="752" y="392" width="96" height="68" rx="30" fill="#3d5a80"/>
+<text x="706" y="314" font-size="12" fill="#bfc6d6" font-family="Helvetica Neue, Arial, sans-serif">SPEAKER CAM</text></svg>
+        <div class="cap"><span>so before we get into the data, a little bit about how our deploys actually work</span></div>
+        <div class="ctl"><div class="bar"><s></s><i></i><u></u></div>
+          <div class="row"><span>❚❚</span><span>⏭</span><span>🔊</span><span>3:12 / 41:50 <span class="chap">· Intro ›</span></span>
+            <span class="r"><span class="cc">CC</span><span>⚙</span><span>▭</span><span>⛶</span></span></div></div>
+      </div>
+      <h1>Shipping on Fridays: what 3 years of incident data taught us — Tomás Ferreira</h1>
+      <div class="ch"><div class="av" style="background:#fca311">D</div>
+        <div><div class="cn">DevOpsDays Example</div><div class="subs">18.9K subscribers</div></div>
+        <span class="sub">Subscribe</span>
+        <span class="acts"><span class="act">👍 642</span><span class="act">↗ Share</span><span class="act">⤓ Save</span><span class="act">···</span></span></div>
+    </div>
+    <div class="side"><div class="chips"><span class="chip on">All</span><span class="chip">From this channel</span><span class="chip">Related</span><span class="chip">Recently uploaded</span></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b6ea5,#9cc3e6)"><span class="dur">38:20</span></div><div><div class="ut">Keynote: Boring infrastructure is a feature</div><div class="uc">DevOpsDays Example</div><div class="uc">12K views · 2 days ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#a5523b,#f0c08a)"><span class="dur">29:51</span></div><div><div class="ut">Feature flags at scale: a postmortem</div><div class="uc">DevOpsDays Example</div><div class="uc">7.4K views · 2 days ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#3b8a5a,#b6e3a0)"><span class="dur">44:03</span></div><div><div class="ut">On-call without burnout</div><div class="uc">Ops Fireside</div><div class="uc">61K views · 6 months ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#5b3ba5,#d0a8f0)"><span class="dur">21:17</span></div><div><div class="ut">Canary deploys in practice</div><div class="uc">Platform Weekly</div><div class="uc">23K views · 1 year ago</div></div></div><div class="un"><div class="th" style="background:linear-gradient(135deg,#333,#888)"><span class="dur">52:40</span></div><div><div class="ut">Lightning talks, Track B</div><div class="uc">DevOpsDays Example</div><div class="uc">3.1K views · 2 days ago</div></div></div></div>
+  </main>
+</body></html>

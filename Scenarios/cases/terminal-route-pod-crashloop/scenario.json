@@ -1,0 +1,48 @@
+{
+  "id": "terminal-route-pod-crashloop",
+  "app": "terminal",
+  "type": "explain-code",
+  "routing": true,
+  "question": "why does the api pod keep crashing",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T13:40:26+05:30",
+    "utterance": "why does the api pod keep crashing",
+    "app": {
+      "name": "Ghostty",
+      "bundle": "com.mitchellh.ghostty",
+      "kind": "terminal"
+    },
+    "window": {
+      "title": "~/Developer/tillwise-infra"
+    },
+    "terminal": {
+      "cwd": "/Users/me/Developer/tillwise-infra",
+      "command": "zsh"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_r09",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "card",
+    "facts": [
+      "checkout-api v2.8.0 exits on startup because the env var PAYMENTS_WEBHOOK_SECRET isn't set (the log's ERROR line, then exit code 1)",
+      "Kubernetes keeps restarting it, hence CrashLoopBackOff with 14 restarts; checkout-worker and checkout-web are Running",
+      "fix: give the checkout-api deployment PAYMENTS_WEBHOOK_SECRET (e.g. from its secret) and let it restart"
+    ],
+    "must_not": [
+      "handing off to inspect the cluster: the previous container's logs are already printed",
+      "blaming the database or Redis, which both connected in the log"
+    ]
+  },
+  "notes": "Routing hard negative: a crashing Kubernetes pod sounds like it needs live commands, but `kubectl logs --previous` is on screen with the fatal line."
+}

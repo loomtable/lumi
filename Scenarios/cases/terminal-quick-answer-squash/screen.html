@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>orbit-cli — -zsh — 132×40</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { width: 1280px; height: 800px; overflow: hidden; background: #1c1d22; color: #d6d8de;
+         font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  .win { width: 1280px; height: 800px; display: flex; flex-direction: column; }
+  .titlebar { height: 30px; background: #2a2b31; color: #a9abb3; display: flex; align-items: center;
+              position: relative; font-size: 13px; font-weight: 600; border-bottom: 1px solid #111216; }
+  .titlebar .ttl { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+  .dots { display: flex; gap: 8px; padding: 0 14px; z-index: 1; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .d1 { background: #ff5f57; } .d2 { background: #febc2e; } .d3 { background: #28c840; }
+  .tabs { display: flex; }
+  .strip { height: 28px; background: #232429; border-bottom: 1px solid #111216; }
+  .strip .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px;
+                color: #a9abb3; border-right: 1px solid #111216; }
+  .strip .tab.active { background: #1c1d22; color: #d6d8de; font-weight: 600; }
+  .ghost { height: 38px; }
+  .ghost .tabs { flex: 1; height: 100%; gap: 2px; padding-right: 10px; }
+  .ghost .tab { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500;
+                margin: 6px 0; border-radius: 6px; color: #a9abb3; }
+  .ghost .tab.active { background: #1c1d22; color: #d6d8de; }
+  .plus { padding: 0 14px; font-size: 16px; font-weight: 400; }
+  pre { flex: 1; margin: 0; padding: 10px 14px; font: 13px/1.5 "SF Mono", Menlo, Monaco, monospace;
+        white-space: pre; overflow: hidden; }
+  .r { color: #ff6b6b; } .g { color: #8bd17c; } .y { color: #e9c46a; } .b { color: #6cb6ff; }
+  .m { color: #d38cff; } .c { color: #56d4dd; } .dim { color: #7d808a; } .bold { font-weight: 700; }
+  .u { text-decoration: underline; }
+  .hl { background: #264f78; }
+  .cur { background: #d6d8de; color: #1c1d22; }
+</style></head>
+<body><div class="win">
+<div class="titlebar"><span class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span><span class="ttl">orbit-cli — -zsh — 132×40</span></div><div class="tabs strip"><div class="tab active">orbit-cli — -zsh</div><div class="tab">go test ./...</div></div>
+<pre>me@studio orbit-cli % git log --oneline --graph -7
+* <span class="y">9e7c1f0</span> <span class="y">(</span><span class="c bold">HEAD -&gt; </span><span class="g bold">feature/retry-flags</span><span class="y">)</span> fix typo in --max-retries help
+* <span class="y">2d4b8a6</span> address review: clamp backoff to 30s
+* <span class="y">7c1d2e4</span> add --max-retries and --backoff flags
+* <span class="y">e5a90b3</span> <span class="y">(</span><span class="r bold">origin/main</span><span class="y">, </span><span class="g bold">main</span><span class="y">)</span> release v1.8.0
+* <span class="y">61f3c28</span> docs: document config precedence
+* <span class="y">b02d7e9</span> cmd/push: stream progress to stderr
+* <span class="y">4ac1e66</span> ci: cache go build dir
+me@studio orbit-cli % git status -sb
+## feature/retry-flags
+me@studio orbit-cli % <span class="cur"> </span></pre>
+</div></body></html>

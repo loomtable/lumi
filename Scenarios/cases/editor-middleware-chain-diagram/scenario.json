@@ -1,0 +1,49 @@
+{
+  "id": "editor-middleware-chain-diagram",
+  "app": "editor",
+  "type": "diagram",
+  "routing": false,
+  "question": "draw me how a request flows through this",
+  "packet": {
+    "v": 1,
+    "asked_at": "2026-10-14T15:10:09+05:30",
+    "utterance": "draw me how a request flows through this",
+    "app": {
+      "name": "Visual Studio Code",
+      "bundle": "com.microsoft.VSCode",
+      "kind": "editor"
+    },
+    "window": {
+      "title": "main.go — relaywire",
+      "document": "/Users/me/Developer/relaywire/cmd/gateway/main.go"
+    },
+    "editor": {
+      "workspace": "/Users/me/Developer/relaywire",
+      "file": "/Users/me/Developer/relaywire/cmd/gateway/main.go"
+    },
+    "display": {
+      "id": 1,
+      "scale": 2,
+      "appearance": "dark"
+    },
+    "conversation": {
+      "id": "c_1",
+      "turn": 1,
+      "previous": []
+    }
+  },
+  "expected": {
+    "lane": "quick",
+    "shape": "rich",
+    "facts": [
+      "requests pass withRequestID → withLogging → withAuth → withRateLimit → the mux, which routes to health or the orders handlers",
+      "the rate limiter (ratelimit.NewBucket(100, 20)) only sees requests that got through auth",
+      "withAuth lets /healthz straight through, otherwise looks up the session in the Redis store from the Authorization header",
+      "a failed session lookup stops the request with 401 unauthorized before it reaches the rate limiter"
+    ],
+    "must_not": [
+      "putting the rate limiter before auth"
+    ]
+  },
+  "notes": "Diagram of a middleware chain whose order is fully visible (outermost wrapper runs first)."
+}
