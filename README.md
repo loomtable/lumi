@@ -17,6 +17,7 @@
 You're on a call, in a contract, deep in a spreadsheet, and you need one answer now. Tap one key in any app and ask out loud, or double-tap and type. Lumi by Loomtable sees what's in front of you, finds the right file, does the work on your Mac with the tools you've connected, and answers right on your screen: one spoken line, a card when a picture helps, and a ring on the exact spot.
 
 <p>
+  <a href="https://www.producthunt.com/products/lumi-20?launch=lumi-23"><img alt="Live on Product Hunt" src="https://img.shields.io/badge/Product_Hunt-Live_today-DA552F?style=for-the-badge&logo=producthunt&logoColor=white"></a>
   <a href="https://github.com/loomtable/lumi/releases/latest"><img alt="Download for Mac" src="https://img.shields.io/badge/Download-for_Mac-1d1d1f?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="#requirements"><img alt="macOS 26 on Apple Silicon" src="https://img.shields.io/badge/macOS_26-Apple_Silicon-1d1d1f?style=for-the-badge"></a>
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0-1d1d1f?style=for-the-badge"></a>
