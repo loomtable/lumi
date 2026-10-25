@@ -17,7 +17,6 @@
 Ask a question from any app, and Lumi finds the right file, works through it and checks the tools you've connected, like Slack, Drive, Notion or GitHub. Instead of a wall of text, you get only what needs your attention, right where you're looking. Powered by your Claude Code. Free, open source and local.
 
 <p>
-  <a href="https://www.producthunt.com/products/lumi-20?launch=lumi-23"><img alt="Live on Product Hunt" src="https://img.shields.io/badge/Product_Hunt-Live_today-DA552F?style=for-the-badge&logo=producthunt&logoColor=white"></a>
   <a href="https://github.com/loomtable/lumi/releases/latest"><img alt="Download for Mac" src="https://img.shields.io/badge/Download-for_Mac-1d1d1f?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="#requirements"><img alt="macOS 26 on Apple Silicon" src="https://img.shields.io/badge/macOS_26-Apple_Silicon-1d1d1f?style=for-the-badge"></a>
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0-1d1d1f?style=for-the-badge"></a>
