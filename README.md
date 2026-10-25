@@ -14,10 +14,9 @@
 
 **Ask, and Lumi finds it in the dark, does the work, and shows you the answer.**
 
-You're on a call, in a contract, deep in a spreadsheet, and you need one answer now. Tap one key in any app and ask out loud, or double-tap and type. Lumi by Loomtable sees what's in front of you, finds the right file, does the work on your Mac with the tools you've connected, and answers right on your screen: one spoken line, a card when a picture helps, and a ring on the exact spot.
+Ask a question from any app, and Lumi finds the right file, works through it and checks the tools you've connected, like Slack, Drive, Notion or GitHub. Instead of a wall of text, you get only what needs your attention, right where you're looking. Powered by your Claude Code. Free, open source and local.
 
 <p>
-  <a href="https://www.producthunt.com/products/lumi-20?launch=lumi-23"><img alt="Live on Product Hunt" src="https://img.shields.io/badge/Product_Hunt-Live_today-DA552F?style=for-the-badge&logo=producthunt&logoColor=white"></a>
   <a href="https://github.com/loomtable/lumi/releases/latest"><img alt="Download for Mac" src="https://img.shields.io/badge/Download-for_Mac-1d1d1f?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="#requirements"><img alt="macOS 26 on Apple Silicon" src="https://img.shields.io/badge/macOS_26-Apple_Silicon-1d1d1f?style=for-the-badge"></a>
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0-1d1d1f?style=for-the-badge"></a>
@@ -30,6 +29,16 @@ You're on a call, in a contract, deep in a spreadsheet, and you need one answer 
     <img src="docs/media/lumi-hero.gif" width="880" alt="On a video call, an investor asks for last month's burn. Lumi checks the Drive export, rings the question and answers on screen: a card showing $182.4k from Board model v7, matching the export, which the founder inserts into his notes.">
   </a>
 </p>
+
+**Install:**
+
+```sh
+curl -fsSL https://lumi.loomtable.com/install.sh | sh
+```
+
+**Requires:** macOS 26 on Apple Silicon, and Claude Code 2.1.259 or newer, signed in. Other ways: [Install](#install).
+
+Star the repo to follow what ships next.
 
 ## You ask. Lumi takes it from there.
 
@@ -107,7 +116,14 @@ curl -fsSL https://lumi.loomtable.com/install.sh | sh
 
 It downloads `Lumi.zip` from the [latest release](https://github.com/loomtable/lumi/releases/latest), checks its SHA-256 and signature, and puts Lumi in Applications. It never opens Lumi, and asks for your password only if your account can't write to Applications. [Read the script first](https://lumi.loomtable.com/install.sh). Then open Lumi from Applications.
 
-**Option 2: Download.**
+**Option 2: Ask Claude Code.** Paste this into Claude Code:
+
+```text
+Install Lumi for me. First read https://lumi.loomtable.com/install.sh and tell me in two lines what it does. Then run: curl -fsSL https://lumi.loomtable.com/install.sh | sh
+When it finishes, open Lumi with: open -a Lumi
+```
+
+**Option 3: Download.**
 
 1. Get [`Lumi.zip`](https://github.com/loomtable/lumi/releases/latest/download/Lumi.zip), open it and move Lumi to Applications.
 2. Lumi isn't signed with an Apple Developer ID yet, so macOS stops the first launch. Open Lumi and close the warning. Right after you try to open it, go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to Lumi. When the warning appears again, click **Open** and confirm with your password or Touch ID. From then on, Lumi opens normally.
