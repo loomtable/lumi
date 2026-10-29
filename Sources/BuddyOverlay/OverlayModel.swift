@@ -90,6 +90,7 @@ final class OverlayModel {
         case answer(Answer, Placement, Placer.Style)
 
         var isAnswer: Bool { if case .answer = self { true } else { false } }
+        var isListening: Bool { if case .listening = self { true } else { false } }
         var isPill: Bool {
             switch self {
             case .listening, .textBox, .thinking: true
@@ -133,8 +134,10 @@ final class OverlayModel {
     /// capsule when it shows on this display) or at the bottom, plus the user's drag, kept inside.
     func statusPillOrigin(size: CGSize, in bounds: CGRect) -> CGPoint {
         let area = bounds.insetBy(dx: Placer.edgeMargin, dy: Placer.edgeMargin)
-        let top = capsuleVisible && capsuleScreenFrame == screenFrame && capsuleDrag == .zero
-            ? max(area.minY, capsuleFrame.maxY + 8) : area.minY
+        // Under the research capsule whenever its spot would cover the pill's, even nudged by a drag.
+        let home = CGRect(x: (area.midX - size.width / 2).rounded(), y: area.minY, width: size.width, height: size.height)
+        let covers = capsuleVisible && capsuleScreenFrame == screenFrame && home.intersects(capsuleFrame.insetBy(dx: 0, dy: -8))
+        let top = covers ? max(area.minY, capsuleFrame.maxY + 8) : area.minY
         let y = settings.statusPosition == .top ? top : area.maxY - size.height
         let origin = CGPoint(x: (area.midX - size.width / 2).rounded() + pillDrag.width, y: y + pillDrag.height)
         return Self.clamp(origin, size: size, in: bounds)
@@ -146,12 +149,26 @@ final class OverlayModel {
     }
     /// "Listening" for the first 2 s, then the hint.
     var showsListeningHint = false
+    /// The mic is live (`setMicReady`); until then the pill shows no "Listening".
+    var micReady = true
+    /// The mic is taking a while: the pill says "Getting ready…".
+    var showsGettingReady = false
+
+    /// The listening pill's words: nothing visible until the mic is ready (then "Getting ready…"
+    /// once it takes a while), "Listening" for its first 2 s, then the hint.
+    static func listeningLabel(hint: String, micReady: Bool, gettingReady: Bool, showsHint: Bool) -> (text: String, visible: Bool) {
+        if !micReady { return (gettingReadyLine, gettingReady) }
+        return (showsHint ? hint : "Listening", true)
+    }
+
+    static let gettingReadyLine = "Getting ready…"
     /// Mic level for the dots and rim. Updates arrive at about 50 Hz, so the value lives
     /// outside observation: a level update invalidates nothing, and only the dot field and
     /// rim read it, each on its own 30 fps timeline.
     @ObservationIgnored let mic = LevelBox()
-    /// Reply level for the glow. Observed, but the controller publishes at most 30 Hz.
-    var speech = 0.0
+    /// Reply level for the speaking glow, outside observation like `mic`: only the glow's own
+    /// 30 Hz timeline reads it, so the card's text and web view never re-render with the voice.
+    @ObservationIgnored let speech = LevelBox()
     var speaking = false
     /// The thinking pill's status is the answer's headline (`showHeadline`).
     var statusIsHeadline = false
@@ -176,8 +193,6 @@ final class OverlayModel {
     var fullScreenWebHeight: CGFloat = 0
     /// The card HTML's height as last reported at the full-screen width; nil until then.
     var fullScreenContentHeight: CGFloat?
-    /// Content scores for the current answer's display, reused when it is re-placed.
-    @ObservationIgnored var scores: SmartPlacement.Scores?
     var web: CardWebContent?
     /// Text box and reply field contents.
     var draft = ""
@@ -186,7 +201,10 @@ final class OverlayModel {
     var typed = false
     /// True while the overlay panel is key (the card or text box has keyboard focus).
     var hasFocus = false
+    /// The card HTML's full content height (it scrolls itself only while that is unknown).
     var webHeight: CGFloat = 0
+    /// The answer is taller than its cap, so its body scrolls inside the card.
+    var answerScrolls = false
 
     /// Each display's frame (global top-left), so a panel can tell what to render.
     var displayFrames: [CGDirectDisplayID: CGRect] = [:]
@@ -241,6 +259,60 @@ final class OverlayModel {
         return peekOpen ? [capsuleFrame, peekFrame] : [capsuleFrame]
     }
 
+    // MARK: Progress capsules
+
+    /// The running queries' capsules on screen, top to bottom (`updateProgress`).
+    var progress: ProgressStack.Shown = .empty
+    /// The display they sit on (global top-left frame) and its visible frame.
+    var progressScreenFrame: CGRect = .zero
+    var progressBounds: CGRect = .zero
+    /// Measured from the view.
+    var progressSize: CGSize = .zero
+    static let progressGap: CGFloat = 6
+
+    /// Each capsule's frame (global top-left), measured from the view.
+    @ObservationIgnored var progressRowFrames: [Int: CGRect] = [:]
+
+    /// The capsules step aside while the switcher strip is open around the pill: the strip shows
+    /// the same sessions.
+    var progressVisible: Bool { !progress.isEmpty && !switcherOpen }
+    /// A capsule needs the user: it takes clicks (the rest stay click-through).
+    var progressTakesClicks: Bool { progressVisible && progress.rows.contains(where: \.needsYou) }
+    var switcherOpen = false
+    /// Who the pill talks to, and that session's origin app icon for its badge.
+    var pillTarget = PillTarget.none
+    var pillTargetIcon: NSImage?
+
+    /// The needs-you capsules' frames on one display (global top-left).
+    func progressHitFrames(onDisplay display: CGRect) -> [CGRect] {
+        guard progressTakesClicks, display == progressScreenFrame else { return [] }
+        return progress.rows.filter(\.needsYou).compactMap { progressRowFrames[$0.id] }
+    }
+
+    /// Centred at the top of the visible frame, under the research capsule when it sits there,
+    /// and under the pill when the pill is at the top of this display: the pill (the question
+    /// in front) and the stack read as one column. Global top-left.
+    var progressOrigin: CGPoint {
+        let area = progressBounds.insetBy(dx: Placer.edgeMargin, dy: Placer.edgeMargin)
+        var top = area.minY
+        let x = (area.midX - progressSize.width / 2).rounded()
+        // Under whatever of the column it would cover, wherever a drag left it (65-SURFACE-RULES,
+        // rule 2): a pill or research capsule nudged by a few points still has the stack under it.
+        var above: [(frame: CGRect, gap: CGFloat)] = []
+        if capsuleVisible, capsuleScreenFrame == progressScreenFrame { above.append((capsuleFrame, 8)) }
+        if surface.isPill, !folding, screenFrame == progressScreenFrame { above.append((pillFrame, Self.progressGap)) }
+        for (frame, gap) in above {
+            let stack = CGRect(x: x, y: top, width: max(progressSize.width, 1), height: max(progressSize.height, 1))
+            if stack.intersects(frame.insetBy(dx: 0, dy: -gap)) { top = max(top, frame.maxY + gap) }
+        }
+        return CGPoint(x: x, y: top)
+    }
+
+    /// The area the stack covers, for anything placed near the top centre. Empty when hidden.
+    var progressFrame: CGRect {
+        progressVisible ? CGRect(origin: progressOrigin, size: progressSize) : .null
+    }
+
     // MARK: Toasts and conversation chips
 
     struct Toast: Equatable {
@@ -249,38 +321,13 @@ final class OverlayModel {
         var origin: CGPoint
     }
 
-    struct ConversationChip: Equatable {
-        enum Kind: Equatable { case back, resume }
-        let id = UUID()
-        var kind: Kind
-        var title: String
-        /// After the title, outside its truncation ("yesterday").
-        var detail: String?
-        var origin: CGPoint
-
-        var label: String { kind == .back ? "↩ Back to ‘\(title)’" : "Resume ‘\(title)’" }
-    }
-
     var toast: Toast?
-    var conversationChip: ConversationChip?
-    /// Measured sizes; a toast or chip wider than first assumed is pulled back inside the
-    /// 12 pt margin of its display.
+    /// Measured size; a toast wider than first assumed is pulled back inside the 12 pt margin of
+    /// its display.
     var toastSize = CGSize(width: 220, height: 32) {
         didSet { if let t = toast { toast?.origin = Self.clamp(t.origin, size: toastSize, in: toastBounds) } }
     }
-    var conversationChipSize = CGSize(width: 220, height: 32) {
-        didSet {
-            if let c = conversationChip {
-                conversationChip?.origin = Self.clamp(c.origin, size: conversationChipSize, in: conversationChipBounds)
-            }
-        }
-    }
     var toastBounds: CGRect = .zero
-    var conversationChipBounds: CGRect = .zero
-
-    var conversationChipFrame: CGRect? {
-        conversationChip.map { CGRect(origin: $0.origin, size: conversationChipSize) }
-    }
 
     // MARK: Rings
 
@@ -296,19 +343,17 @@ final class OverlayModel {
     func shows(onDisplay display: CGRect) -> Bool {
         (display == screenFrame && surface != .none)
             || (capsuleVisible && display == capsuleScreenFrame)
+            || (progressVisible && display == progressScreenFrame)
             || rings.contains { display.intersects($0.ring.rect) }
             || (toast.map { display.contains($0.origin) } ?? false)
-            || (conversationChip.map { display.contains($0.origin) } ?? false)
     }
 
     /// Hit frames on one display (global top-left): the pill or answer where it lives, the
-    /// capsule (and its peek) on the menu bar display, and the conversation chip. Rings don't
-    /// take clicks.
+    /// capsule (and its peek) on the menu bar display, and needs-you progress capsules. Rings and
+    /// toasts don't take clicks.
     func hitFrames(onDisplay display: CGRect) -> [CGRect] {
-        var frames: [CGRect] = display == screenFrame ? hitFrames : []
-        frames += capsuleHitFrames(onDisplay: display)
-        if let chip = conversationChipFrame, display.contains(chip.origin) { frames.append(chip) }
-        return frames
+        (display == screenFrame ? hitFrames : []) + capsuleHitFrames(onDisplay: display)
+            + progressHitFrames(onDisplay: display)
     }
 
     /// The visible surface's frame in global points, for click-through and click-away.

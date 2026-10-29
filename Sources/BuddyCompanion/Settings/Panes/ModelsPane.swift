@@ -7,7 +7,7 @@ struct ModelsPane: View {
     @Binding var settings: ModelPreferences
 
     var body: some View {
-        Form {
+        PaneForm {
             Section {
                 ForEach(Mode.allCases, id: \.self) { mode in
                     ModeRow(mode: mode, config: Binding(get: { settings.config(mode) }, set: { settings.set($0, for: mode) }),
@@ -15,6 +15,12 @@ struct ModelsPane: View {
                 }
             } footer: {
                 Text("These run on your own Claude Code plan. Opus uses more of it than Sonnet or Haiku.")
+            }
+            Section {
+                // Typed chats are the user's own Claude Code: no --model (owner, Round 3 S-06).
+                Text("Typed chats use your Claude Code model (change it with /model).")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
             Section {
                 Picker("Routing", selection: $settings.routing) {
@@ -31,7 +37,6 @@ struct ModelsPane: View {
                     .disabled(settings == ModelPreferences())
             }
         }
-        .formStyle(.grouped)
     }
 
     static func routingHelp(_ routing: Routing) -> String {
@@ -64,7 +69,7 @@ struct ModeRow: View {
                         Text(mode.displayName).font(.headline)
                         Text(isDefault ? "default" : "custom")
                             .font(.caption)
-                            .foregroundStyle(isDefault ? .secondary : Color.accentColor)
+                            .foregroundStyle(isDefault ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
                     }
                     Text(Self.purpose(mode)).font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

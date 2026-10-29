@@ -40,6 +40,9 @@ nonisolated public struct Answer: Sendable, Equatable {
     /// into the field you were typing in, Replace an editable selection, else Copy). Nil: the
     /// model's first action is primary, as before.
     public var mainAction: MainAction?
+    /// An open session's voice turn that did work worth reviewing (an edit, an approval or a
+    /// teammate): its step count, so ⤢ Continue reads "6 steps" (04 §3.3). Nil: "Continue".
+    public var reviewSteps: Int?
     /// False for chips the app shows itself (setup, Fix, voice not set up): they are never
     /// recalled, so they don't take up the overlay's remembered spots.
     public var keepsPlacement: Bool
@@ -208,17 +211,15 @@ nonisolated public enum OverlayEvent: Sendable, Equatable {
     case openConversations
     /// ⌘, while the card has focus.
     case openSettings
-    /// ⇱ on a rich card: open the conversation in the Conversations window.
+    /// ⇱ on a rich card: continue in the Panel, or with the Panel off, open the Lumi window.
     case popOut
     /// Stop in the capsule's peek.
     case stopResearch(UUID)
     /// A click (or ↵) on a finished capsule: show the report, popping out of the capsule
     /// (`showAnswer(_:anchor: .capsule)`).
     case openReport(UUID)
-    /// The ↩ Back chip was clicked: return to the previous conversation.
-    case backToPrevious
-    /// The Resume chip was clicked: resume the last conversation.
-    case resumeConversation
+    /// A click on a progress capsule that needs the user: open its session's approval or question.
+    case progressClicked(SessionID)
     /// A "jump" link in a card: locate the point with this label and `showRings` it.
     case jump(label: String)
     /// ↵ in the text box or the reply field. Send it like a transcript.
@@ -230,6 +231,14 @@ nonisolated public enum OverlayEvent: Sendable, Equatable {
     /// Whether Esc should be captured now (anything visible). The shell turns BuddyKeys'
     /// scoped Esc tap on and off from this, so Esc never leaks into the user's app.
     case wantsEscape(Bool)
+}
+
+/// Who the pill talks to: a session's orb and title lead the listening and thinking row
+/// (63-SWITCHER-UX), ＋ for a new session, or nothing when the send decides.
+public enum PillTarget: Sendable, Equatable {
+    case none
+    case session(SessionSnapshot)
+    case new
 }
 
 /// What the user drags.
@@ -255,24 +264,31 @@ public protocol OverlayPresenting: AnyObject {
     /// shows for 2 s, then `hint` ("tap ⌥ to send", "release to send").
     func showListening(at pointer: CGPoint, hint: String)
     /// A short toast near the pointer for 1.4 s: "Discarded", "Cancelled", "New
-    /// conversation", "Back to the previous conversation", "Running in the background".
+    /// conversation", "Running in the background".
     func showToast(_ text: String, at pointer: CGPoint)
-    /// "↩ Back to '…'" near the pointer for 8 s after a new conversation.
-    func showBackChip(title: String, at pointer: CGPoint)
-    /// "Resume '…'" after 30 min idle. Stays until clicked, clicked away or the next summon.
-    /// `detail` ("yesterday") follows the title outside its truncation: "Resume '…' · yesterday".
-    func showResumeChip(title: String, detail: String?, at pointer: CGPoint)
-    /// Hides the Back or Resume chip.
-    func hideConversationChip()
     /// One-shot rings for 6 s. Rects that couldn't be found are simply left out;
     /// an empty list does nothing.
     func showRings(_ rings: [Ring])
     /// The research capsule at top centre on the display with the active menu bar.
     /// Shows the most recent job, with "+1" when another runs. Empty hides it.
     func updateCapsule(_ jobs: [CapsuleState])
+    /// The running queries' capsules, stacked and centred at the top of the active display
+    /// (under the pill while it sits at the top). Never focused; only a needs-you capsule takes a
+    /// click (`.progressClicked`). Empty hides them.
+    func updateProgress(_ shown: ProgressStack.Shown)
     /// Changes the listening pill's hint (e.g. "release to send" once a hold begins). The
     /// pill still says "Listening" for its first 2 s; a new hint shows after that.
     func updateListeningHint(_ hint: String)
+    /// Whether the mic is live yet. The pill never says "Listening" before it is (the first
+    /// words would be lost): no label at first, then "Getting ready…" if it takes a while (a cold
+    /// voice-processing start can take over a second). `showListening` starts ready.
+    func setMicReady(_ ready: Bool)
+    /// The session the pill talks to: its orb and title lead the row. Set at the press, as the
+    /// switcher's highlight moves, and once a send is routed.
+    func setPillTarget(_ target: PillTarget)
+    /// The switcher strip is open around the pill (the pill is its header): the progress
+    /// capsules step aside, since the strip shows the same sessions.
+    func setSwitcherOpen(_ open: Bool)
     /// ⌘ shortcuts (⌘N, ⌘Y, ⌘,) are card shortcuts and don't act in the text box.
     /// The text box at `pointer` (double-tap): "Ask about this…", ↵ sends, Esc closes.
     /// A visible listening pill morphs into it. The box takes keyboard focus; the user's
@@ -284,9 +300,9 @@ public protocol OverlayPresenting: AnyObject {
     /// The answer's headline in the pill, before the card: up to two lines, a little heavier.
     /// An answer whose headline matches then shows it at once instead of inking it in again.
     func showHeadline(_ headline: String)
-    /// Grows the answer out of the pill, placed per `placementMode`: next to `anchor`, or
-    /// centred. `snapshot` (the anchor's display at summon) lets Smart
-    /// placement avoid covering important content.
+    /// Grows the answer out of the pill, placed per `placementMode` and `Placer`'s rule: next
+    /// to `anchor`, or centred. `snapshot` (the anchor's display at summon) tunes the outline
+    /// for a bright backdrop.
     func showAnswer(_ answer: Answer, anchor: Anchor, snapshot: DisplaySnapshot?)
     /// Brings back an answer that was closed (click-away, app switch, Esc, ✕): it pops in the
     /// spot where it last sat, without inking in again. An answer this overlay hasn't shown
@@ -324,6 +340,11 @@ public protocol OverlayPresenting: AnyObject {
     /// Called by the shell when the scoped Esc tap consumed Esc. Returns false when nothing
     /// was visible (the shell should not have been capturing).
     @discardableResult func handleEscape() -> Bool
+    /// An answer is on screen, or on its way there, and not folding away. A `.dismissed` event
+    /// that arrives while this is true is about an earlier surface.
+    var showsAnswer: Bool { get }
+    /// The pointer is on the answer card: the user may be reading or about to click it.
+    var pointerOnAnswer: Bool { get }
 }
 
 extension OverlayPresenting {
@@ -340,9 +361,6 @@ public final class FakeOverlay: OverlayPresenting {
         case rings([Ring])
         case backdrop
         case toast(String)
-        case backChip(String)
-        case resumeChip(String, detail: String? = nil)
-        case hideChip
         case hint(String)
         case thinking(Lane, status: String?)
         case status(String?)
@@ -361,6 +379,8 @@ public final class FakeOverlay: OverlayPresenting {
     }
 
     public private(set) var calls: [Call] = []
+    /// The progress capsules on screen; kept apart from `calls`, which follow the pill and cards.
+    public private(set) var progress: ProgressStack.Shown = .empty
     public private(set) var wantsEscape = false
     /// False: `showAnswer` doesn't report `.answerPresented` by itself; the test sends it, to
     /// play an overlay that presents slowly.
@@ -369,6 +389,8 @@ public final class FakeOverlay: OverlayPresenting {
     public var onFoldedIntoTarget: (@MainActor () -> Void)?
     /// Something is showing (Esc via handleEscape closes it, as in the real overlay).
     private var visible = false
+    public private(set) var showsAnswer = false
+    public var pointerOnAnswer = false
     public var settings = OverlaySettings()
     public var placementMode: Placer.Mode {
         get { settings.placement }
@@ -393,28 +415,34 @@ public final class FakeOverlay: OverlayPresenting {
     public func showListening(at pointer: CGPoint, hint: String) {
         calls.append(.listening(pointer, hint: hint))
         visible = true
+        showsAnswer = false
         setWantsEscape(true)
     }
     public func updateCapsule(_ jobs: [CapsuleState]) { calls.append(.capsule(jobs)) }
+    public func updateProgress(_ shown: ProgressStack.Shown) { progress = shown }
     public func showRings(_ rings: [Ring]) { calls.append(.rings(rings)) }
     public func updateBackdrop(_ snapshot: DisplaySnapshot) { calls.append(.backdrop) }
     public func showToast(_ text: String, at pointer: CGPoint) { calls.append(.toast(text)) }
-    public func showBackChip(title: String, at pointer: CGPoint) { calls.append(.backChip(title)) }
-    public func showResumeChip(title: String, detail: String?, at pointer: CGPoint) {
-        calls.append(.resumeChip(title, detail: detail))
-    }
-    public func hideConversationChip() { calls.append(.hideChip) }
     public func updateListeningHint(_ hint: String) { calls.append(.hint(hint)) }
+    /// Every `setMicReady`, in order (kept out of `calls`, which tests compare whole).
+    public private(set) var micReadyHistory: [Bool] = []
+    public func setMicReady(_ ready: Bool) { micReadyHistory.append(ready) }
+    public private(set) var pillTargets: [PillTarget] = []
+    public private(set) var switcherOpen = false
+    public func setPillTarget(_ target: PillTarget) { pillTargets.append(target) }
+    public func setSwitcherOpen(_ open: Bool) { switcherOpen = open }
     /// Like the real overlay: the text box takes keyboard focus, so Esc reaches it directly
     /// and the shell's Esc tap stays off.
     public func showTextBox(at pointer: CGPoint) {
         calls.append(.textBox(pointer))
         visible = true
+        showsAnswer = false
         setWantsEscape(false)
     }
     public func showThinking(_ lane: Lane, status: String?) {
         calls.append(.thinking(lane, status: status))
         visible = true
+        showsAnswer = false
         setWantsEscape(true)
     }
     public func updateStatus(_ status: String?) { calls.append(.status(status)) }
@@ -422,12 +450,14 @@ public final class FakeOverlay: OverlayPresenting {
     public func showAnswer(_ answer: Answer, anchor: Anchor, snapshot: DisplaySnapshot?) {
         calls.append(.answer(answer, anchor, hasSnapshot: snapshot != nil))
         visible = true
+        showsAnswer = true
         setWantsEscape(true)
         if presentsAnswersImmediately { continuation.yield(.answerPresented) }
     }
     public func recallAnswer(_ answer: Answer, anchor: Anchor) {
         calls.append(.recall(answer, anchor))
         visible = true
+        showsAnswer = true
         setWantsEscape(true)
         if presentsAnswersImmediately { continuation.yield(.answerPresented) }
     }
@@ -441,6 +471,7 @@ public final class FakeOverlay: OverlayPresenting {
         calls.append(.dismiss(reason))
         let was = visible
         visible = false
+        showsAnswer = false
         setWantsEscape(false)
         if was { continuation.yield(.dismissed(reason)) }
     }

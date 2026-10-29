@@ -46,6 +46,13 @@ final class FakeVoice: VoicePort {
         await mark(.start)
         if let error = startError.withLock({ $0 }) { throw error }
     }
+    /// A dictation listens like a question here (`.start`), counted apart.
+    func startDictation() async throws {
+        dictationStartCount.withLock { $0 += 1 }
+        try await startListening()
+    }
+    private let dictationStartCount = Mutex(0)
+    var dictationStarts: Int { dictationStartCount.withLock { $0 } }
     /// True: `finishListening` waits, like a long transcript.
     let holdFinish = Mutex(false)
     func finishListening() async throws -> String {
@@ -283,6 +290,9 @@ final class GatedVoice: VoicePort {
 
     var calls: [FakeVoice.Call] { state.withLock { $0.calls } }
     var waiting: Int { state.withLock { $0.gates.count } }
+    private let gateFinish = Mutex(false)
+    /// From now on `finishListening` also waits for `release()` (a transcript still coming).
+    func holdTranscripts() { gateFinish.withLock { $0 = true } }
 
     /// Releases every suspended call.
     func release() {
@@ -308,6 +318,7 @@ final class GatedVoice: VoicePort {
     }
     func finishListening() async throws -> String {
         record(.finish)
+        if gateFinish.withLock({ $0 }) { await gate() }
         return "what does this mean?"
     }
     func discard(confirmed: Bool, playSound: Bool) async -> VoiceDiscard {

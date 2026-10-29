@@ -30,7 +30,7 @@ Feito para o trabalho que você faz. Fundadores, designers, analistas, escritore
 ## Requisitos
 
 - macOS 26 em Apple Silicon (M1 ou mais recente). Macs Intel e versões mais antigas do macOS não são compatíveis.
-- Claude Code 2.1.259 ou mais recente, instalado e com login feito.
+- Claude Code 2.1.312 ou mais recente, instalado e com login feito.
 - Recomendamos 16 GB de memória. Com 8 GB, as respostas podem ficar mais lentas quando há muitos apps abertos.
 
 ## Como funciona
@@ -148,7 +148,7 @@ Um app de barra de menus para macOS, grátis e open source. Você toca uma tecla
 Sim. O Lumi é grátis e open source, sob a GPL-3.0. As suas perguntas passam pelo seu próprio Claude Code, então contam no seu plano Claude ou no seu uso da API.
 
 **Preciso do Claude Code?**
-Sim, na versão 2.1.259 ou mais recente, instalado e com login feito. O Lumi roda o Claude Code no seu Mac e não tem login nem servidores próprios.
+Sim, na versão 2.1.312 ou mais recente, instalado e com login feito. O Lumi roda o Claude Code no seu Mac e não tem login nem servidores próprios.
 
 **O Lumi é feito pela Anthropic?**
 Não. O Lumi é feito pela Loomtable. Ele usa o Claude por meio da sua configuração e não é feito pela Anthropic nem afiliado a ela.

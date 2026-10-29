@@ -26,6 +26,9 @@ struct BridgeStateTests {
             let next = try await m.prepare(projectFolder: "/work/web")
             var expected = done
             expected.lastQuickAnswer = nil
+            // Persisted since migration 2: the Deep session by folder, and when Deep answered.
+            expected.deepSessions = ["/work/web": "d"]
+            expected.lastDeepAnswerAt = t0
             #expect(next.id == first.id)
             #expect(next.bridgeState == expected)
         }

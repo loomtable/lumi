@@ -18,14 +18,14 @@ struct VoiceFlowTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         return c
     }
 
     func waitFor(_ condition: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !condition(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }

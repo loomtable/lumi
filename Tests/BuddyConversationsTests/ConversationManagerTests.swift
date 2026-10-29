@@ -43,7 +43,6 @@ struct ConversationManagerTests {
             #expect(p.fresh == .first)
             #expect(p.record == nil)
             #expect(p.headerLabel == "new")
-            #expect(p.chips.isEmpty)
             #expect(try await h.manager.list().isEmpty)
             #expect(try await h.index.record(id: p.id) == nil)
 
@@ -106,7 +105,7 @@ struct ConversationManagerTests {
         }
     }
 
-    @Test("after the idle timeout the next question is a new conversation with a resume chip")
+    @Test("after the idle timeout the next question is a new conversation")
     func idle() async throws {
         try await withTempDir { dir in
             let h = try Harness(dir: dir)
@@ -116,14 +115,13 @@ struct ConversationManagerTests {
             #expect(p.fresh == .idle)
             #expect(p.id != a.id)
             #expect(p.record == nil)
-            #expect(p.chips == [.resume(a.id)])
             #expect(p.color == .mist)
             #expect(p.headerLabel == "new")
         }
     }
 
-    @Test("⌘N offers back for 8 s; go back returns the previous conversation")
-    func newAndGoBack() async throws {
+    @Test("⌘N starts a new conversation; the next question goes there")
+    func newConversation() async throws {
         try await withTempDir { dir in
             let h = try Harness(dir: dir)
             let (_, a) = try await h.ask("first")
@@ -132,26 +130,8 @@ struct ConversationManagerTests {
             #expect(n.fresh == .requested)
             #expect(n.id != a.id)
             #expect(n.headerLabel == "new")
-            #expect(n.chips == [.back(to: a.id, until: t0.addingTimeInterval(18))])
-            h.clock.advance(5)
-            #expect(try await h.manager.goBack()?.id == a.id)
             let p = try await h.manager.prepare(projectFolder: nil)
-            #expect(p.id == a.id)
-            #expect(p.fresh == nil)
-            // The abandoned pending conversation was never saved.
-            #expect(try await h.manager.list().map(\.id) == [a.id])
-        }
-    }
-
-    @Test("go back after the window is nil")
-    func goBackLate() async throws {
-        try await withTempDir { dir in
-            let h = try Harness(dir: dir)
-            try await h.ask("first")
-            let n = try await h.manager.newConversation()
-            h.clock.advance(9)
-            #expect(try await h.manager.goBack() == nil)
-            #expect(try await h.manager.prepare(projectFolder: nil).id == n.id)
+            #expect(p.id == n.id && p.fresh == nil)
         }
     }
 

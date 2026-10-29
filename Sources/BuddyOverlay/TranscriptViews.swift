@@ -2,8 +2,7 @@ import BuddyCore
 import SwiftUI
 
 /// One finished turn of a conversation: the question, then the answer as it was, read-only.
-/// Full screen shows a conversation's earlier turns with these; the Conversations window
-/// can host the same view once it shows transcripts.
+/// Full screen shows a conversation's earlier turns with these.
 public struct TranscriptTurnView: View {
     let turn: TranscriptTurn
 
@@ -12,40 +11,6 @@ public struct TranscriptTurnView: View {
     public var body: some View {
         TokensReader { t in
             PastTurnRows(turn: turn, t: t)
-        }
-    }
-}
-
-/// A whole conversation, oldest turn first, for the Conversations window. It scrolls itself
-/// and opens on the newest turn; text can be selected and copied. It reads the tokens of the
-/// window's appearance and needs no overlay controller or panel.
-public struct TranscriptView: View {
-    let turns: [TranscriptTurn]
-
-    public init(turns: [TranscriptTurn]) { self.turns = turns }
-
-    public var body: some View {
-        TokensReader { t in
-            ScrollViewReader { proxy in
-                ScrollView(.vertical) {
-                    LazyVStack(alignment: .leading, spacing: 22) {
-                        ForEach(turns) { turn in
-                            PastTurnRows(turn: turn, t: t).id(turn.id)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .textSelection(.enabled)
-                }
-                // Opens on the newest turn, but a short conversation sits at the top, not the bottom.
-                .defaultScrollAnchor(.bottom, for: .initialOffset)
-                .defaultScrollAnchor(.bottom, for: .sizeChanges)
-                .defaultScrollAnchor(.top, for: .alignment)
-                // Another conversation picked in the same pane: open on its newest turn too.
-                .onChange(of: turns.last?.id) { _, last in
-                    if let last { proxy.scrollTo(last, anchor: .bottom) }
-                }
-            }
         }
     }
 }
@@ -79,7 +44,7 @@ struct QuestionBubble: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(t.variant.dark ? Color.white.opacity(0.08) : Color.black.opacity(0.05)))
+                    .fill(t.text.opacity(t.variant.dark ? 0.08 : 0.05).color))
                 .frame(maxWidth: 560, alignment: .trailing)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .accessibilityLabel("You asked: \(trimmed)")
@@ -119,7 +84,7 @@ struct PastAnswer: View {
             if !turn.block.actions.isEmpty {
                 HStack(spacing: 6) {
                     ForEach(Array(turn.block.actions.prefix(BuddyBlock.maxActions).enumerated()), id: \.offset) { _, action in
-                        ActionButton(title: action.label, kind: .quiet, t: t) {}
+                        ActionButton(title: action.label, kind: .quiet) {}
                     }
                 }
                 .disabled(true)

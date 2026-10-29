@@ -32,7 +32,7 @@ Conçu pour le travail que vous faites. Fondateurs, designers, analystes, rédac
 ## Configuration requise
 
 - macOS 26 sur Apple Silicon (M1 ou ultérieur). Les Mac Intel et les versions antérieures de macOS ne sont pas pris en charge.
-- L'agent en ligne de commande `claude` d'Anthropic, version 2.1.259 ou ultérieure, installé et connecté.
+- L'agent en ligne de commande `claude` d'Anthropic, version 2.1.312 ou ultérieure, installé et connecté.
 - 16 Go de mémoire recommandés. Avec 8 Go, les réponses peuvent être plus lentes quand beaucoup d'apps sont ouvertes.
 
 ## Comment ça marche
@@ -142,7 +142,7 @@ Une app gratuite et open source pour la barre des menus de macOS. Dans n'importe
 Oui. Lumi est gratuit et open source, sous licence GPL-3.0. Vos questions passent par votre propre agent `claude`, donc elles sont décomptées de votre propre forfait Claude ou de votre usage de l'API.
 
 **Faut-il l'agent `claude` d'Anthropic ?**
-Oui : version 2.1.259 ou ultérieure, installé et connecté. Lumi l'exécute sur votre Mac. Lumi n'a ni connexion ni serveurs à lui.
+Oui : version 2.1.312 ou ultérieure, installé et connecté. Lumi l'exécute sur votre Mac. Lumi n'a ni connexion ni serveurs à lui.
 
 **Lumi est-il conçu par Anthropic ?**
 Non. Lumi est conçu par Loomtable. Il est propulsé par Claude, via votre agent `claude`, et n'est ni conçu par Anthropic ni affilié à Anthropic.

@@ -69,7 +69,7 @@ struct OnboardingTests {
     func gestures() {
         #expect(OnboardingView.gestures(.rightOption).map(\.gesture) == ["Tap", "Hold", "Double-tap", "⇧ + ⌥"])
         #expect(OnboardingView.gestures(.rightShift).last?.gesture == "⌃ + ⇧", "a ⇧ key starts fresh with ⌃")
-        #expect(OnboardingView.gestures(.rightOption).last?.does == "start a new conversation")
+        #expect(OnboardingView.gestures(.rightOption).last?.does == "start a new session")
         #expect(OnboardingView.gestures(.rightOption).allSatisfy { !$0.does.isEmpty })
     }
 

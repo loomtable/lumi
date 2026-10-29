@@ -1,9 +1,8 @@
 import BuddyCore
 import Foundation
 
-/// The current conversation, kept in memory: continue by default, start fresh after 30 min idle,
-/// when a different project is in front, or on request. BuddyConversations replaces
-/// the storage once it's wired in.
+/// The current conversation, kept in memory (no index): continue by default, start fresh after
+/// 30 min idle or on request. A different project in front never starts fresh (the resume fix).
 struct ConversationBook {
     struct Conversation: Equatable {
         var state: ConversationState
@@ -30,20 +29,16 @@ struct ConversationBook {
         self.clock = clock
     }
 
-    /// The conversation the next question belongs to: the current one, unless it went idle or a
-    /// different project is in front. An empty conversation adopts the project in front.
+    /// The conversation the next question belongs to: the current one, unless it went idle. One
+    /// without a project adopts the project in front.
     mutating func prepare(project: String?) -> Conversation {
         let now = clock()
         guard var existing = current, now.timeIntervalSince(existing.lastUsed) < Self.idleLimit else {
             return startNew(project: project)
         }
-        if let project, project != existing.project {
-            if existing.project == nil && existing.turn == 0 {
-                existing.project = project
-                current = existing
-                return existing
-            }
-            if existing.project != nil { return startNew(project: project) }
+        if existing.project == nil, let project {
+            existing.project = project
+            current = existing
         }
         return existing
     }

@@ -32,6 +32,11 @@ public struct EnginePreferences: Sendable, Equatable {
     public var temporaryConversations = false
     /// Settings › Privacy › Trace log: timings and event kinds only.
     public var traceLogEnabled = false
+    /// v2 sessions: voice layer, typed-answer speech, ambient signals, notifications, teammates.
+    public var sessions = SessionSettings()
+    /// Settings › General: the dictation key in effect; nil when off, the buddy key, or in conflict.
+    /// Also in `keys.dictationKey` (what the key monitor runs) while `LumiFeatures.dictation` is on.
+    public var dictationKey: BuddyKey? = .rightCommand
 
     public init(blockedBundleIDs: Set<String> = [], screenshotRetention: TimeInterval = ScreenshotStore.retention,
                 keys: BuddyKeyMonitor.Options = BuddyKeyMonitor.Options(),
@@ -51,8 +56,11 @@ public struct EnginePreferences: Sendable, Equatable {
 
 extension EnginePreferences {
     /// Every engine-facing setting from the shared store, field for field.
+    /// `keyEnvironment` feeds the dictation key's Auto pick and conflict check; the default sees no
+    /// other apps and a 🌐 key that does nothing. The app passes `KeyEnvironment.current()`.
     @MainActor
-    public init(store: SettingsStore) {
+    public init(store: SettingsStore, keyEnvironment: KeyEnvironment = KeyEnvironment(),
+                features: LumiFeatures = .current()) {
         var coordinator = BuddyCoordinator.Settings()
         coordinator.routing = store.models.routing
         coordinator.quick = store.models.quick
@@ -81,6 +89,15 @@ extension EnginePreferences {
         retentionDays = store.conversations.retentionDays
         temporaryConversations = store.conversations.temporaryMode
         traceLogEnabled = store.privacy.traceLogEnabled
+        sessions = SessionSettings(
+            // Voice replies Off silences typed and in-page answers too (QA S-19).
+            voiceLayer: store.sessions.voiceLayer,
+            speakTypedAnswers: store.sessions.speakTypedAnswers && store.voice.voiceReplies != .off,
+            notifyWhenAway: store.notifications.notifyWhenAway, teammates: store.teammates.mode,
+            maxSubagents: store.teammates.maxSubagents)
+        dictationKey = store.dictation.resolved(buddyKey: store.keys.key, in: keyEnvironment).key
+        if features.dictation { keys.dictationKey = dictationKey }
+        keys.dictationMode = store.dictation.mode
     }
 }
 

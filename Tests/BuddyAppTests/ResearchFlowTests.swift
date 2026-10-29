@@ -44,14 +44,14 @@ struct ResearchFlowTests {
         settings.sounds = sounds
         settings.voiceReplies = voiceReplies
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: context, bridge: bridge,
+            settings: settings, voice: voice, context: context, turns: bridge,
             overlay: overlay, pointer: FixedPointer(), research: research)
         coordinator.start()
         return coordinator
     }
 
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -189,6 +189,7 @@ struct ResearchFlowTests {
         await settle(until: { research.jobs.count == 1 && coordinator.phase == .idle })
 
         // "Only when I spoke": a typed request's report is announced by the chime alone.
+        guard research.jobs.count >= 1 else { Issue.record("jobs: \(research.jobs.count) of 1"); return }
         research.onDone?(research.jobs[0])
         await settle(until: { voice.calls.contains(.play(.researchDone)) })
         for _ in 0..<100 { await Task.yield() }
@@ -197,6 +198,7 @@ struct ResearchFlowTests {
         // A spoken request's report is read out.
         await ask(coordinator)
         await settle(until: { research.jobs.count == 2 && coordinator.phase == .idle })
+        guard research.jobs.count >= 2 else { Issue.record("jobs: \(research.jobs.count) of 2"); return }
         research.onDone?(research.jobs[1])
         await settle(until: { voice.calls.contains(.speak("Your research on what does this mean? is ready.")) })
         #expect(voice.calls.contains(.speak("Your research on what does this mean? is ready.")))

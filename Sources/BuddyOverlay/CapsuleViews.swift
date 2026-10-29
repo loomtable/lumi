@@ -11,10 +11,11 @@ struct CapsuleLayer: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.lumiTheme) private var theme
 
     var body: some View {
-        // The capsule is always dark, and follows Reduce Transparency / Increase Contrast.
-        let t = Tokens(.init(dark: true, reduceTransparency: reduceTransparency, increaseContrast: contrast == .increased))
+        // The capsule is always dark (the theme's dark palette), and follows Reduce Transparency / Increase Contrast.
+        let t = Tokens(.init(dark: true, theme: theme.alwaysDark, reduceTransparency: reduceTransparency, increaseContrast: contrast == .increased))
         let capsule = model.capsuleFrame.offsetBy(dx: -displayFrame.minX, dy: -displayFrame.minY)
         let peek = model.peekFrame.offsetBy(dx: -displayFrame.minX, dy: -displayFrame.minY)
         ZStack(alignment: .topLeading) {
@@ -29,7 +30,7 @@ struct CapsuleLayer: View {
                         .onGeometryChange(for: CGSize.self) { $0.size } action: { model.peekSize = $0 }
                         .padding(.leading, peek.minX)
                         .padding(.top, peek.minY)
-                        .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: -6)))
+                        .transition(Motion.transition(y: -6, reduceMotion: reduceMotion))
                 }
             }
         }
@@ -60,8 +61,8 @@ struct CapsuleView: View {
             case .failed:
                 Circle().fill(t.rose.color).frame(width: 6, height: 6)
             case .queued, .running, .cancelled:
-                IndeterminateBar(fill: t.emberMark.nsColor, track: NSColor(white: 1, alpha: 0.15),
-                                 running: job.isRunning && !job.reconnecting)
+                IndeterminateBar(fill: t.emberMark.nsColor, track: t.text.opacity(0.15).nsColor,
+                                 running: job.isRunning && !job.reconnecting, still: reduceMotion)
                     .frame(width: 50, height: 4)
             }
             Text(job.line)
@@ -81,7 +82,7 @@ struct CapsuleView: View {
         .background(Capsule().fill(t.usesGlass ? CapsuleTokens.fill.color : t.opaqueSurface.color))
         .overlay(Capsule().strokeBorder((t.variant.increaseContrast ? t.hairlineBright : CapsuleTokens.hairline).color, lineWidth: 1))
         .modifier(CapsuleGlass(enabled: t.usesGlass))
-        .shadow(color: .black.opacity(0.35), radius: 12, y: 8)
+        .shadow(color: t.shadow.color, radius: 12, y: 8)
         .contentShape(Capsule())
         .onTapGesture(perform: onTap)
         .keyframeAnimator(initialValue: 1.0, trigger: reduceMotion ? 0 : nudge) { view, scale in
@@ -137,7 +138,7 @@ struct PeekCard: View {
                         .lineLimit(1)
                 }
                 if job.isRunning {
-                    ActionButton(title: "Stop", kind: .quiet, t: t, action: onStop)
+                    ActionButton(title: "Stop", kind: .quiet, action: onStop)
                 }
             }
         }
@@ -146,20 +147,25 @@ struct PeekCard: View {
         .background(RoundedRectangle(cornerRadius: Tokens.wellRadius, style: .continuous).fill(CapsuleTokens.fill.color))
         .overlay(RoundedRectangle(cornerRadius: Tokens.wellRadius, style: .continuous)
             .strokeBorder(CapsuleTokens.hairline.color, lineWidth: 1))
-        .shadow(color: .black.opacity(0.35), radius: 16, y: 10)
+        .shadow(color: t.shadow.color, radius: 16, y: 10)
     }
 }
 
 /// An indeterminate progress bar (no honest percentage, so no percentage). Animated by
 /// Core Animation in the render server, so a research job running for minutes costs the app
-/// no CPU per frame: 35% fill sliding across every 1.3 s.
+/// no CPU per frame: 35% fill sliding across every 1.3 s. With Reduce Motion (`still`) the fill
+/// holds at the start instead of sliding.
 struct IndeterminateBar: NSViewRepresentable {
     let fill: NSColor
     let track: NSColor
     let running: Bool
+    var still = false
 
     final class BarView: NSView {
         let fillLayer = CALayer()
+        /// A static fill while running, for Reduce Motion.
+        var still = false
+        private var running = false
 
         override init(frame: NSRect) {
             super.init(frame: frame)
@@ -178,11 +184,14 @@ struct IndeterminateBar: NSViewRepresentable {
             let w = bounds.width * 0.35
             fillLayer.bounds = CGRect(x: 0, y: 0, width: w, height: bounds.height)
             fillLayer.anchorPoint = CGPoint(x: 0, y: 0)
-            fillLayer.position = CGPoint(x: -w, y: 0)
+            fillLayer.position = CGPoint(x: running && still ? 0 : -w, y: 0)
         }
 
         func setRunning(_ running: Bool) {
-            if running, fillLayer.animation(forKey: "slide") == nil {
+            self.running = running
+            if running, still {
+                fillLayer.removeAnimation(forKey: "slide")
+            } else if running, fillLayer.animation(forKey: "slide") == nil {
                 let anim = CABasicAnimation(keyPath: "position.x")
                 anim.fromValue = -bounds.width * 0.35
                 anim.toValue = bounds.width * 1.0
@@ -206,8 +215,9 @@ struct IndeterminateBar: NSViewRepresentable {
     func updateNSView(_ view: BarView, context: Context) {
         view.layer?.backgroundColor = track.cgColor
         view.fillLayer.backgroundColor = fill.cgColor
+        view.still = still
+        view.setRunning(running)
         view.needsLayout = true
         view.layoutSubtreeIfNeeded()
-        view.setRunning(running)
     }
 }

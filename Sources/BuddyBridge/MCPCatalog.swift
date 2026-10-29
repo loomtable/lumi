@@ -1,3 +1,4 @@
+import BuddyCore
 import Foundation
 
 /// A connection Lumi recommends (Settings › Connections, onboarding): plain data, with nothing about
@@ -119,11 +120,12 @@ public struct ClaudeCodeMCP: Sendable {
     typealias OutputRunner = @Sendable (_ executable: URL, _ arguments: [String], _ environment: [String: String]) async
         -> (status: Int32, stdout: String, stderr: String)?
 
-    /// `~/Library/Application Support/Loomtable/Lumi/connections`. The user's
+    /// `~/Library/Application Support/Loomtable/Lumi/connections` for the release app. The user's
     /// Claude Code config points at files here, so this folder never moves: not in the rename, not in any
-    /// migration. Change it only together with re-adding every server that uses it.
+    /// migration. Change it only together with re-adding every server that uses it. Another bundle ID
+    /// (a QA copy) keeps its own, `Loomtable/<bundle id>/connections`.
     public static var defaultSecrets: URL {
-        URL.applicationSupportDirectory.appending(path: "Loomtable/Lumi/connections", directoryHint: .isDirectory)
+        BuddyCore.paths.connections
     }
 
     /// `environment` is the one sessions launch with (`LaunchEnvironment.make`), so its PATH is the user's.

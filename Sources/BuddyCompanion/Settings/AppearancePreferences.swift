@@ -1,7 +1,8 @@
+import BuddyOverlay
 import Foundation
 
 /// Settings › Appearance. The fields here are
-/// the defaults: Smart placement, every effect on.
+/// the defaults: Smart placement (cards next to it, rich answers centred), every effect on.
 public nonisolated struct AppearancePreferences: SettingsSection {
     public static let storageKey = "settings.appearance.v1"
 
@@ -13,6 +14,8 @@ public nonisolated struct AppearancePreferences: SettingsSection {
         case top, bottom
     }
 
+    /// The theme across every surface; System follows the Mac's light or dark (67-THEMES.md).
+    public var theme: Theme = .system
     public var placement: Placement = .smart
     /// Where the listening pill and status lines sit: top centre by default.
     public var statusPosition: StatusPosition = .top
@@ -33,12 +36,13 @@ public nonisolated struct AppearancePreferences: SettingsSection {
     public init() {}
 
     enum CodingKeys: String, CodingKey {
-        case placement, speakingGlow, dotField, inkIn, sounds, statusPosition, showRings, insertAndReplace
+        case theme, placement, speakingGlow, dotField, inkIn, sounds, statusPosition, showRings, insertAndReplace
     }
 
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
+        theme = c.value(.theme, default: d.theme)
         placement = c.value(.placement, default: d.placement)
         speakingGlow = c.value(.speakingGlow, default: d.speakingGlow)
         dotField = c.value(.dotField, default: d.dotField)

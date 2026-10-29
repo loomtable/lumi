@@ -28,7 +28,7 @@ struct SampleChunker: Sendable {
     var buffered: Int { pending.count }
 }
 
-/// Silero VAD through FluidAudio, used only for the 10 s silence safeguard (S5: its 256 ms chunks put
+/// Silero VAD through FluidAudio, used only for the 30 s silence safeguard (S5: its 256 ms chunks put
 /// end of speech 0.7–1.2 s late, too slow to decide when to send).
 ///
 /// Calls run one at a time through a `TaskChain`: `process` suspends inside `VadManager` between chunks,

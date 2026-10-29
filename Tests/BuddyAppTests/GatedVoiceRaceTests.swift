@@ -17,14 +17,14 @@ struct GatedVoiceRaceTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         return c
     }
 
     func waitFor(_ condition: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !condition(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -62,6 +62,28 @@ struct GatedVoiceRaceTests {
         let afterSpeak = voice.calls.drop { $0 != .speak("Old reply.") }
         #expect(afterSpeak.dropFirst().contains(.stopSpeaking))
         #expect(!overlay.calls.contains(.speaking(true)))
+    }
+
+    /// V-09: Esc while the next ask still transcribes cancels nothing that ask didn't send: the
+    /// earlier turn's session may be running a page turn of its own.
+    @Test func escapeWhileTranscribingCancelsNoEarlierTurn() async {
+        let voice = GatedVoice()
+        let bridge = ManualBridge()
+        let c = make(voice: voice, bridge: bridge)
+        await tapToTalk(c)
+        await waitFor { bridge.streamCount == 1 }
+        bridge.send(BuddyCoordinatorTests.done(BuddyBlock(say: "Done.", shape: .chip)))
+        bridge.finish()
+        await waitFor { c.phase == .showing }
+
+        voice.holdTranscripts()
+        let ask = Task { await tapToTalk(c) }
+        await waitFor { voice.waiting == 1 } // "Transcribing…"
+        await c.escapePressed()
+        voice.release()
+        await ask.value
+        #expect(bridge.cancelled.isEmpty, "the earlier turn's session isn't interrupted")
+        #expect(bridge.streamCount == 1, "the cancelled ask is never sent")
     }
 
     @Test func escapeWhileTheMicStartsLeavesItOff() async {

@@ -1,3 +1,4 @@
+import BuddyOverlay
 import SwiftUI
 
 /// Onboarding's optional tools step: Lumi uses whatever tools the user's Claude has,
@@ -56,7 +57,7 @@ struct ToolsStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Your tools").font(.title2.bold()).accessibilityAddTraits(.isHeader)
-            Text("Lumi uses the same tools as your Claude. Click one to add it there, and Lumi can use it from your next new conversation.")
+            Text("Lumi uses the same tools as your Claude. Click one to add it there, and Lumi can use it from your next new session.")
                 .fixedSize(horizontal: false, vertical: true)
             Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 10) {
                 ForEach(ConnectionsOnboarding.rows, id: \.first?.id) { row in
@@ -68,7 +69,7 @@ struct ToolsStepView: View {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
-            Link("Open Claude connectors ↗", destination: ConnectionsOnboarding.directory)
+            Link("Open Claude connectors ↗", destination: ConnectionsOnboarding.directory).buttonStyle(.lumiLink)
             // Plain text: Settings opens only once setup is finished.
             Text("Already added something? Once you're set up, Settings › Connections shows what Lumi sees.")
                 .foregroundStyle(.secondary)
@@ -94,7 +95,7 @@ private struct SuggestionLabel: View {
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
-                Text(suggestion.name + " ↗").font(.headline).foregroundStyle(Color.accentColor)
+                Text(suggestion.name + " ↗").font(.headline).foregroundStyle(.tint)
                 Text(suggestion.use).font(.caption).foregroundStyle(.secondary)
             }
         }

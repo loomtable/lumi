@@ -42,7 +42,7 @@ struct TraceTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), trace: trace)
         c.start()
         return c
@@ -55,7 +55,7 @@ struct TraceTests {
     }
 
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
     }
 
@@ -68,8 +68,10 @@ struct TraceTests {
         await settle(until: { trace.events.contains(.answerShown) })
         // The capture runs alongside the listen, so its two events can land anywhere after summon.
         #expect(trace.events.filter { $0 != .contextPacket && $0 != .screenshot } == [
-            .summon, .micLive, .transcriptFinal, .questionSent, .quickFirstEvent, .firstSpokenWord, .answerShown,
+            .summon, .micLive, .transcriptFinal, .routeDecided, .questionSent, .quickFirstEvent, .firstSpokenWord, .answerShown,
         ])
+        // Where it went (V-17): Quick, the cascade. Kinds only, no words.
+        #expect(trace.entries.first { $0.event == .routeDecided }?.lane == .quick)
         #expect(trace.events.filter { $0 == .contextPacket || $0 == .screenshot } == [.contextPacket, .screenshot])
         // Latencies are timed from the step before (summon, the send gesture, the request).
         let timed = Dictionary(trace.entries.map { ($0.event, $0.timed) }, uniquingKeysWith: { a, _ in a })
@@ -124,14 +126,20 @@ struct TraceTests {
         voice.setTranscript("") // nothing said: the send is discarded
         await ask(c)
         #expect(trace.entries.contains(.init(event: .transcriptFinal, outcome: .skipped, timed: true)))
-        try? await Task.sleep(for: .milliseconds(400))
+        // The discarded send is over before the next press.
+        await settle(until: { c.phase == .idle })
+        try? await Task.sleep(for: .milliseconds(50))
 
+        // Timed from the typed request, the answer can't take longer than the time since it; timed
+        // from the old gesture it would be longer. No wall-clock budget, so load can't fail it.
+        let typedAt = ContinuousClock.now
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.doubleTap))
         overlay.send(.submitted(text: "which row?", source: .textBox))
         await settle(until: { trace.events.contains(.answerShown) })
+        let sinceTyped = ContinuousClock.now - typedAt
         let shown = trace.duration(of: .answerShown)
-        #expect(shown != nil && shown! < .milliseconds(300)) // from the typed request, not the old gesture
+        #expect(shown != nil && shown! <= sinceTyped, "from the typed request, not the old gesture")
     }
 
     @Test func speechOnlyAtTheEndIsTheFirstSpokenWord() async {

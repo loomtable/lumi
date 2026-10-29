@@ -78,7 +78,7 @@ struct StatusItemTests {
     }
 
     /// Until setup is finished the menu offers no Settings: setup takes Open Lumi's place and ⌘,,
-    /// and the key row (a Settings pane) is gone. Afterwards the menu is as before.
+    /// and the key row (a Settings page) is gone. Afterwards: Open Lumi and Settings… (⌘,).
     @Test func setupReplacesSettingsInTheMenuUntilItIsFinished() {
         let setUp = StatusMenuItem.menu(answerKept: false, problems: [], needsSetUp: true, keyName: "Right ⌥", paused: false)
         #expect(setUp.contains(StatusMenuItem(title: "Set Up Lumi…", action: .setUp, keyEquivalent: ",")))
@@ -88,7 +88,8 @@ struct StatusItemTests {
 
         let done = StatusMenuItem.menu(answerKept: false, problems: [], needsSetUp: false, keyName: "Right ⌥", paused: false)
         #expect(!done.contains { $0.action == .setUp })
-        #expect(done.contains(StatusMenuItem(title: "Open Lumi", action: .openSettings, keyEquivalent: ",")))
+        #expect(done.contains(StatusMenuItem(title: "Open Lumi", action: .openStudio, keyEquivalent: "o")))
+        #expect(done.contains(StatusMenuItem(title: "Settings…", action: .openSettings, keyEquivalent: ",")))
         #expect(done.contains(StatusMenuItem(title: "Lumi Key: Right ⌥…", action: .openPane(.keys))))
     }
 

@@ -1,3 +1,4 @@
+import BuddyCore
 import Foundation
 
 /// Coordinates mic, speech-to-text, VAD safeguards, reply speech, meters and sounds for one buddy.
@@ -48,7 +49,8 @@ public actor VoiceController {
     }
 
     public enum Event: Sendable, Equatable {
-        /// 1:45 of listening; recording stops at 2:00.
+        /// Near the length limit: 1:45 of a question (it stops at 2:00), 58 minutes of a dictation
+        /// (it stops at 60, keeping everything).
         case nearLimit
         /// Listening stopped (on its own, or by `interrupt`). `held` says whether a recording was kept
         /// for `sendHeld()` / `discard`; false means there was nothing to keep. Decided inside the
@@ -90,6 +92,9 @@ public actor VoiceController {
         case notSetUp
         /// `removeModels` while voice is loading, listening or speaking: try again once it's idle.
         case busy
+        /// `removeModels` in a copy with another bundle ID (QA): the models are the release app's,
+        /// shared, and a copy never deletes them.
+        case sharedModels
     }
 
     /// State changes. Unbounded: there are only a few per listen and none may be dropped.
@@ -110,6 +115,7 @@ public actor VoiceController {
     private let sounds: any SoundPlayer
     private let clock: any VoiceClock
     private let limits: ListenSafeguards.Limits
+    private let dictationLimits: ListenSafeguards.Limits
     private let tickInterval: Duration?
     /// How long a transcriber call may take. A finish is well under a second normally (0.65 s for
     /// 4 min of audio on an M5, 1.8 s CPU-only), but a Core ML call on a saturated Neural Engine can
@@ -154,6 +160,11 @@ public actor VoiceController {
     private var acceptingAudio = false
     private var captureError: (any Error)?
     private var held: (result: Result<String, any Error>, speechSeconds: Double)?
+    /// This listen is a dictation (`startListening(.dictation)`).
+    private var dictating = false
+    /// A dictation's finished chunks, in order, and when the transcriber's current one began.
+    private var dictatedParts: [String] = []
+    private var chunkStartedAt: Double = 0
     /// Audio chunks fully handled in this listen; a deterministic hook for tests.
     private(set) var processedChunks = 0
 
@@ -172,6 +183,7 @@ public actor VoiceController {
         sounds: any SoundPlayer,
         clock: any VoiceClock = SystemVoiceClock(),
         limits: ListenSafeguards.Limits = .init(),
+        dictationLimits: ListenSafeguards.Limits = .dictation,
         tickInterval: Duration? = .milliseconds(250),
         levelBuffer: Int = 8,
         soundsEnabled: Bool = true,
@@ -198,6 +210,7 @@ public actor VoiceController {
         self.sounds = sounds
         self.clock = clock
         self.limits = limits
+        self.dictationLimits = dictationLimits
         self.tickInterval = tickInterval
         if let router = speaker as? ReplyVoiceSpeaker {
             let status = router.status
@@ -233,10 +246,16 @@ public actor VoiceController {
     /// launch. The caller changes the settings so nothing downloads it again unasked (`.lumiVoice`:
     /// replies in the Mac voice; `.speechRecognition`: no setup chosen). Throws `.busy` while voice is
     /// loading, listening or speaking, so it never deletes a download in progress.
+    /// The release app (bundle ID `com.loomtable.lumi`) owns the shared models and FluidAudio's
+    /// lexicon; a copy never deletes them. Tests set it.
+    var isReleaseApp = BuddyCore.paths.isRelease
+    func setReleaseAppForTesting(_ release: Bool) { isReleaseApp = release }
+
     public func removeModels(_ part: VoiceModelPart) async throws {
         guard prepareTask == nil, state == .idle, !busy else { throw VoiceError.busy }
+        guard isReleaseApp else { throw VoiceError.sharedModels }
         guard let store, let kokoroLexicon else { return }
-        try VoiceStorage.remove(part, store: store, lexicon: kokoroLexicon)
+        try VoiceStorage.remove(part, store: store, lexicon: kokoroLexicon, sharedLexicon: isReleaseApp)
     }
 
     /// The settings now need something not loaded: the next `prepare()` loads it.
@@ -340,8 +359,9 @@ public actor VoiceController {
     /// Starts listening. Stops any reply first (buddy key while speaking). Returns once the mic has
     /// real audio (about 450 ms with voice processing), so a cue played after it is honest. That wait is
     /// outside the lock: send, Esc and double-tap act at once.
-    public func startListening() async throws {
-        try await exclusive { try await self.performStart() }
+    /// `.dictation`: no stop on silence, a 60-minute limit, and the transcript built chunk by chunk.
+    public func startListening(_ kind: ListenKind = .question) async throws {
+        try await exclusive { try await self.performStart(kind) }
         await mic.untilLive()
     }
 
@@ -358,6 +378,13 @@ public actor VoiceController {
             guard await self.state == .held else { return nil }
             return try await self.takeHeld()
         }
+    }
+
+    /// Seconds of speech the VAD has heard since this listen began (the safeguards' total), or 0
+    /// when not listening. The switcher reads it on release: enough speech sends, less switches.
+    public func heardSpeechSeconds() -> Double {
+        guard state == .listening else { return 0 }
+        return safeguards?.speechSeconds(at: clock.now()) ?? 0
     }
 
     /// Discards the current or held recording. Over 30 s of speech needs `confirmed: true`; to
@@ -476,7 +503,7 @@ public actor VoiceController {
         release()
     }
 
-    private func performStart() async throws {
+    private func performStart(_ kind: ListenKind) async throws {
         switch state {
         case .listening: return
         case .held: throw VoiceError.recordingHeld
@@ -499,7 +526,10 @@ public actor VoiceController {
             processedChunks = 0
             micMeter.reset()
             framer.reset()
-            safeguards = ListenSafeguards(startedAt: clock.now(), limits: limits)
+            dictating = kind == .dictation
+            dictatedParts = []
+            chunkStartedAt = clock.now()
+            safeguards = ListenSafeguards(startedAt: chunkStartedAt, limits: dictating ? dictationLimits : limits)
             let stream = try await mic.start()
             state = .listening
             acceptingAudio = true
@@ -525,12 +555,36 @@ public actor VoiceController {
         state = .finishing
         await stopCapture()
         defer { state = .idle }
+        return try await finalTranscript()
+    }
+
+    /// The transcript once capture has stopped: a dictation's earlier chunks and the last one. A
+    /// failure keeps the chunks already done (never lose speech) and throws only with none.
+    private func finalTranscript() async throws -> String {
+        let parts = dictatedParts
+        dictatedParts = []
+        let last: Result<String, any Error>
         if let captureError {
             await cancelTranscriber()
-            throw captureError
+            last = .failure(captureError)
+        } else {
+            do {
+                last = .success(try await finishWithNotices { try await $0.finish() }
+                    .trimmingCharacters(in: .whitespacesAndNewlines))
+            } catch {
+                last = .failure(error)
+            }
         }
-        return try await finishWithNotices { try await $0.finish() }
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        switch last {
+        case .success(let text): return Self.joined(parts + [text])
+        case .failure(let error):
+            guard !parts.isEmpty else { throw error }
+            return Self.joined(parts)
+        }
+    }
+
+    static func joined(_ parts: [String]) -> String {
+        parts.filter { !$0.isEmpty }.joined(separator: " ")
     }
 
     /// A transcriber call, cut off at `finishDeadline` with `.transcriptionTimedOut`. Its calls run one
@@ -590,6 +644,7 @@ public actor VoiceController {
             stopTicking()
             level(.mic(0))
             await cancelTranscriber()
+            dictatedParts = []
             state = .idle
         case .held:
             let speech = held?.speechSeconds ?? 0
@@ -612,16 +667,10 @@ public actor VoiceController {
         let heardSpeech = safeguards?.heardSpeech ?? false
         await stopCapture()
         let result: Result<String, any Error>
-        if let captureError {
-            await cancelTranscriber()
-            result = .failure(captureError)
-        } else {
-            do {
-                result = .success(try await finishWithNotices { try await $0.finish() }
-                    .trimmingCharacters(in: .whitespacesAndNewlines))
-            } catch {
-                result = .failure(error)
-            }
+        do {
+            result = .success(try await finalTranscript())
+        } catch {
+            result = .failure(error)
         }
         // Nothing was said (a tap and then silence): there's nothing to keep, and holding an empty
         // recording would block the next tap.
@@ -705,13 +754,17 @@ public actor VoiceController {
             if captureError == nil { captureError = error }
         }
         let now = clock.now()
+        var activity: SpeechActivity?
         do {
-            if let activity = try await detector.process(chunk.samples) {
-                safeguards?.observe(activity, at: now)
-            }
+            activity = try await detector.process(chunk.samples)
+            if let activity { safeguards?.observe(activity, at: now) }
         } catch {
             // Without the VAD, silence can't be told from speech; don't cut the user off for it.
             safeguards?.disableSilenceStop()
+        }
+        if dictating, state == .listening, current == session,
+           Self.nextChunk(after: now - chunkStartedAt, pause: activity == .ended) {
+            await rotateChunk(at: now)
         }
         if state == .listening, current == session {
             for rms in framer.push(chunk.samples) {
@@ -720,6 +773,29 @@ public actor VoiceController {
             checkSafeguards(at: now, session: current)
         }
         processedChunks += 1
+    }
+
+    /// A dictation is transcribed in chunks, so its length never matters and each finish is as
+    /// quick as a short question's: at the first pause after 45 s, or after 5 minutes regardless.
+    static func nextChunk(after elapsed: Double, pause: Bool) -> Bool {
+        (pause && elapsed >= 45) || elapsed >= 300
+    }
+
+    /// Finishes the dictation's current chunk and begins the next. The capture loop waits meanwhile
+    /// (the mic's stream buffers), so no audio falls between chunks. A chunk that fails to finish
+    /// is lost alone; if the next can't begin, the chunks so far are still returned at the end.
+    private func rotateChunk(at now: Double) async {
+        chunkStartedAt = now
+        guard captureError == nil else { return }
+        if let text = try? await bounded({ try await $0.finish() }) {
+            let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty { dictatedParts.append(text) }
+        }
+        do {
+            try await bounded { try await $0.begin() }
+        } catch {
+            captureError = error
+        }
     }
 
     private func tickLoop(every interval: Duration, session current: Int) async {

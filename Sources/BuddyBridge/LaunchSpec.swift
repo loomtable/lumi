@@ -44,6 +44,27 @@ public struct LaunchSpec: Sendable, Equatable {
     /// came to us as a `control_request` and the turn waited for an answer forever (2.1.301, measured).
     public var noPermissionPrompts = false
     public var environment: [String: String]
+    /// An open session (the user's full Claude Code): `arguments` is built from this instead of
+    /// the lane flags. See `open(executable:launch:permissionMode:environment:)`.
+    public var open: OpenOptions?
+
+    public struct OpenOptions: Sendable, Equatable {
+        /// Lumi mints it: `--session-id` on the first launch, `--resume` after.
+        public var claudeSession: UUID
+        public var resume: Bool
+        /// `--permission-mode`, only when the user's settings have no `permissions.defaultMode`.
+        public var permissionMode: String?
+        /// `--resume-session-at`: the resume keeps the conversation up to this message (an edited
+        /// prompt's parent) and the next prompt branches from it.
+        public var resumeAt: String?
+
+        public init(claudeSession: UUID, resume: Bool, permissionMode: String?, resumeAt: String? = nil) {
+            self.claudeSession = claudeSession
+            self.resume = resume
+            self.permissionMode = permissionMode
+            self.resumeAt = resumeAt
+        }
+    }
 
     public init(
         executable: URL,
@@ -77,6 +98,7 @@ public struct LaunchSpec: Sendable, Equatable {
 
     /// The `claude` command line for a turn.
     public var arguments: [String] {
+        if let open { return Self.openArguments(open, addDirs: addDirs) }
         var args = [
             "-p",
             "--model", config.model.rawValue,
@@ -135,6 +157,75 @@ public struct LaunchSpec: Sendable, Equatable {
         spec.appendSystemPrompt = AnswerRules.text(for: [.deep], in: plugin)
         spec.noPermissionPrompts = true
         return spec
+    }
+
+    /// An open session: the user's full Claude Code (00-PLAN, 02 §D8.2). No `--model`, `--effort`,
+    /// `--fallback-model`, `--plugin-dir`, `--agent`, `--append-system-prompt[-file]`, `--restricted`,
+    /// `--tools` or `--strict-mcp-config`. Prompts go to Lumi over stdio (`--permission-prompt-tool
+    /// stdio`; `--permission-prompts host` alone sends no `can_use_tool`, probe 1), user lines echo
+    /// with their uuids (`--replay-user-messages`), and every stored folder is passed again, because
+    /// resume doesn't restore `--add-dir`.
+    public static func open(executable: URL, launch: SessionLaunch, permissionMode: String?,
+                            environment: [String: String]) -> LaunchSpec {
+        var env = environment
+        env["CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS"] = "1"
+        env["CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD"] = "1"
+        env["CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS"] = String(max(1, launch.maxSubagents))
+        if launch.continueInterrupted && launch.exists {
+            env["CLAUDE_CODE_RESUME_INTERRUPTED_TURN"] = "1"
+        } else {
+            env["CLAUDE_CODE_RESUME_INTERRUPTED_TURN"] = nil
+        }
+        var spec = LaunchSpec(executable: executable, workingDirectory: launch.cwd, mode: .deep, config: .default(for: .deep),
+                              permissionMode: permissionMode ?? "", environment: env)
+        spec.addDirs = launch.addDirs.filter { $0.standardizedFileURL.path != launch.cwd.standardizedFileURL.path }
+        spec.open = OpenOptions(claudeSession: launch.claudeSession, resume: launch.exists, permissionMode: permissionMode,
+                                resumeAt: launch.exists ? launch.resumeAt : nil)
+        return spec
+    }
+
+    static func openArguments(_ open: OpenOptions, addDirs: [URL]) -> [String] {
+        var args = [
+            "-p",
+            "--input-format", "stream-json",
+            "--output-format", "stream-json",
+            "--verbose",
+            "--include-partial-messages",
+            "--forward-subagent-text",
+            "--replay-user-messages",
+            "--permission-prompt-tool", "stdio",
+        ]
+        if let mode = open.permissionMode, !mode.isEmpty { args += ["--permission-mode", mode] }
+        let id = open.claudeSession.uuidString.lowercased()
+        args += open.resume ? ["--resume", id] : ["--session-id", id]
+        if open.resume, let at = open.resumeAt { args += ["--resume-session-at", at] }
+        if !addDirs.isEmpty { args += ["--add-dir"] + addDirs.map(\.path) }
+        return args
+    }
+
+    /// The `--permission-mode` an open session passes: nil when the user's or the folder's settings
+    /// set `permissions.defaultMode` (it applies under `-p`, probe 2), else `auto` (02 §D8.2).
+    /// `settingsFiles`: `~/.claude/settings.json`, and the cwd's `.claude/settings.json` and
+    /// `.claude/settings.local.json`.
+    public static func openPermissionMode(settingsFiles: [URL], fallback: String = "auto",
+                                          read: (URL) -> Data? = { try? Data(contentsOf: $0) }) -> String? {
+        for file in settingsFiles {
+            guard let data = read(file),
+                  let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                  let mode = (object["permissions"] as? [String: Any])?["defaultMode"] as? String,
+                  !mode.trimmingCharacters(in: .whitespaces).isEmpty else { continue }
+            return nil
+        }
+        return fallback
+    }
+
+    /// The settings files `openPermissionMode` reads for a session in `cwd`.
+    public static func openSettingsFiles(home: URL, cwd: URL) -> [URL] {
+        var files = [home.appendingPathComponent(".claude/settings.json")]
+        if cwd.standardizedFileURL.path != home.standardizedFileURL.path {
+            files += [cwd.appendingPathComponent(".claude/settings.json"), cwd.appendingPathComponent(".claude/settings.local.json")]
+        }
+        return files
     }
 
     static func buddyAnswerSkill(in plugin: URL) -> URL {

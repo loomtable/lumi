@@ -14,20 +14,15 @@ import BuddyOverlay
     private(set) var updates: [ConversationState] = []
     private(set) var recorded: [String] = []
     private(set) var newCount = 0
-    private(set) var backCount = 0
     private(set) var switched: [String] = []
     private(set) var screenshots: [(path: String, conversation: String)] = []
-    var nextNotice: ConversationNotice?
     var log: [String] = []
 
     var current: ConversationTurn? { inner.current }
     func prepare(project: String?) async -> ConversationTurn {
         prepared.append(project)
         log.append("prepare")
-        var turn = await inner.prepare(project: project)
-        turn.notice = nextNotice
-        nextNotice = nil
-        return turn
+        return await inner.prepare(project: project)
     }
     func update(_ state: ConversationState) async {
         updates.append(state)
@@ -40,14 +35,7 @@ import BuddyOverlay
     func startNew() async -> ConversationTurn {
         newCount += 1
         log.append("new")
-        var turn = await inner.startNew()
-        turn.notice = nextNotice
-        nextNotice = nil
-        return turn
-    }
-    func goBack() async -> ConversationTurn? {
-        backCount += 1
-        return ConversationTurn(state: ConversationState(id: "c_before"), color: .ember, turn: 1, previous: [])
+        return await inner.startNew()
     }
     func switchTo(_ id: String) async -> ConversationTurn? {
         switched.append(id)
@@ -89,12 +77,12 @@ struct ConversationPortTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: FakeVoice(), context: FakeContext.packet(), bridge: FakeBridge(),
+            settings: settings, voice: FakeVoice(), context: FakeContext.packet(), turns: FakeBridge(),
             overlay: overlay, pointer: FixedPointer(), conversations: conversations)
         c.start()
 
         overlay.send(.newConversation)
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while conversations.waiting == 0, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         await c.handle(.gesture(.pressBegan(fresh: false))) // the key, while the index is still writing
         conversations.release()
@@ -111,13 +99,13 @@ struct ConversationPortTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: FakeVoice(), context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: FakeVoice(), context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), conversations: conversations)
         c.start()
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase != .showing, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
 
         #expect(conversations.prepared.count == 1)
@@ -143,7 +131,7 @@ struct ConversationPortTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), conversations: conversations)
         c.start()
         return c
@@ -153,7 +141,7 @@ struct ConversationPortTests {
         await c.handle(.gesture(.pressBegan(fresh: fresh)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase == .thinking || c.phase == .listening(confirmedTap: false, holding: true), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -164,11 +152,10 @@ struct ConversationPortTests {
         let overlay = FakeOverlay()
         let bridge = FakeBridge(script: [BuddyCoordinatorTests.done(BuddyBlock(say: "Yes.", shape: .chip))])
         let c = make(conversations, overlay, bridge)
-        conversations.nextNotice = .back(title: "Empty inbox")
         await hold(c, fresh: true)
         #expect(conversations.log.prefix(2) == ["new", "prepare"], "the new conversation exists before the question takes one")
-        #expect(overlay.calls.contains(.listening(CGPoint(x: 400, y: 300), hint: "new conversation · tap ⌥ to send")))
-        #expect(overlay.calls.contains(.backChip("Empty inbox")))
+        #expect(overlay.calls.contains(.listening(CGPoint(x: 400, y: 300), hint: "new session · tap ⌥ to send")))
+        #expect(overlay.calls.contains(.toast("New session")))
         #expect(bridge.asked.count == 1)
     }
 
@@ -190,45 +177,12 @@ struct ConversationPortTests {
         #expect(bridge.asked.first?.packet.utterance == "what's a heat pump?")
     }
 
-    @Test func aBareGoBackChangesConversationWithoutAsking() async {
-        let conversations = RecordingConversations()
-        let overlay = FakeOverlay()
-        let voice = FakeVoice()
-        voice.setTranscript("Go back.")
-        let bridge = FakeBridge(script: [])
-        let c = make(conversations, overlay, bridge, voice: voice)
-        await hold(c, fresh: false)
-        #expect(conversations.backCount == 1)
-        #expect(bridge.asked.isEmpty)
-        #expect(overlay.calls.contains(.toast("Back to the previous conversation")))
-        #expect(c.phase == .idle)
-    }
-
-    @Test func theResumeChipOffersTheIdleConversation() async {
-        let conversations = RecordingConversations()
-        let overlay = FakeOverlay()
-        let bridge = FakeBridge(script: [BuddyCoordinatorTests.done(BuddyBlock(say: "Yes.", shape: .chip))])
-        let c = make(conversations, overlay, bridge)
-        conversations.nextNotice = .resume(id: "c_old", title: "Refund flow", lastUsed: Date().addingTimeInterval(-26 * 3600))
-        await hold(c, fresh: false)
-        let chip = overlay.calls.first { if case .resumeChip = $0 { true } else { false } }
-        #expect(chip == .resumeChip("Refund flow", detail: "yesterday"))
-        overlay.send(.resumeConversation)
-        let deadline = ContinuousClock.now + .seconds(2)
-        while conversations.switched.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
-        #expect(conversations.switched == ["c_old"])
-        for _ in 0..<200 where !overlay.calls.contains(.toast("Resumed ‘Refund flow’ · your next question continues it")) { await Task.yield() }
-        #expect(overlay.calls.contains(.toast("Resumed ‘Refund flow’ · your next question continues it")), "names what came back")
-        #expect(BuddyCoordinator.resumedToast("") == "Resumed the conversation · your next question continues it")
-    }
-
     @Test func conversationCommandsAreWholeWordsAtTheStart() {
         #expect(ConversationCommand.parse("new topic") == .newTopic(rest: ""))
         #expect(ConversationCommand.parse("Start over. What's this?") == .newTopic(rest: "What's this?"))
         #expect(ConversationCommand.parse("new topics in physics") == nil)
         #expect(ConversationCommand.parse("what's the new topic here") == nil)
-        #expect(ConversationCommand.parse("go back") == .goBack)
-        #expect(ConversationCommand.parse("go back to the last page") == nil, "a question, not a command")
+        #expect(ConversationCommand.parse("go back") == nil, "going back is the switcher's, not a command")
     }
 
     @Test func aShiftChordTypedOverAnAnswerLeavesItAlone() async {
@@ -253,6 +207,6 @@ struct ConversationPortTests {
         await c.handle(.gesture(.pressBegan(fresh: true)))
         await c.handle(.gesture(.tap))
         #expect(c.phase == .listening(confirmedTap: true, holding: false))
-        #expect(overlay.calls.contains(.listening(CGPoint(x: 400, y: 300), hint: "new conversation · tap ⌥ to send")))
+        #expect(overlay.calls.contains(.listening(CGPoint(x: 400, y: 300), hint: "new session · tap ⌥ to send")))
     }
 }

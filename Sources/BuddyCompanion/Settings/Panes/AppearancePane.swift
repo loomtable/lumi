@@ -1,17 +1,20 @@
+import BuddyOverlay
 import SwiftUI
 
-/// Settings › Appearance: light and dark, each effect on or off, placement.
+/// Settings › Appearance: the theme, each effect on or off, placement.
 /// Nothing here talks to the overlay directly: the shell maps these
 /// (EnginePreferences) onto BuddyOverlay's `OverlaySettings` and the coordinator's settings, live.
 struct AppearancePane: View {
     @Binding var settings: AppearancePreferences
 
     var body: some View {
-        Form {
+        PaneForm {
             Section {
-                LabeledContent("Light and dark", value: "Follows your Mac")
+                ThemePicker(selection: $settings.theme)
+            } header: {
+                Text("Theme")
             } footer: {
-                Text("Every surface follows the Mac's appearance together. The research capsule by the notch is always dark. Reduce Motion, Reduce Transparency and Increase Contrast in System Settings apply too.")
+                Text("Every window, card and capsule changes together. The research capsule by the notch stays dark. Reduce Transparency and Increase Contrast in System Settings still apply.")
             }
 
             Section("Effects") {
@@ -44,7 +47,7 @@ struct AppearancePane: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } footer: {
-                Text("Chips always stay next to what you asked about. Drag any answer to move it; it stays there for the rest of the conversation.")
+                Text("Chips always stay next to what you asked about. Follow-ups appear where the first answer did; drag an answer to move that spot for the rest of the conversation.")
             }
 
             Section("Answer actions") {
@@ -73,7 +76,6 @@ struct AppearancePane: View {
                     .disabled(settings == AppearancePreferences())
             }
         }
-        .formStyle(.grouped)
     }
 
     static func title(_ placement: AppearancePreferences.Placement) -> String {
@@ -88,11 +90,95 @@ struct AppearancePane: View {
     static func placementHelp(_ placement: AppearancePreferences.Placement) -> String {
         switch placement {
         case .smart:
-            "Short answers appear next to your selection or pointer, moved clear of busy content. Rich answers are centred."
+            "Short answers appear next to your selection or pointer. Rich answers are centred."
         case .nextToIt:
-            "Every answer appears next to your selection or pointer: below it, then above, then to the side. Answers about the whole page go to the side of the screen."
+            "Every answer appears next to your selection or pointer: below it, then above, then to the side."
         case .centre:
             "Cards and rich answers are centred."
+        }
+    }
+}
+
+/// Six swatches, each a tiny window drawn from that theme's own tokens. Choosing one applies at once.
+struct ThemePicker: View {
+    @Binding var selection: Theme
+
+    var body: some View {
+        TokensReader { t in
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 12)], spacing: 12) {
+                ForEach(Theme.allCases, id: \.self) { theme in
+                    Button { selection = theme } label: {
+                        VStack(spacing: 6) {
+                            ThemeSwatch(theme: theme)
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: Tokens.rowRadius + 3, style: .continuous)
+                                        .strokeBorder(selection == theme ? t.emberMark.color : t.cardHairline.color,
+                                                      lineWidth: selection == theme ? 2 : Tokens.hairlineWidth)
+                                        .padding(-3)
+                                }
+                            VStack(spacing: 1) {
+                                Text(theme.title).font(.system(size: 12, weight: .medium)).foregroundStyle(t.text.color)
+                                if theme == .system {
+                                    Text("Follows your Mac").font(.system(size: 11)).foregroundStyle(t.secondaryText.color)
+                                }
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(theme == .system ? "System, follows your Mac" : theme.title)
+                    .accessibilityAddTraits(selection == theme ? .isSelected : [])
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+}
+
+/// A theme in miniature: its window background and wash, a card with two lines of text, and its
+/// accent. System shows its light and dark halves.
+private struct ThemeSwatch: View {
+    let theme: Theme
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Tokens.rowRadius, style: .continuous)
+        Group {
+            if theme == .system {
+                MiniWindow(t: Tokens(.init(dark: false, theme: theme)))
+                    .overlay {
+                        MiniWindow(t: Tokens(.init(dark: true, theme: theme)))
+                            .mask(alignment: .trailing) { Rectangle().frame(width: 48) }
+                    }
+            } else {
+                MiniWindow(t: Tokens(.init(dark: scheme == .dark, theme: theme)))
+            }
+        }
+        .frame(width: 96, height: 62)
+        .background(theme.isGlass ? AnyShapeStyle(Material.regular) : AnyShapeStyle(.clear), in: shape)
+        .clipShape(shape)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct MiniWindow: View {
+    let t: Tokens
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            t.windowBackground.color.overlay(t.washGradient)
+            VStack(alignment: .leading, spacing: 4) {
+                Circle().fill(t.emberMark.color).frame(width: 8, height: 8)
+                VStack(alignment: .leading, spacing: 3) {
+                    Capsule().fill(t.text.color).frame(width: 34, height: 3)
+                    Capsule().fill(t.secondaryText.color).frame(width: 24, height: 3)
+                }
+                .padding(6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(t.panel.color))
+                .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(t.cardHairline.color, lineWidth: 1))
+            }
+            .padding(8)
         }
     }
 }

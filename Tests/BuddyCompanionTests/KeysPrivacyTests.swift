@@ -36,14 +36,14 @@ struct KeyConflictTests {
         #expect(ids(.leftCommand).contains("left-modifier"))
     }
 
-    @Test("Fn: Globe setting not Do Nothing gives a fix; Do Nothing doesn't; Wispr Flow conflicts")
+    @Test("Fn: Globe setting not Do Nothing gives a fix; Do Nothing doesn't; no app is singled out")
     func fn() {
         let notSet = KeyConflicts.check(.function, in: KeyEnvironment(globeKeyUsage: 2))
         #expect(notSet.first { $0.id == "globe-key" }?.fix == .openKeyboardSettings)
         #expect(!ids(.function, KeyEnvironment(globeKeyUsage: 0)).contains("globe-key"))
         // Unset is the macOS default (not "Do Nothing"), so it warns too.
         #expect(ids(.function, KeyEnvironment(globeKeyUsage: nil)).contains("globe-key"))
-        #expect(ids(.function, KeyEnvironment(installedBundleIDs: ["com.electron.wispr-flow"])).contains("wispr-flow"))
+        #expect(ids(.function, KeyEnvironment(installedBundleIDs: Set(KeyEnvironment.watchedApps.keys))) == ["fn-keyboards"])
         #expect(ids(.function).contains("fn-keyboards"))
     }
 
@@ -128,7 +128,7 @@ struct PermissionFixTests {
         #expect(denied.opened == [.microphone])
     }
 
-    @Test("Settings: a card names the missing required grants and fixes the first; Privacy is badged")
+    @Test("Settings: a card names the missing required grants and fixes the first")
     @MainActor
     func permissionsCard() {
         let t = TestDefaults()
@@ -137,10 +137,6 @@ struct PermissionFixTests {
         let line = PermissionsNeededCard.line(center)
         #expect(line.text == "Lumi needs Accessibility and Screen Recording to work.")
         #expect(line.fix == .accessibility && !line.offersReopen)
-        let symbol = SettingsView.symbol(.privacy, needsAttention: center.needsAttention)
-        #expect(symbol == "exclamationmark.triangle")
-        #expect(NSImage(systemSymbolName: symbol, accessibilityDescription: nil) != nil, "a symbol that exists")
-        #expect(SettingsView.symbol(.keys, needsAttention: true) == SettingsPane.keys.systemImage)
         p.states[.accessibility] = .granted
         p.states[.screenRecording] = .granted
         center.refresh()

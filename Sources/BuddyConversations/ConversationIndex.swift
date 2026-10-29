@@ -20,6 +20,28 @@ public struct ConversationRecord: Sendable, Equatable, Identifiable {
     public var turns: Int
     /// Research jobs started from this conversation, oldest first.
     public var researchJobs: [ResearchJobRecord]
+    /// v2 (migration 2): the harness its turns run in, and the session's display and routing state.
+    public var harness: Harness = .quick
+    public var symbol: String?
+    public var origin: SessionOrigin?
+    /// `ContextKey` as stored, for continuing a session from the same app and document.
+    public var contextKey: String?
+    public var pinned = false
+    public var archived = false
+    /// The user renamed it: never re-titled automatically again.
+    public var titleLocked = false
+    /// Automatic re-titles so far (at most two: turn 1 and turn 3).
+    public var retitles = 0
+    public var status: PersistedStatus?
+    public var finishedAt: Date?
+    /// When Deep last answered (was memory-only in v1, so a resumed conversation fell back to Quick).
+    public var lastDeepAnswer: Date?
+    /// The last three "Q: …\nA: …" entries (was memory-only in v1, so a relaunch lost them).
+    public var recap: [String] = []
+    /// The next voice turn carries the full voice rules (set on create and after a compaction).
+    public var voiceRulesNeeded = true
+    /// Every Claude session it owns, oldest first: Quick, Deep per folder, open.
+    public var claudeSessions: [ClaudeSessionRecord] = []
 
     public init(
         id: String, title: String, color: ConversationColor, created: Date, lastUsed: Date,
@@ -39,10 +61,58 @@ public struct ConversationRecord: Sendable, Equatable, Identifiable {
         self.researchJobs = researchJobs
     }
 
-    /// Every Claude Code session this conversation created (for Forget).
+    /// Every Claude Code session this conversation created (for Forget), each once.
     public var sessionIDs: [String] {
-        [quickSessionID, deepSessionID].compactMap { $0 } + researchJobs.compactMap(\.sessionID)
+        var seen = Set<String>()
+        return ([quickSessionID, deepSessionID].compactMap { $0 } + claudeSessions.map(\.sessionID)
+            + researchJobs.compactMap(\.sessionID)).filter { seen.insert($0).inserted }
     }
+
+    /// The newest Deep session per folder (v1 Deep ran one Claude session per folder).
+    public var deepSessions: [String: String] {
+        var out: [String: String] = [:]
+        for session in claudeSessions where session.role == .deepLegacy {
+            if let cwd = session.cwd { out[cwd] = session.sessionID }
+        }
+        return out
+    }
+
+    /// The folder of the newest Deep session: where a resumed Deep follow-up runs. Never the
+    /// conversation's project folder, which Quick-only turns also set.
+    public var lastDeepFolder: String? {
+        claudeSessions.last { $0.role == .deepLegacy && $0.cwd != nil }?.cwd
+    }
+}
+
+/// What a Claude session is for, within one Lumi session.
+public enum ClaudeRole: String, Sendable, Equatable, CaseIterable {
+    case quick
+    case open
+    case deepLegacy = "deep_legacy"
+    case research
+}
+
+/// One Claude Code session a Lumi session owns.
+public struct ClaudeSessionRecord: Sendable, Equatable {
+    public var sessionID: String
+    public var role: ClaudeRole
+    public var cwd: String?
+    public var created: Date
+
+    public init(sessionID: String, role: ClaudeRole, cwd: String? = nil, created: Date) {
+        self.sessionID = sessionID
+        self.role = role
+        self.cwd = cwd
+        self.created = created
+    }
+}
+
+/// The last status worth keeping across a relaunch.
+public enum PersistedStatus: String, Sendable, Equatable, CaseIterable {
+    case idle
+    case doneUnread = "done_unread"
+    case failed
+    case interrupted
 }
 
 /// One background Research job: its own `claude -p` session and its report.
@@ -65,8 +135,7 @@ public enum IndexError: Error, Sendable, Equatable {
 /// goes through this actor.
 public actor ConversationIndex {
     public static var defaultURL: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appending(path: "\(BuddyCore.folderName)/conversations.sqlite")
+        BuddyCore.paths.conversations
     }
 
     /// Schema changes, in order. `PRAGMA user_version` records how many have run.
@@ -99,11 +168,62 @@ public actor ConversationIndex {
         CREATE TABLE meta (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
         INSERT INTO meta (key, value) VALUES ('colors_assigned', 0);
         """,
+        // 2: v2 sessions. Additive: v1 columns stay (quick_session, deep_session, project_folder)
+        // for a release. Every v1 Claude session moves into claude_sessions, so a conversation
+        // can hold one per role and folder; quick-only rows become the Quick harness, the rest
+        // legacy (readable; Continue starts an open session).
+        """
+        ALTER TABLE conversations ADD COLUMN harness TEXT NOT NULL DEFAULT 'legacy';
+        ALTER TABLE conversations ADD COLUMN symbol TEXT;
+        ALTER TABLE conversations ADD COLUMN origin TEXT;
+        ALTER TABLE conversations ADD COLUMN context_key TEXT;
+        ALTER TABLE conversations ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE conversations ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE conversations ADD COLUMN title_locked INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE conversations ADD COLUMN retitles INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE conversations ADD COLUMN status TEXT;
+        ALTER TABLE conversations ADD COLUMN finished_at REAL;
+        ALTER TABLE conversations ADD COLUMN last_deep_answer REAL;
+        ALTER TABLE conversations ADD COLUMN recap TEXT;
+        ALTER TABLE conversations ADD COLUMN voice_rules_needed INTEGER NOT NULL DEFAULT 1;
+        CREATE INDEX conversations_context_key ON conversations(context_key, last_used DESC);
+        CREATE TABLE claude_sessions (
+            session_id TEXT PRIMARY KEY,
+            conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+            role TEXT NOT NULL,
+            cwd TEXT,
+            created REAL NOT NULL,
+            live INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX claude_sessions_conversation ON claude_sessions(conversation_id, created);
+        CREATE TABLE session_dirs (
+            conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+            path TEXT NOT NULL,
+            added REAL NOT NULL,
+            PRIMARY KEY (conversation_id, path)
+        );
+        CREATE TABLE user_turns (
+            uuid TEXT PRIMARY KEY,
+            conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+            session_id TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            shown TEXT NOT NULL,
+            answer_preview TEXT,
+            at REAL NOT NULL
+        );
+        CREATE INDEX user_turns_conversation ON user_turns(conversation_id, at);
+        INSERT OR IGNORE INTO claude_sessions (session_id, conversation_id, role, cwd, created)
+            SELECT quick_session, id, 'quick', NULL, created FROM conversations WHERE quick_session IS NOT NULL;
+        INSERT OR IGNORE INTO claude_sessions (session_id, conversation_id, role, cwd, created)
+            SELECT deep_session, id, 'deep_legacy', project_folder, last_used FROM conversations WHERE deep_session IS NOT NULL;
+        UPDATE conversations SET harness = CASE
+            WHEN quick_session IS NOT NULL AND deep_session IS NULL THEN 'quick' ELSE 'legacy' END;
+        """,
     ]
 
     // Opened with SQLITE_OPEN_FULLMUTEX and used only from this actor; deinit is the one
     // nonisolated access, and it runs when nothing else can reach the actor.
-    nonisolated(unsafe) private let db: OpaquePointer
+    nonisolated(unsafe) let db: OpaquePointer
 
     /// Opens (creating if needed) and migrates. Pass `nil` for an in-memory index (tests,
     /// temporary mode).
@@ -149,7 +269,7 @@ public actor ConversationIndex {
                 id: id, title: title, color: .forIndex(index), created: date, lastUsed: date, projectFolder: projectFolder)
             try Self.run(
                 db,
-                "INSERT INTO conversations (id, title, color, created, last_used, project_folder, turns) VALUES (?, ?, ?, ?, ?, ?, 0)",
+                "INSERT INTO conversations (id, title, color, created, last_used, project_folder, turns, harness) VALUES (?, ?, ?, ?, ?, ?, 0, 'quick')",
                 [.text(id), .text(title), .text(record.color.rawValue), .real(date.timeIntervalSince1970),
                  .real(date.timeIntervalSince1970), .optionalText(projectFolder)])
             try Self.exec(db, "COMMIT")
@@ -160,21 +280,39 @@ public actor ConversationIndex {
         }
     }
 
-    /// Records a finished turn: session IDs, lane, folder, use time, and one more turn.
+    /// Records a finished turn: session IDs, lane, folder, use time, and one more turn. Each
+    /// session also joins `claude_sessions` (Deep under the folder it ran in, `deepFolder`, else
+    /// `projectFolder`), so a folder switch never loses the other folder's Deep session.
     public func recordTurn(
         id: String, at date: Date, quickSessionID: String?, deepSessionID: String?, lastLane: Mode?,
-        projectFolder: String?
+        projectFolder: String?, deepFolder: String? = nil
     ) throws(IndexError) {
-        try Self.run(
-            db,
-            """
-            UPDATE conversations SET last_used = ?, turns = turns + 1,
-                quick_session = COALESCE(?, quick_session), deep_session = COALESCE(?, deep_session),
-                last_lane = COALESCE(?, last_lane), project_folder = COALESCE(?, project_folder)
-            WHERE id = ?
-            """,
-            [.real(date.timeIntervalSince1970), .optionalText(quickSessionID), .optionalText(deepSessionID),
-             .optionalText(lastLane?.rawValue), .optionalText(projectFolder), .text(id)])
+        try Self.exec(db, "BEGIN IMMEDIATE")
+        do {
+            try Self.run(
+                db,
+                """
+                UPDATE conversations SET last_used = ?, turns = turns + 1,
+                    quick_session = COALESCE(?, quick_session), deep_session = COALESCE(?, deep_session),
+                    last_lane = COALESCE(?, last_lane), project_folder = COALESCE(?, project_folder),
+                    last_deep_answer = CASE WHEN ? = 'deep' THEN ? ELSE last_deep_answer END
+                WHERE id = ?
+                """,
+                [.real(date.timeIntervalSince1970), .optionalText(quickSessionID), .optionalText(deepSessionID),
+                 .optionalText(lastLane?.rawValue), .optionalText(projectFolder),
+                 .optionalText(lastLane?.rawValue), .real(date.timeIntervalSince1970), .text(id)])
+            if let quickSessionID {
+                try insertClaudeSession(quickSessionID, conversation: id, role: .quick, cwd: nil, at: date)
+            }
+            if let deepSessionID {
+                try insertClaudeSession(deepSessionID, conversation: id, role: .deepLegacy, cwd: deepFolder ?? projectFolder, at: date)
+                try Self.run(db, "UPDATE conversations SET harness = 'legacy' WHERE id = ? AND harness = 'quick'", [.text(id)])
+            }
+            try Self.exec(db, "COMMIT")
+        } catch {
+            try? Self.exec(db, "ROLLBACK")
+            throw error
+        }
     }
 
     public func touch(id: String, at date: Date) throws(IndexError) {
@@ -247,7 +385,9 @@ public actor ConversationIndex {
 
     private func records(_ tail: String, _ params: [Bind]) throws(IndexError) -> [ConversationRecord] {
         let sql = """
-            SELECT id, title, color, created, last_used, quick_session, deep_session, last_lane, project_folder, turns
+            SELECT id, title, color, created, last_used, quick_session, deep_session, last_lane, project_folder, turns,
+                harness, symbol, origin, context_key, pinned, archived, title_locked, retitles, status, finished_at,
+                last_deep_answer, recap, voice_rules_needed
             FROM conversations \(tail)
             """
         var out: [ConversationRecord] = []
@@ -260,6 +400,7 @@ public actor ConversationIndex {
                 quickSessionID: Self.text(s, 5), deepSessionID: Self.text(s, 6),
                 lastLane: Self.text(s, 7).flatMap(Mode.init(rawValue:)), projectFolder: Self.text(s, 8),
                 turns: Int(sqlite3_column_int64(s, 9))))
+            Self.readSessionColumns(s, from: 10, into: &out[out.count - 1])
         }
         for i in out.indices {
             var jobs: [ResearchJobRecord] = []
@@ -268,6 +409,7 @@ public actor ConversationIndex {
                 [.text(out[i].id)]
             ) { s in jobs.append(ResearchJobRecord(sessionID: Self.text(s, 0), reportPath: Self.text(s, 1) ?? "")) }
             out[i].researchJobs = jobs
+            out[i].claudeSessions = try claudeSessions(of: out[i].id)
         }
         return out
     }

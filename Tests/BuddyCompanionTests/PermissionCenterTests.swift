@@ -88,10 +88,10 @@ struct PermissionCenterTests {
         let c = center(FakePermissions(), relaunch: { relaunched += 1 })
         c.relaunch(resume: .onboarding(stepID: "permissions"))
         #expect(defaults.string(forKey: OnboardingModel.resumeKey) == "permissions")
-        c.relaunch(resume: .settings(.privacy))
+        c.relaunch(resume: .page(.permissions))
         #expect(relaunched == 2)
-        #expect(PermissionCenter.takeSettingsResume(defaults: defaults) == .privacy)
-        #expect(PermissionCenter.takeSettingsResume(defaults: defaults) == nil, "read once")
+        #expect(PermissionCenter.takeSettingsPageResume(defaults: defaults) == .permissions)
+        #expect(PermissionCenter.takeSettingsPageResume(defaults: defaults) == nil, "read once")
     }
 
     @Test func fixAsksOnceEverThenOpensTheRightPane() async {

@@ -102,6 +102,9 @@ public actor FallbackSpeaker: SpeechSpeaker {
             } else {
                 .done(await work.result)
             }
+            // Stopped or overtaken meanwhile (a new summon, Esc): whatever the primary reports is the
+            // stop's doing. No log, no switch to the system voice, nothing said.
+            if case .done(.failure) = outcome, stops != stopsAtStart || reply != replies { return AsyncStream { $0.finish() } }
             switch outcome {
             case .done(.success(let levels)):
                 speaking = .primary

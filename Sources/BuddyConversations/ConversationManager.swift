@@ -32,7 +32,6 @@ public struct PreparedConversation: Sendable, Equatable {
     /// Nil until the first turn finishes and the conversation is saved.
     public var record: ConversationRecord?
     public var fresh: FreshReason?
-    public var chips: [ConversationChip]
     /// The colour the card header shows. For a conversation not saved yet, the colour it will get
     /// on its first turn.
     public var color: ConversationColor
@@ -69,7 +68,7 @@ public struct ForgetReport: Sendable, Equatable {
 /// conversations in memory only, so nothing reaches disk.
 public actor ConversationManager {
     private var rules: ConversationRules
-    /// The conversation the next question continues (the Conversations window marks it).
+    /// The conversation the next question continues.
     public var currentConversationID: String? { rules.currentID }
     private let persistent: ConversationIndex
     private var temporaryIndex: ConversationIndex?
@@ -107,6 +106,9 @@ public actor ConversationManager {
 
     private var index: ConversationIndex { temporaryIndex ?? persistent }
 
+    /// The index in use: the temporary one while temporary mode is on (for the session store).
+    public var activeIndex: ConversationIndex { index }
+
     public var isTemporary: Bool { temporaryIndex != nil }
 
     /// Temporary mode: conversations from now on are kept in memory only and vanish when it is
@@ -142,8 +144,7 @@ public actor ConversationManager {
 
     /// A question is starting with `projectFolder` in front.
     public func prepare(projectFolder: String?) async throws(IndexError) -> PreparedConversation {
-        let (decision, chips) = rules.ask(projectFolder: projectFolder, at: clock.now(), newID: makeID())
-        return try await prepared(decision, chips)
+        try await prepared(rules.ask(projectFolder: projectFolder, at: clock.now(), newID: makeID()))
     }
 
     /// The question finished (`.done`). Saves the conversation on its first turn.
@@ -155,8 +156,9 @@ public actor ConversationManager {
             return nil
         }
         let now = clock.now()
-        // Deep's folder when it ran; otherwise the project that was in front (Quick-only turns).
-        let project = update.deepFolder ?? (rules.currentID == id ? rules.currentProject : nil)
+        // Deep's folder when it ran (unless that was home, never a project); otherwise the project
+        // that was in front (Quick-only turns). The Deep session itself is kept under its real folder.
+        let project = rules.policy.project(update.deepFolder) ?? (rules.currentID == id ? rules.currentProject : nil)
         if try await index.record(id: id) == nil {
             _ = try await index.create(id: id, title: Self.title(from: utterance), at: now, projectFolder: project)
             for job in pendingJobs.removeValue(forKey: id) ?? [] { try await index.addResearchJob(id: id, job) }
@@ -164,31 +166,29 @@ public actor ConversationManager {
         }
         try await index.recordTurn(
             id: id, at: now, quickSessionID: update.quickSessionID, deepSessionID: update.deepSessionID,
-            lastLane: update.lastLane, projectFolder: project)
+            lastLane: update.lastLane, projectFolder: project, deepFolder: update.deepFolder)
         if rules.currentID == id { rules.turnFinished(at: now, projectFolder: project) }
         return try await index.record(id: id)
     }
 
     /// ⌘N, ＋ on the card, or "new topic".
     public func newConversation() async throws(IndexError) -> PreparedConversation {
-        let (decision, chips) = rules.newConversation(at: clock.now(), newID: makeID())
-        return try await prepared(decision, chips)
+        try await prepared(rules.newConversation(at: clock.now(), newID: makeID()))
     }
 
-    /// "↩ Back" or "go back". Nil once the window has closed.
-    public func goBack() async throws(IndexError) -> ConversationRecord? {
-        guard let id = rules.goBack(at: clock.now()) else { return nil }
-        // Back in use, so retention counts from now.
-        try await index.touch(id: id, at: clock.now())
-        return try await index.record(id: id)
-    }
-
-    /// "Keep in the old one", "Resume '…'" or a pick from the Conversations window.
+    /// Makes `id` current (a pick, or a v1 routing switch).
     public func switchTo(_ id: String) async throws(IndexError) -> ConversationRecord? {
         guard let record = try await index.record(id: id) else { return nil }
         rules.switchTo(id, project: record.projectFolder, at: clock.now())
         try await index.touch(id: id, at: clock.now())
         return record
+    }
+
+    /// The last three Q/A entries, kept with the row so a relaunch or Resume still has them.
+    /// Nothing happens for a conversation not saved yet (its first turn saves it).
+    public func setRecap(_ recap: [String], for id: String) async throws(IndexError) {
+        guard !forgotten.contains(id), !pruned.contains(id) else { return }
+        try await index.setRecap(recap, id: id)
     }
 
     /// One saved conversation, for the shell's chips.
@@ -279,14 +279,14 @@ public actor ConversationManager {
     /// Settings › Conversations "Keep for": conversations not used since `date` leave the
     /// index, with their screenshots (only inside the screenshot folder). Their Claude Code
     /// session files stay: they are the user's own history in Claude Code, which only Forget
-    /// deletes. The current conversation and the ↩ Back target are never pruned, and temporary
+    /// deletes. The current conversation is never pruned, and temporary
     /// conversations aren't touched (they vanish with temporary mode). Returns the removed ids.
     @discardableResult
     public func prune(unusedSince date: Date) async throws(IndexError) -> [String] {
         var removed: [String] = []
-        for id in try await persistent.unusedSince(date) where !rules.referencedIDs(at: clock.now()).contains(id) {
+        for id in try await persistent.unusedSince(date) where !rules.referencedIDs.contains(id) {
             // Re-checked at the delete: a turn may have used it during the awaits above.
-            guard !rules.referencedIDs(at: clock.now()).contains(id),
+            guard !rules.referencedIDs.contains(id),
                   let jobs = try await persistent.record(id: id)?.researchJobs,
                   let shots = try await persistent.delete(id: id, ifUnusedSince: date) else { continue }
             pruned.insert(id)
@@ -331,12 +331,12 @@ public actor ConversationManager {
 
     // MARK: - Helpers
 
-    private func prepared(_ decision: ConversationRules.Decision, _ chips: [ConversationChip]) async throws(IndexError) -> PreparedConversation {
+    private func prepared(_ decision: ConversationRules.Decision) async throws(IndexError) -> PreparedConversation {
         let record = try await index.record(id: decision.conversationID)
         let fresh: FreshReason? = if case .startFresh(_, let reason) = decision { reason } else { nil }
         let color: ConversationColor
         if let record { color = record.color } else { color = try await index.nextColor() }
-        return PreparedConversation(id: decision.conversationID, record: record, fresh: fresh, chips: chips, color: color)
+        return PreparedConversation(id: decision.conversationID, record: record, fresh: fresh, color: color)
     }
 
     /// The first utterance, trimmed to a short title.

@@ -61,8 +61,10 @@ func collect(_ stream: AsyncStream<TurnEvent>) async -> [TurnEvent] {
 
 
 /// Polls until `condition` holds (or 2 s pass), instead of sleeping a fixed time.
+/// A condition, not a budget: returns as soon as it holds. The 30 s ceiling only bounds a real
+/// failure; 2 s was missed on a loaded machine (LaneIdleTests at load average 15).
 func eventually(_ condition: @Sendable () async -> Bool) async -> Bool {
-    let deadline = ContinuousClock.now + .seconds(2)
+    let deadline = ContinuousClock.now + .seconds(30)
     while ContinuousClock.now < deadline {
         if await condition() { return true }
         try? await Task.sleep(for: .milliseconds(5))

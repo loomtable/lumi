@@ -13,17 +13,22 @@ final class OverlayPanel: NSPanel {
         isOpaque = false
         backgroundColor = .clear
         hasShadow = false
-        level = .screenSaver
+        // Floating first: setting `isFloatingPanel` resets the level to `.floating`, which put the
+        // overlay and the switcher's strip on one level, so the strip (ordered in later) hid the pill.
+        isFloatingPanel = true
+        // Above floating windows and the Panel, below pop-up menus: an answer never covers a menu.
+        level = .statusBar
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         hidesOnDeactivate = false
-        isFloatingPanel = true
+        // Lumi in the Dock can be hidden (⌘H, the Dock's Hide): an overlay still shows when summoned.
+        canHide = false
         // A click on a visible answer should focus it, not only clicks on text fields.
         becomesKeyOnlyIfNeeded = false
         isMovable = false
         isReleasedWhenClosed = false
         ignoresMouseEvents = true
         animationBehavior = .none
-        let host = FirstMouseHostingView(rootView: root)
+        let host = FirstMouseHostingView(rootView: root.lumiTheme())
         host.sizingOptions = []
         host.frame = NSRect(origin: .zero, size: screen.frame.size)
         contentView = host

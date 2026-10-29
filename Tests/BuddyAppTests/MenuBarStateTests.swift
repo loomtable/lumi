@@ -26,10 +26,10 @@ struct MenuBarStateTests {
             ClaudeCodeStatus(executablePath: path, version: version, checked: true)
         }
         let claude = "/Users/me/.local/bin/claude"
-        #expect(AppRuntime.startsAfterCheck(previous: ClaudeCodeStatus(), new: status(claude, "2.1.301")))
-        #expect(AppRuntime.startsAfterCheck(previous: status(claude, "2.1.200"), new: status(claude, "2.1.301")))
-        #expect(!AppRuntime.startsAfterCheck(previous: status(claude, "2.1.200"), new: status(claude, "2.1.250")))
-        #expect(!AppRuntime.startsAfterCheck(previous: status(claude, "2.1.301"), new: status(claude, "2.1.302")))
+        #expect(AppRuntime.startsAfterCheck(previous: ClaudeCodeStatus(), new: status(claude, "2.1.320")))
+        #expect(AppRuntime.startsAfterCheck(previous: status(claude, "2.1.300"), new: status(claude, "2.1.312")))
+        #expect(!AppRuntime.startsAfterCheck(previous: status(claude, "2.1.200"), new: status(claude, "2.1.311")))
+        #expect(!AppRuntime.startsAfterCheck(previous: status(claude, "2.1.320"), new: status(claude, "2.1.321")))
         #expect(!AppRuntime.startsAfterCheck(previous: ClaudeCodeStatus(), new: status(nil, nil)))
     }
 

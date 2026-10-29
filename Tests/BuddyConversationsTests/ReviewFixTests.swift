@@ -90,17 +90,9 @@ struct ConversationReviewFixTests {
     func pendingAdoptsProject() {
         var r = ConversationRules()
         _ = r.ask(projectFolder: "/a", at: t0, newID: "c1")
-        let (d, _) = r.ask(projectFolder: "/b", at: t0.addingTimeInterval(5), newID: "c2")
+        let d = r.ask(projectFolder: "/b", at: t0.addingTimeInterval(5), newID: "c2")
         #expect(d == .continueCurrent("c1"))
         #expect(r.currentProject == "/b")
     }
 
-    @Test("a clock jumping backwards closes the back window instead of stretching it")
-    func clockBackwards() {
-        var r = ConversationRules()
-        _ = r.ask(projectFolder: nil, at: t0, newID: "c1")
-        r.turnFinished(at: t0, projectFolder: nil)
-        _ = r.newConversation(at: t0.addingTimeInterval(10), newID: "c2")
-        #expect(r.goBack(at: t0.addingTimeInterval(-3600)) == nil)
-    }
 }

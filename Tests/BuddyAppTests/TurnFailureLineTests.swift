@@ -72,7 +72,7 @@ struct TurnFailureLineTests {
     @Test func withoutACodeTheWordingStillCounts() {
         #expect(line(failed(code: nil, text: "Login expired · Please run /login"))?.fix == .openSettings(.claudeCode))
         #expect(line(failed(code: nil, text: "Unable to connect to API (ECONNREFUSED)"))?.text == "No connection to the API.")
-        #expect(line(failed(code: nil, reason: "prompt_too_long"))?.text == "This conversation got too long. Start a new one with ⌘N.")
+        #expect(line(failed(code: nil, reason: "prompt_too_long"))?.text == "This session got too long. Start a new one with ⌘N.")
     }
 
     @Test func anythingElseKeepsTheGenericLine() {
@@ -97,6 +97,37 @@ struct TurnFailureLineTests {
         let errors = [StreamEvent.PluginError(plugin: "buddy", type: "manifest", message: "bad json", path: nil)]
         #expect(TurnFailureLine.pluginProblem(errors) == .init("The Lumi plugin didn't load.", fix: .repairPlugin))
         #expect(TurnFailureLine.pluginProblem([.init(plugin: "other", type: "x", message: "y", path: nil)]) == nil)
+    }
+}
+
+/// An open session's failed voice turn (V-05): the cascade's lines, not always the generic one.
+struct SessionFailureLineTests {
+    private func line(_ reason: SessionFailure.Reason?, text: String = "") -> TurnFailureLine.Line? {
+        let end = TurnEnd(kind: .voice, markdown: text, isError: true,
+                          error: reason.map { SessionFailure(reason: $0, retryable: true) })
+        return TurnFailureLine.line(for: SessionTurnEvents.error(for: end))
+    }
+
+    @Test func signedOutOffersTheFix() {
+        #expect(line(.auth, text: "Not logged in · Please run /login") == .init("Claude Code isn't signed in.", fix: .openSettings(.claudeCode)))
+    }
+
+    @Test func aMissingClaudeCodeSaysItIsntAvailable() {
+        #expect(line(.unavailable("claude: not found")) == .init("Claude Code isn't available right now.", fix: .openSettings(.claudeCode)))
+    }
+
+    @Test func offlineAndLimitsUseTheCLIsWording() {
+        #expect(line(.api("Unable to connect to API (ConnectionRefused)"), text: "Unable to connect to API (ConnectionRefused)")
+                == .init("No connection to the API."))
+        #expect(line(.rateLimited(resetsAt: nil), text: "You've hit your session limit · resets 3:45pm")
+                == .init("You've hit your session limit · resets 3:45pm"))
+        #expect(line(.api("model_not_found")) == .init("That model isn't available to your account.", fix: .openSettings(.models)))
+    }
+
+    @Test func aDeadProcessAndAnUnknownFailureKeepTheirLines() {
+        #expect(line(.crashed) == TurnFailureLine.stopped)
+        #expect(line(.api("something new")) == TurnFailureLine.generic)
+        #expect(line(nil) == TurnFailureLine.generic)
     }
 }
 

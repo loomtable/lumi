@@ -65,18 +65,40 @@ import Testing
 }
 
 @Test(.overlayExclusive) func theTurnLabelFitsACardHeader() {
-    // The header's tightest layout ("Go deeper" as an icon, the short label) fits the card's inner width.
+    // The header's tightest layout ("Go deeper" as an icon, the short label, the lane's mode only)
+    // fits the card's inner width (QA U37: measured whole, not estimated).
     func width(_ view: some View) -> CGFloat { NSHostingView(rootView: view.fixedSize()).fittingSize.width }
     let available = BuddyOverlayController.cardWidth - 2 * Tokens.rimInset
-    let goDeeperSaving = width(Text("Go deeper").font(Typeface.label)) + 2 - 18
+    // With ⤢ Continue on (v2) too: it lives in the reply row, so the header is the same (QA U14).
+    let before = ContinueInPanel.enabled
+    defer { ContinueInPanel.enabled = before }
+    for continues in [false, true] {
+    ContinueInPanel.enabled = continues
     for (turn, long, main, speaking) in [(2, false, MainAction?.some(.copy), true), (2, false, MainAction?.some(.insert), true),
                                          (12, true, .insert, false), (12, false, .replace, false)] {
-        let a = Answer(block: BuddyBlock(say: "x", shape: .card), lane: Lane(mode: .quick, model: .haiku),
+        var a = Answer(block: BuddyBlock(say: "x", shape: .card), lane: Lane(mode: .quick, model: .haiku),
                        conversation: .ember, turn: turn, replyHint: "", isLong: long, mainAction: main)
-        let ideal = width(CardHeader(answer: a, t: Tokens(.init(dark: false)), speaking: speaking, onEvent: { _ in }, onClose: {}))
-        let labelSaving = width(Text(a.headerLabel).font(Typeface.label)) - width(Text(a.compactHeaderLabel).font(Typeface.label))
-        #expect(ideal - goDeeperSaving - labelSaving <= available, "turn \(turn), long \(long), \(String(describing: main)), speaking \(speaking)")
+        a.reviewSteps = 12
+        let header = CardHeader(answer: a, t: Tokens(.init(dark: false)), speaking: speaking, onEvent: { _ in }, onClose: {})
+        // The last rung, with the header's own side padding.
+        let tightest = width(header.row(label: a.compactHeaderLabel, goDeeperAsText: false, shortLane: true)
+            .padding(.leading, 10).padding(.trailing, 6))
+        #expect(tightest <= available,
+                "turn \(turn), long \(long), \(String(describing: main)), speaking \(speaking), continue \(continues)")
     }
+    }
+}
+
+@Test func continueReadsItsStepsAndTakesCommandReturnWhenFree() {
+    #expect(CardHeader.continueTitle(nil) == "Continue")
+    #expect(CardHeader.continueTitle(1) == "1 step")
+    #expect(CardHeader.continueTitle(6) == "6 steps")
+    let ret = KeyCommand.returnKeyCode
+    #expect(KeyCommand.map(keyCode: ret, characters: "\r", modifiers: .command, plainKeysActive: true, actionCount: 0,
+                           continues: true) == .event(.popOut))
+    #expect(KeyCommand.map(keyCode: ret, characters: "\r", modifiers: .command, plainKeysActive: true, actionCount: 1,
+                           continues: true) == .event(.action(index: 0)))
+    #expect(KeyCommand.map(keyCode: ret, characters: "\r", modifiers: .command, plainKeysActive: true, actionCount: 0) == nil)
 }
 
 // MARK: Reply hint learned (default: learn-then-hide)

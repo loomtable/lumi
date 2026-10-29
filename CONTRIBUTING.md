@@ -43,7 +43,7 @@ Translations live in [`docs/i18n/`](docs/i18n/), one file per language: `README.
 
 1. Comment on the issue for your language so nobody duplicates the work.
 2. Translate the meaning, not the words, in the register people in that language actually read.
-3. Keep these exact: `Lumi by Loomtable` on first mention, right Option, macOS 26, Apple Silicon, 2.1.259, and every link.
+3. Keep these exact: `Lumi by Loomtable` on first mention, right Option, macOS 26, Apple Silicon, 2.1.312, and every link.
 4. Keep the claims as written in English: when Lumi looks, what stays on the Mac, what goes to Anthropic, and the Open Anyway step. Don't soften them or add to them.
 5. Use the labels your own System Settings shows, and leave an HTML comment (`<!-- confirm: … -->`) on any you're unsure of.
 6. Add the language to the row at the top of `README.md` and of every file in `docs/i18n/`.
@@ -60,7 +60,7 @@ Every translation is read by a second native speaker before it merges.
 
 ### Build from source
 
-You need a Mac on macOS 26 with Apple Silicon, Xcode 27 (Swift 6.4) or its command-line tools, and Claude Code 2.1.259 or newer, installed and signed in. Questions you ask while testing count against your own Claude plan or API usage.
+You need a Mac on macOS 26 with Apple Silicon, Xcode 27 (Swift 6.4) or its command-line tools, and Claude Code 2.1.312 or newer, installed and signed in. Questions you ask while testing count against your own Claude plan or API usage.
 
 ```sh
 git clone https://github.com/loomtable/lumi.git && cd lumi
@@ -81,17 +81,17 @@ Always open Lumi from Applications, Spotlight or Finder, never from a terminal. 
 
 | Path | What |
 | --- | --- |
-| `Sources/BuddyCore` | Shared value types: context packet, answer block, modes and models |
-| `Sources/BuddyKeys` | Lumi key gestures, scoped Esc handling, chords |
+| `Sources/BuddyCore` | Shared value types: context packet, answer block, sessions, modes and models, feature switches |
+| `Sources/BuddyKeys` | Lumi key gestures, the Tab switcher keys, the dictation key, scoped Esc handling, chords |
 | `Sources/BuddyContext` | Builds the context packet from the front app |
 | `Sources/BuddyAct` | Inserts text into your app |
 | `Sources/BuddyVoice` | Mic, speech-to-text, text-to-speech, meters, sounds |
-| `Sources/BuddyOverlay` | Pill, chip, card, capsule, placement, motion |
-| `Sources/BuddyBridge` | Runs your Claude Code and parses its stream |
-| `Sources/BuddyConversations` | Conversation index and Claude Code session files |
+| `Sources/BuddyOverlay` | Pill, chip, card, capsules, the Panel, the switcher strip, placement, motion, themes |
+| `Sources/BuddyBridge` | Runs your Claude Code (Quick, Deep and the session pool) and parses its stream |
+| `Sources/BuddyConversations` | Session index and routing, attention rules, Claude Code session files |
 | `Sources/BuddyTrace` | The optional trace log |
-| `Sources/BuddyApp` | The coordinator that runs each question and the app runtime |
-| `Sources/BuddyCompanion` | Settings, onboarding, Conversations |
+| `Sources/BuddyApp` | The coordinator that runs each question, session delivery and the app runtime |
+| `Sources/BuddyCompanion` | The Lumi window (sessions, Home, Settings), onboarding |
 | `Sources/Lumi` | Menu-bar app shell |
 | `buddy-plugin/` | The Claude Code plugin that does the thinking; it ships inside the app |
 | `App/` | Info.plist, entitlements and the app icon (Icon Composer) |

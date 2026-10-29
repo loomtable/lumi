@@ -35,12 +35,14 @@ struct ClaudeCodeProbeTests {
     @Test func aCheckThatTimesOutIsUnknownNotBroken() async {
         let runner = ClaudeCodeProbe.runner(deadline: .milliseconds(300))
         let clock = ContinuousClock(), start = clock.now
-        #expect(await runner(URL(fileURLWithPath: "/bin/sleep"), ["5"], [:]) == nil)
+        #expect(await runner(URL(fileURLWithPath: "/bin/sleep"), ["60"], [:]) == nil)
         // Ignores SIGTERM: killed 1 s later.
-        #expect(await runner(URL(fileURLWithPath: "/bin/sh"), ["-c", "trap '' TERM; sleep 5"], [:]) == nil)
+        #expect(await runner(URL(fileURLWithPath: "/bin/sh"), ["-c", "trap '' TERM; sleep 60"], [:]) == nil)
         // Exits at once, but a grandchild keeps stdout open.
-        #expect(await runner(URL(fileURLWithPath: "/bin/sh"), ["-c", "sleep 5 & echo hi"], [:]) == nil)
-        #expect(clock.now - start < .seconds(4.5))
+        #expect(await runner(URL(fileURLWithPath: "/bin/sh"), ["-c", "sleep 60 & echo hi"], [:]) == nil)
+        // About 4.3 s of deadlines in all; nowhere near the 3 × 60 s the commands would take, with
+        // room for a loaded machine.
+        #expect(clock.now - start < .seconds(60))
         let p = probe([:])
         let r = await ClaudeCodeProbe(run: { _, _, _ in nil }, isExecutable: p.isExecutable, directoryExists: { _ in true })
             .check(preferred: nil, plugin: plugin, environment: [:], home: "/Users/me")
@@ -100,11 +102,23 @@ struct ClaudeCodeProbeTests {
         #expect(ClaudeCodeProbe.parseAuth(#"{"email": "x"}"#) == nil)
     }
 
+    /// The session titler runs in an empty folder, away from any project.
+    @Test func theRunnerRunsInTheGivenFolder() async throws {
+        let dir = FileManager.default.temporaryDirectory.appending(path: "runner-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let run = ClaudeCodeProbe.runner(deadline: .seconds(30), currentDirectory: dir)
+        let out = try #require(await run(URL(fileURLWithPath: "/bin/pwd"), ["-P"], [:]))
+        // pwd -P prints /private/var/…, where Foundation may say /var/…: compare the real paths' ends.
+        #expect(out.stdout.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("/" + dir.lastPathComponent))
+    }
+
     @Test func versionsBelowTheMinimumAreRefused() {
-        for v in ["2.1.259", "2.1.300", "2.2.0", "3.0.0", "2.1.259-beta", "2.1.1000"] {
+        #expect(ClaudeCodeProbe.minimumVersion == "2.1.312", "the version the session engine was verified on")
+        for v in ["2.1.312", "2.1.400", "2.2.0", "3.0.0", "2.1.312-beta", "2.1.1000"] {
             #expect(ClaudeCodeProbe.isSupported(v), "\(v)")
         }
-        for v in ["2.1.258", "2.1.99", "2.0.999", "1.9.300", "2.1"] {
+        for v in ["2.1.311", "2.1.300", "2.1.259", "2.1.99", "2.0.999", "1.9.400", "2.1"] {
             #expect(!ClaudeCodeProbe.isSupported(v), "\(v)")
         }
     }

@@ -18,6 +18,12 @@ public struct BuddyBlock: Codable, Sendable, Equatable {
     /// A page the turn itself created, such as a connector draft: shown as a button with its domain,
     /// opened only when the user presses it. Always https; anything else decodes as nil.
     public var link: Link?
+    /// The session's short title and symbol, asked for on turn 1 and turn 3 only. Raw model output:
+    /// validate before showing. Nil when missing or malformed.
+    public var topic: SessionTopic?
+    /// A question the answer puts to the user, which marks the session as softly needing them.
+    /// Nil when missing or blank.
+    public var asksUser: String?
 
     public enum Shape: String, Codable, Sendable {
         /// Next to the anchor, no header, no tail.
@@ -92,7 +98,9 @@ public struct BuddyBlock: Codable, Sendable, Equatable {
         insert: String? = nil,
         handoff: Handoff? = nil,
         needsApproval: Bool = false,
-        link: Link? = nil
+        link: Link? = nil,
+        topic: SessionTopic? = nil,
+        asksUser: String? = nil
     ) {
         self.say = say
         self.shape = shape
@@ -103,13 +111,16 @@ public struct BuddyBlock: Codable, Sendable, Equatable {
         self.handoff = handoff
         self.needsApproval = needsApproval
         self.link = link
+        self.topic = topic
+        self.asksUser = asksUser
     }
 
     enum CodingKeys: String, CodingKey {
         case say, shape, points, actions, insert, handoff
         case cardHTML = "card_html"
         case needsApproval = "needs_ok"
-        case link
+        case link, topic
+        case asksUser = "asks_user"
     }
 
     /// The block comes from model output, so decoding is lenient: only `say` is required.
@@ -141,6 +152,10 @@ public struct BuddyBlock: Codable, Sendable, Equatable {
         let flagged = ((try? c.decodeIfPresent(Bool.self, forKey: .needsApproval)) ?? nil) == true
         needsApproval = flagged && shape == .rich && !actions.isEmpty
         link = (try? c.decodeIfPresent(Link.self, forKey: .link)) ?? nil
+        topic = (try? c.decodeIfPresent(SessionTopic.self, forKey: .topic)) ?? nil
+        let asks = ((try? c.decodeIfPresent(String.self, forKey: .asksUser)) ?? nil)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        asksUser = asks?.isEmpty == false ? asks : nil
     }
 }
 

@@ -24,14 +24,14 @@ struct TypingTests {
         settings.sounds = false
         settings.voiceReplies = voiceReplies
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge ?? self.bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge ?? self.bridge,
             overlay: overlay, pointer: FixedPointer(point: Self.pointer))
         coordinator.start()
         return coordinator
     }
 
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -122,6 +122,21 @@ struct TypingTests {
         #expect(bridge.asked.isEmpty)
     }
 
+    /// The echo of Lumi's own earlier dismiss (`.requested`) can arrive after a new text box
+    /// opened: it must not close that box and drop what the user types (found by TraceTests under
+    /// load). Esc or a click away still closes it (above).
+    @Test func aLateEchoOfLumisOwnDismissKeepsTheNewTextBox() async {
+        bridge.setScript([BuddyCoordinatorTests.done(Self.answer)])
+        let coordinator = make()
+        await openTextBox(coordinator)
+        overlay.send(.dismissed(.requested))
+        await drain()
+        #expect(coordinator.phase == .typing, "the box stays open")
+        overlay.send(.submitted(text: "which row is wrong?", source: .textBox))
+        await settle(until: { coordinator.phase == .showing })
+        #expect(bridge.asked.first?.packet.utterance == "which row is wrong?")
+    }
+
     /// Right ⌥ typing é or € in the box: press, then the letter (a cancelled gesture).
     @Test func anOptionChordInTheBoxKeepsTheBox() async {
         let coordinator = make()
@@ -183,6 +198,7 @@ struct TypingTests {
         overlay.send(.submitted(text: "and the column?", source: .reply))
         await settle(until: { bridge.asked.count == 2 && coordinator.phase == .showing })
 
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         let (first, second) = (bridge.asked[0], bridge.asked[1])
         #expect(second.packet.utterance == "and the column?")
         #expect(second.packet.conversation?.id == first.packet.conversation?.id)

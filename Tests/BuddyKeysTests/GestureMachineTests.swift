@@ -703,6 +703,51 @@ struct FnTests {
         #expect(d.advance(to: 301) == [.holdBegan])
         #expect(d.modifier(63, flags: nonCoalesced, at: 700) == [.holdEnded])
     }
+
+    /// QA U43: the HID state may not carry the fn bit while fn/🌐 is held. Only the tap's own
+    /// flagsChanged (keycode 63, secondaryFn cleared) releases fn.
+    @Test("Fn held: a hardware snapshot without the fn bit is not a release")
+    func fnSnapshotWithoutBit() {
+        var d = Driver(.function)
+        d.modifier(63, flags: fnDown, at: 0)
+        #expect(d.advance(to: 301, flags: nonCoalesced) == [.holdBegan])
+        #expect(d.advance(to: 2000, flags: nonCoalesced) == [])  // release polls don't end it
+        #expect(d.state.isHolding)
+        #expect(d.modifier(63, flags: nonCoalesced, at: 2100) == [.holdEnded])
+        #expect(d.events == [.pressBegan(fresh: false), .holdBegan, .holdEnded])
+    }
+
+    @Test("Fn: a snapshot showing the bit still counts as down (second press at the window end)")
+    func fnSnapshotDown() {
+        var d = Driver(.function)
+        d.modifier(63, flags: fnDown, at: 0)
+        d.modifier(63, flags: nonCoalesced, at: 60)
+        #expect(d.advance(to: 360, flags: fnDown) == [])
+        #expect(d.state == .secondDown(since: ms(360)))
+    }
+
+    @Test("Fn: a cancelled press stays suppressed until the tap reports the release")
+    func fnSuppressedUntilRelease() {
+        var d = Driver(.function)
+        d.modifier(63, flags: fnDown, at: 0)
+        #expect(d.click(at: 50) == [.cancelled(.mouseDown)])
+        d.advance(to: 1000, flags: nonCoalesced)
+        #expect(d.state.isSuppressed)
+        #expect(d.modifier(63, flags: nonCoalesced, at: 1100) == [])
+        #expect(d.state == .idle)
+    }
+
+    @Test("other keys: a snapshot showing the key up at the deadline is still a release",
+          arguments: BuddyKey.allCases.filter { $0 != .function })
+    func snapshotReleaseOtherKeys(key: BuddyKey) {
+        var d = Driver(key, doubleTap: false)
+        d.down(at: 0)
+        #expect(d.advance(to: 301, flags: upFlags) == [.tap])
+        var h = Driver(key)
+        h.down(at: 0)
+        h.advance(to: 301, flags: key.downFlags)
+        #expect(h.advance(to: 600, flags: upFlags) == [.holdEnded])  // the lost-release poll
+    }
 }
 
 // MARK: - Missing device bits

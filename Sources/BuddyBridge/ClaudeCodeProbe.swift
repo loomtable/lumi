@@ -92,17 +92,18 @@ public struct ClaudeCodeProbe: Sendable {
         return report
     }
 
-    /// The oldest Claude Code Lumi runs: Quick and Deep pass `--permission-prompts`
-    /// (documented from 2.1.259), which an older CLI refuses to start with.
-    public static let minimumVersion = "2.1.259"
+    /// The oldest Claude Code Lumi runs: 2.1.312, the version the session engine was verified on
+    /// (stream events, `can_use_tool` over stdio, replayed user turns, `--session-id`, subagent
+    /// files). Quick and Deep need `--permission-prompts` (2.1.259) too.
+    public static let minimumVersion = "2.1.312"
 
     /// `claude --version`, or nil when it can't be read. Takes well under a second.
     public func version(of claude: URL, environment: [String: String]) async -> String? {
         await run(claude, ["--version"], environment).flatMap { $0.status == 0 ? Self.parseVersion($0.stdout) : nil }
     }
 
-    /// Whether `version` is at least `minimumVersion`, comparing numbers part by part ("2.1.300" >
-    /// "2.1.259"); a suffix such as "-beta" is ignored.
+    /// Whether `version` is at least `minimumVersion`, comparing numbers part by part ("2.1.1000" >
+    /// "2.1.312"); a suffix such as "-beta" is ignored.
     public static func isSupported(_ version: String) -> Bool {
         func parts(_ v: String) -> [Int] {
             v.split(separator: ".").map { Int($0.prefix(while: \.isNumber)) ?? 0 }
@@ -153,11 +154,13 @@ public struct ClaudeCodeProbe: Sendable {
     /// Runs on a GCD thread (it blocks), never the cooperative pool. Returns nil, never a guess,
     /// when it can't launch, misses the deadline (SIGTERM, then SIGKILL 1 s later), or its output
     /// stays open after it exits (a grandchild holding stdout). Stdout only.
-    public static func runner(deadline: Duration) -> CommandRunner {
+    /// `currentDirectory`: where the command runs (nil: Lumi's own).
+    public static func runner(deadline: Duration, currentDirectory: URL? = nil) -> CommandRunner {
         { executable, arguments, environment in
             await withCheckedContinuation { continuation in
                 DispatchQueue.global(qos: .utility).async {
-                    let outcome = runBlocking(executable, arguments, environment, deadline: deadline, keepStandardError: false)
+                    let outcome = runBlocking(executable, arguments, environment, deadline: deadline, keepStandardError: false,
+                                              currentDirectory: currentDirectory)
                     continuation.resume(returning: outcome.map { ($0.status, $0.stdout) })
                 }
             }
@@ -176,9 +179,11 @@ public struct ClaudeCodeProbe: Sendable {
     }
 
     private nonisolated static func runBlocking(_ executable: URL, _ arguments: [String], _ environment: [String: String],
-                                                deadline: Duration, keepStandardError: Bool) -> (status: Int32, stdout: String, stderr: String)? {
+                                                deadline: Duration, keepStandardError: Bool,
+                                                currentDirectory: URL? = nil) -> (status: Int32, stdout: String, stderr: String)? {
         let process = Process()
         process.executableURL = executable
+        if let currentDirectory { process.currentDirectoryURL = currentDirectory }
         process.arguments = arguments
         process.environment = environment
         let out = Pipe()
@@ -237,7 +242,7 @@ public struct ClaudeCodeProbe: Sendable {
 public enum PluginInstaller {
     /// Where every process loads the plugin from: `--plugin-dir`.
     public static var destination: URL {
-        URL.applicationSupportDirectory.appending(path: "\(BuddyCore.folderName)/plugin", directoryHint: .isDirectory)
+        BuddyCore.paths.plugin
     }
 
     /// The plugin to install: the app bundle's copy; else `LUMI_PLUGIN_DIR`; else, in debug

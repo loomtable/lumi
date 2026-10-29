@@ -202,9 +202,9 @@ public struct VoiceSettings: Sendable, Equatable {
         self.modelsDirectory = modelsDirectory
     }
 
-    /// `~/Library/Application Support/com.loomtable.lumi/models`
+    /// `~/Library/Application Support/<bundle id>/models`
     public static var defaultModelsDirectory: URL {
-        URL.applicationSupportDirectory.appending(path: "\(BuddyCore.folderName)/models", directoryHint: .isDirectory)
+        BuddyCore.paths.models
     }
 }
 
@@ -262,4 +262,12 @@ public enum ReplyVoice: Sendable, Equatable, Codable {
             try c.encode(voiceID, forKey: .voiceID)
         }
     }
+}
+
+/// What a listen is for.
+public enum ListenKind: Sendable, Equatable {
+    /// A question for Lumi: the talk key's safeguards (30 s of silence, 2 minutes).
+    case question
+    /// Dictation: no stop on silence, a 60-minute limit, transcribed in chunks.
+    case dictation
 }

@@ -29,7 +29,6 @@ public nonisolated struct KeyEnvironment: Sendable, Equatable {
     /// from Homebrew cask data.
     public static let watchedApps: [String: String] = [
         "com.anthropic.claudefordesktop": "Claude",
-        "com.electron.wispr-flow": "Wispr Flow",
         "com.raycast.macos": "Raycast",
         "com.superduper.superwhisper": "Superwhisper",
         "com.openai.chat": "ChatGPT",
@@ -93,10 +92,6 @@ public nonisolated enum KeyConflicts {
                     message: "Set Keyboard › \"Press 🌐 key to\" to Do Nothing, or macOS will also act on every press.",
                     fix: .openKeyboardSettings))
             }
-            if env.installedBundleIDs.contains("com.electron.wispr-flow") {
-                out.append(KeyConflict(
-                    id: "wispr-flow", severity: .warning, message: "Wispr Flow uses Fn by default. Give one of them another key."))
-            }
             out.append(KeyConflict(
                 id: "fn-keyboards", severity: .info,
                 message: "Fn works on Apple keyboards. Many other keyboards handle Fn themselves and never send it; if yours does, pick another key."))
@@ -133,6 +128,16 @@ public nonisolated enum KeyConflicts {
 }
 
 extension BuddyKey {
+    /// "Right ⌥": the side and the keycap, without the picker's tags like "(recommended)", for
+    /// Home's hint and the menu bar's Lumi Key row.
+    public var shortName: String {
+        switch self {
+        case .rightOption, .rightCommand, .rightShift, .rightControl: "Right \(symbol)"
+        case .leftOption, .leftCommand, .leftShift, .leftControl: "Left \(symbol)"
+        case .function: symbol
+        }
+    }
+
     /// The name in the Keys pane's picker.
     public var settingsName: String {
         switch self {

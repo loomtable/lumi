@@ -1,3 +1,5 @@
+import BuddyCore
+import BuddyOverlay
 import BuddyVoice
 import SwiftUI
 
@@ -6,18 +8,42 @@ import SwiftUI
 /// in Settings › Privacy.
 struct VoicePane: View {
     @Binding var settings: VoicePreferences
+    /// Studio only: Lumi's voice layer and speech for typed answers.
+    var sessions: Binding<SessionsPreferences>?
     @Environment(\.voicePrepareState) private var prepareState
     @Environment(\.voiceActions) private var actions
     @Environment(\.elevenLabsAccount) private var elevenLabs
 
     var body: some View {
-        Form {
+        PaneForm {
+            // Not set up yet: that comes first, before the settings it unlocks (QA S-20).
+            if settings.setup != .voice {
+                Section {
+                    // Nothing downloads until this is clicked.
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Voice isn't set up. You type your questions.")
+                            Text(Self.setUpSize(settings.replyVoice, speechModel: settings.speechModel)).font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button("Set Up Voice") { settings.setup = .voice }
+                    }
+                }
+            }
+
+            // Every spoken-answer choice in one place (QA S-19): Off silences them all.
             Section {
                 Picker("Voice replies", selection: $settings.voiceReplies) {
                     Text("Always").tag(VoicePreferences.VoiceReplies.always)
                     Text("Only when I spoke").tag(VoicePreferences.VoiceReplies.onlyWhenISpoke)
                     Text("Off").tag(VoicePreferences.VoiceReplies.off)
                 }
+                if let sessions {
+                    Toggle("Also speak answers to typed questions", isOn: sessions.speakTypedAnswers)
+                        .disabled(settings.voiceReplies == .off)
+                }
+            } header: {
+                Text("Spoken answers")
             } footer: {
                 Text("It speaks only the headline. The details stay on screen.")
             }
@@ -59,25 +85,18 @@ struct VoicePane: View {
                 }
             }
 
-            Section("Speech models") {
-                if settings.setup == .voice {
-                    VoiceSetupRow(state: prepareState, prepare: actions.prepare)
-                } else {
-                    // Nothing downloads until this is clicked.
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Voice isn't set up. You type your questions.")
-                            Text(Self.setUpSize(settings.replyVoice, speechModel: settings.speechModel)).font(.caption).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Button("Set Up Voice") { settings.setup = .voice }
-                    }
+            if let sessions {
+                VoiceLayerSection(settings: sessions)
+            }
+
+            if settings.setup == .voice || !downloaded.isEmpty {
+                Section("Speech models") {
+                    if settings.setup == .voice { VoiceSetupRow(state: prepareState, prepare: actions.prepare) }
+                    DownloadedModelRows(settings: settings, bytes: downloaded, busy: VoiceSetupRow.status(prepareState).isWorking,
+                                        remove: actions.removeModels, removed: measure)
                 }
-                DownloadedModelRows(settings: settings, bytes: downloaded, busy: VoiceSetupRow.status(prepareState).isWorking,
-                                    remove: actions.removeModels, removed: measure)
             }
         }
-        .formStyle(.grouped)
         // Re-read when a download finishes or the speech model changes.
         .task(id: "\(settings.speechModel)\(prepareState == .ready)") { await measure() }
     }
@@ -316,7 +335,7 @@ struct DownloadedModelRows: View {
             }
         }
         if let problem {
-            Text(problem).font(.caption).foregroundStyle(.orange)
+            Text(problem).font(.caption).foregroundStyle(.lumiAmber)
         }
     }
 
@@ -331,6 +350,8 @@ struct DownloadedModelRows: View {
             try await remove(part)
         } catch VoiceController.VoiceError.busy {
             problem = "Lumi is busy with voice (setting up, listening or speaking). Try again in a moment."
+        } catch VoiceController.VoiceError.sharedModels {
+            problem = "This copy of Lumi shares the main app's voice files, so it doesn't remove them."
         } catch {
             problem = "Couldn't remove the files."
         }
@@ -399,4 +420,24 @@ extension EnvironmentValues {
 /// One Keychain-backed account for the environment default (an `@Entry` default needs a shared instance).
 enum SharedElevenLabs {
     static let account = ElevenLabsAccount()
+}
+
+/// Settings › Voice (v2): where Lumi's voice layer applies. Speaking typed answers lives with the
+/// other spoken-answer choices (QA S-19).
+struct VoiceLayerSection: View {
+    @Binding var settings: SessionsPreferences
+
+    var body: some View {
+        Section {
+            Picker("Use Lumi's voice layer for", selection: $settings.voiceLayer) {
+                Text("Voice turns").tag(VoiceLayerScope.voiceTurns)
+                Text("Every turn").tag(VoiceLayerScope.everyTurn)
+            }
+            .pickerStyle(.segmented)
+        } header: {
+            Text("Lumi's voice layer")
+        } footer: {
+            Text("Typed chats get your full Claude Code: your skills, commands, connections and project rules. Lumi only shapes spoken answers.")
+        }
+    }
 }

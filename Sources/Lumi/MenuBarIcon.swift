@@ -2,8 +2,8 @@ import AppKit
 import BuddyApp
 import BuddyCore
 
-/// The menu bar item's image: brand's MG mark, a small glass orb with a face. Happy eyes when idle, open eyes while listening, pulsing while thinking or researching
-/// (StatusItemController swaps `alpha`), a flat-eyed outline while paused. A small badge marks a
+/// The menu bar item's image: brand's MG mark, a small glass orb with a face. Happy eyes when idle, open eyes while listening, breathing while thinking or researching
+/// (StatusItemController animates the button's layer), a flat-eyed outline while paused. A small badge marks a
 /// required permission that's missing or waits for a reopen.
 /// Brand's MG mark at 18 pt (spec from brand, Oct 17; AppKit coordinates, y up): an ember glass orb
 /// with a glow and a face. Not a template image, so it keeps its colour on either menu bar.
@@ -25,18 +25,12 @@ enum MenuBarDot {
     static let inkLight = NSColor(srgbRed: 0x3A / 255, green: 0x16 / 255, blue: 0x08 / 255, alpha: 1)
     static let inkDark = NSColor(srgbRed: 0x24 / 255, green: 0x13 / 255, blue: 0x0B / 255, alpha: 1)
 
-    /// One frame: the caller pulses `alpha` (working) on its timer. The badge stays at full alpha.
-    static func image(activity: MenuBarActivity, paused: Bool, dark isDark: Bool, alpha: CGFloat, badge: Bool = false) -> NSImage {
+    static func image(activity: MenuBarActivity, paused: Bool, dark isDark: Bool, badge: Bool = false) -> NSImage {
         let ember = isDark ? dark : light
         let ink = isDark ? inkDark : inkLight
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
-            guard let context = NSGraphicsContext.current?.cgContext else { return false }
-            // The whole mark at `alpha`, as one layer (overlapping glow, orb and eyes don't stack).
-            context.setAlpha(alpha)
-            context.beginTransparencyLayer(auxiliaryInfo: nil)
+            guard NSGraphicsContext.current != nil else { return false }
             drawMark(paused: paused, listening: activity == .listening, ember: ember, ink: ink)
-            context.endTransparencyLayer()
-            context.setAlpha(1)
             if badge {
                 // A 1 pt gap around the badge, cut out of the mark.
                 NSGraphicsContext.current?.compositingOperation = .clear

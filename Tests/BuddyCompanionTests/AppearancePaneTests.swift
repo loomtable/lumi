@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import BuddyOverlay
 @testable import BuddyCompanion
 
 @Suite("Settings › Appearance")
@@ -22,14 +23,24 @@ struct AppearancePaneTests {
         #expect(AppearancePreferences.Placement.allCases.map(\.rawValue) == ["smart", "nextToIt", "centre"])
     }
 
-    @Test("Each placement has its own title and help; only Smart mentions moving clear of content")
+    @Test("Each placement has its own title and help; none promises content avoidance it doesn't do")
     func placementCopy() {
         let all = AppearancePreferences.Placement.allCases
         #expect(all.map(AppearancePane.title) == ["Smart", "Next to it", "Centre"])
         #expect(Set(all.map(AppearancePane.placementHelp)).count == all.count)
         for p in all {
-            #expect(AppearancePane.placementHelp(p).contains("busy content") == (p == .smart))
+            #expect(!AppearancePane.placementHelp(p).contains("busy content"))
         }
+    }
+
+    @Test("The theme defaults to System; an unknown one falls back to it; a choice persists")
+    func theme() throws {
+        #expect(AppearancePreferences().theme == .system)
+        let a = try decode(#"{"theme": "vaporwave", "inkIn": false}"#)
+        #expect(a.theme == .system && !a.inkIn)
+        let defaults = TestDefaults().defaults
+        SettingsStore(defaults: defaults).appearance.theme = .neonNoir
+        #expect(SettingsStore(defaults: defaults).appearance.theme == .neonNoir)
     }
 
     @Test("Changing a toggle through the store persists it; restoring defaults clears it")

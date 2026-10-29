@@ -58,22 +58,11 @@ private func overlayFoldingIntoListening() async -> BuddyOverlayController {
     let model = OverlayModel()
     let bounds = CGRect(x: 0, y: 33, width: 1512, height: 949)
     model.toastBounds = bounds
-    model.toast = OverlayModel.Toast(text: "Back to the previous conversation", origin: CGPoint(x: 1300, y: 500))
+    model.toast = OverlayModel.Toast(text: "Running in the background, see the capsule", origin: CGPoint(x: 1300, y: 500))
     model.toastSize = CGSize(width: 320, height: 32)
     let origin = model.toast?.origin ?? .zero
     #expect(origin.x + 320 <= bounds.maxX - Placer.edgeMargin)
     #expect(origin.y == 500)
-}
-
-@Test(.overlayExclusive) func chipPanelStaysUpThroughTheFade() async {
-    let overlay = BuddyOverlayController(observesSystem: false)
-    let screen = ScreenSpace.topLeft(NSScreen.screens[0].visibleFrame)
-    overlay.showResumeChip(title: "QT", detail: nil, at: CGPoint(x: screen.midX, y: screen.midY))
-    #expect(overlay.visiblePanelCountForTesting == 1)
-    overlay.hideConversationChip()
-    #expect(overlay.model.conversationChip == nil)
-    #expect(overlay.visiblePanelCountForTesting == 1)   // still up while the chip fades
-    #expect(await waitUntil { overlay.visiblePanelCountForTesting == 0 })
 }
 
 @Test(.overlayExclusive) func toastIsMeasuredWithoutItsPositionOffset() async {
@@ -81,7 +70,7 @@ private func overlayFoldingIntoListening() async -> BuddyOverlayController {
     let display = CGRect(x: 0, y: 0, width: 1200, height: 800)
     model.toastBounds = display
     model.toast = OverlayModel.Toast(text: "Discarded", origin: CGPoint(x: 600, y: 300))
-    let view = NSHostingView(rootView: ToastLayer(model: model, displayFrame: display, onEvent: { _ in })
+    let view = NSHostingView(rootView: ToastLayer(model: model, displayFrame: display)
         .frame(width: display.width, height: display.height, alignment: .topLeading))
     view.frame = display
     view.layoutSubtreeIfNeeded()

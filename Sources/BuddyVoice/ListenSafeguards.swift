@@ -2,9 +2,9 @@ import Foundation
 
 /// Why listening stopped on its own. The recording is kept, never sent, until the user acts.
 public enum ListenStopReason: Sendable, Equatable {
-    /// 10 s without speech.
+    /// 30 s without speech (a question; a dictation never stops for silence).
     case silence
-    /// The 2-minute limit.
+    /// The length limit: 2 minutes for a question, 60 for a dictation.
     case maxLength
     case screenLocked
     case systemSleep
@@ -21,12 +21,23 @@ public enum ListenStopReason: Sendable, Equatable {
 /// Tap-to-talk safeguards, as pure logic over a clock and VAD transitions.
 public struct ListenSafeguards: Sendable, Equatable {
     public struct Limits: Sendable, Equatable {
-        public var silenceStop: Double = 10
+        /// A talk-key question (owner, Oct 29): 30 s, so a pause to think never ends it.
+        public var silenceStop: Double = 30
         public var warnAt: Double = 105
         public var maxLength: Double = 120
         public var confirmDiscardOver: Double = 30
 
         public init() {}
+
+        /// A dictation (owner, Oct 29: never lose speech): no stop on silence, since people pause
+        /// to think, and an hour before the length limit, which keeps the recording.
+        public static let dictation: Limits = {
+            var limits = Limits()
+            limits.silenceStop = .infinity
+            limits.warnAt = 58 * 60
+            limits.maxLength = 60 * 60
+            return limits
+        }()
     }
 
     public enum Action: Sendable, Equatable {

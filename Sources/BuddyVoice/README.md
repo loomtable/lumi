@@ -9,6 +9,7 @@ let voice = VoiceController.live(settings: VoiceSettings())
 try await voice.prepare()                  // loads models, warms Kokoro, prepares the mic (mic stays off);
                                            // progress in `prepareState` / `.prepare(_)`; call again to retry
 try await voice.startListening()           // key press
+try await voice.startListening(.dictation) // dictation key: no silence stop, 60 min, chunked
 let text = try await voice.finishListening() // second tap or release → transcript for the bridge
 try await voice.speak(reply.say)           // returns once playing; .speakingFinished when done
 try await voice.speak(rest, continuing: true)  // queued after the reply in flight, not cutting it
@@ -26,13 +27,13 @@ Esc on more than 30 s of speech: `discard()` returns `.needsConfirmation`; call 
 | --- | --- | --- |
 | `MicCapture` | `EngineMic`: AVAudioSinkNode, voice processing on by default but switched on only while capturing (a VP engine ducks other apps by 30 dB while it exists), `start()` returns once real audio arrives, 16 kHz mono from channel 0, fresh engine on any config or default-input change, zero-run and permission watchdog | `FakeMic`, `FileMic` (plays a sound file) |
 | `SpeechTranscriber` | `AppleSpeechTranscriber` (macOS SpeechAnalyzer, no Lumi download) for fresh installs; `ParakeetTranscriber`: TDT v2 (batch on finish), Unified selectable (`SpeechModel`) | `FakeTranscriber` |
-| `SpeechActivityDetector` | `SileroDetector`: only drives the 10 s silence stop; sending is always the user's gesture | `FakeSpeechDetector` |
+| `SpeechActivityDetector` | `SileroDetector`: only drives the 30 s silence stop; sending is always the user's gesture | `FakeSpeechDetector` |
 | `SpeechSpeaker` | `FallbackSpeaker(KokoroSpeaker → SystemSpeaker)` through `AudioPlayback`; Kokoro speaks sentence by sentence (`SentenceSplitter`), so audio starts after the first sentence; stop within 150 ms | `FakeSpeaker` |
 | `ElevenLabsSpeaker` (opt-in, Settings › Voice) | Eleven v4 Turbo over `ElevenLabsClient` (streamed 24 kHz PCM, key in the Keychain via `KeychainSecretStore`); same sentence and `continueReply` contract as Kokoro; account failures throw `loadFailed`, network ones `synthesisFailed`, so `FallbackSpeaker` uses the on-device voice. `ElevenLabsAccount` checks keys and lists voices | `ScriptedStreamer` (tests), `FakeSecretStore`, `FakeElevenLabsAccount` |
 | `SoundPlayer` | `TonePlayer` (`ToneSynth`) | `FakeSoundPlayer` |
 | `VoiceClock` | `SystemVoiceClock` | `FakeClock` |
 
-Pure logic with its own tests: `ListenSafeguards` (10 s silence, 1:45 warning, 2:00 stop, confirm discarding over 30 s of speech), `LevelMeter` / `MeterFramer` (20 ms frames, 30 ms rise, 250 ms mic / 120 ms reply fall), `InputHealth`, `SampleRing`, `Resampler`.
+Pure logic with its own tests: `ListenSafeguards` (30 s silence, 1:45 warning, 2:00 stop, confirm discarding over 30 s of speech; a dictation has no silence stop and a 60-minute limit that keeps the recording), `VoiceController.nextChunk` (a dictation's transcript moves to a new chunk at the first pause after 45 s, or after 5 min, so its length never matters and a failed chunk loses only itself), `LevelMeter` / `MeterFramer` (20 ms frames, 30 ms rise, 250 ms mic / 120 ms reply fall), `InputHealth`, `SampleRing`, `Resampler`.
 
 ## Measured rules (don't undo them)
 
@@ -48,7 +49,7 @@ Pure logic with its own tests: `ListenSafeguards` (10 s silence, 1:45 warning, 2
 
 ## What's stored
 
-Models live under `VoiceSettings.modelsDirectory` (`~/Library/Application Support/com.loomtable.lumi/models`). One exception: FluidAudio 0.17.7 always keeps Kokoro's English pronunciation lexicon (about 41 MB) in `~/.cache/fluidaudio/Models/kokoro` ([FluidAudio#1023](https://github.com/FluidInference/FluidAudio/issues/1023) asks for a configurable path). `VoiceStorage.locations()` lists both for Settings › Privacy. Audio and transcripts are never written to disk.
+Models live under `VoiceSettings.modelsDirectory` (`~/Library/Application Support/<bundle id>/models`, the release app's `com.loomtable.lumi`). One exception: FluidAudio 0.17.7 always keeps Kokoro's English pronunciation lexicon (about 41 MB) in `~/.cache/fluidaudio/Models/kokoro` ([FluidAudio#1023](https://github.com/FluidInference/FluidAudio/issues/1023) asks for a configurable path). `VoiceStorage.locations()` lists both for Settings › Privacy. This module never writes audio or transcripts to disk; a dictation's words are kept by the app's Dictation history (`DictationHistory`, Settings › Privacy applies).
 
 ## Tests
 

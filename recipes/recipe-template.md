@@ -42,7 +42,7 @@ Before you start, read these four rules:
 **Status:** [tested | untested]
 
 **Tested on:**
-- Lumi version: [for example 0.1.0]
+- Lumi version: [for example 0.2.0]
 - macOS version: [macOS 26.x]
 - Date: [YYYY-MM-DD]
 

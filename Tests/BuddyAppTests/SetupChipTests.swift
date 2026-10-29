@@ -20,14 +20,14 @@ struct SetupChipTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         return c
     }
 
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
     }
 
@@ -146,13 +146,6 @@ struct SetupChipTests {
         await settle(until: { chipTexts.count == 1 })
         #expect(chips == ["Still setting up voice · 42%."])
         #expect(chipTexts == ["Voice setup failed. Tap ⌥ to try again."])
-    }
-
-    @Test func aLongTitleIsCutInTheResumeToast() {
-        let title = String(repeating: "word ", count: 12) // 60 characters
-        let toast = BuddyCoordinator.resumedToast(title)
-        #expect(toast.hasPrefix("Resumed ‘word word") && toast.contains("…’ · your next question continues it"))
-        #expect(toast.count < 90)
     }
 
     @Test func progressWithoutTheChipChangesNothing() async {

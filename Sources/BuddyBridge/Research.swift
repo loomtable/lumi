@@ -27,7 +27,7 @@ public struct ResearchJob: Sendable, Equatable, Identifiable {
     public let id: UUID
     public let conversationID: String
     public let topic: String
-    /// Markdown report the job writes, under Application Support/com.loomtable.lumi/reports. If the
+    /// Markdown report the job writes, under Application Support/<bundle id>/reports. If the
     /// agent created its report under another name in that folder (with Write, successfully),
     /// this points there once done.
     public internal(set) var reportPath: URL

@@ -113,12 +113,37 @@ public struct LiveLocator: LocatePort {
     }
 }
 
-/// Questions go through the Quick → Deep cascade.
+/// Questions go through the Quick → Deep cascade; open-session turns through the session pool.
 public struct LiveBridge: BridgePort {
     private let cascade: Cascade
+    private let sessions: LiveSessionTurns?
 
-    public init(cascade: Cascade) {
+    public init(cascade: Cascade, sessions: LiveSessionTurns? = nil) {
         self.cascade = cascade
+        self.sessions = sessions
+    }
+
+    /// `.cascade` asks, `.deeper` goes deeper, `.session` is one turn in an open session.
+    public func send(_ request: TurnRequest) async -> AsyncStream<TurnStreamEvent> {
+        switch request.target {
+        case .cascade:
+            return Self.relay(await ask(request.question, state: request.state), as: TurnStreamEvent.cascade)
+        case .deeper:
+            return Self.relay(await goDeeper(request.question, state: request.state), as: TurnStreamEvent.cascade)
+        case .session(let id, let launch):
+            guard let sessions else { return AsyncStream { $0.finish() } }
+            return Self.relay(await sessions.run(request, id: id, launch: launch), as: TurnStreamEvent.session)
+        }
+    }
+
+    static func relay<E: Sendable>(_ stream: AsyncStream<E>, as wrap: @escaping @Sendable (E) -> TurnStreamEvent) -> AsyncStream<TurnStreamEvent> {
+        AsyncStream { continuation in
+            let relay = Task {
+                for await event in stream { continuation.yield(wrap(event)) }
+                continuation.finish()
+            }
+            continuation.onTermination = { _ in relay.cancel() }
+        }
     }
 
     public func ask(_ question: Question, state: ConversationState) async -> AsyncStream<CascadeEvent> {
@@ -131,6 +156,7 @@ public struct LiveBridge: BridgePort {
 
     public func cancel(conversation: String) async {
         await cascade.cancel(conversation: conversation)
+        await sessions?.pool.interrupt(SessionID(rawValue: conversation))
     }
 }
 

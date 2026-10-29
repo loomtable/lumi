@@ -17,13 +17,23 @@ extension PreparedConversation {
     /// What to hand `Cascade.ask(_, state:)`: the stored sessions, lane and folder, or an empty
     /// state for a conversation not saved yet.
     public var bridgeState: ConversationState {
+        record?.bridgeState ?? ConversationState(id: id)
+    }
+}
+
+extension ConversationRecord {
+    /// The stored sessions, lane and Deep folder for the bridge. Deep's folder is the folder its
+    /// newest session ran in, never the conversation's project folder (Quick-only turns set that,
+    /// and a Quick project must not pass for Deep's folder). Every Deep session is kept by folder,
+    /// and when Deep last answered, so a resumed conversation follows up on Deep as before.
+    public var bridgeState: ConversationState {
         var state = ConversationState(id: id)
-        if let record {
-            state.quickSessionID = record.quickSessionID
-            state.deepSessionID = record.deepSessionID
-            state.lastLane = record.lastLane
-            state.deepFolder = record.projectFolder.map { URL(fileURLWithPath: $0, isDirectory: true) }
-        }
+        state.quickSessionID = quickSessionID
+        state.deepSessionID = deepSessionID
+        state.lastLane = lastLane
+        state.deepFolder = lastDeepFolder.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        state.deepSessions = deepSessions
+        state.lastDeepAnswerAt = lastDeepAnswer
         return state
     }
 }

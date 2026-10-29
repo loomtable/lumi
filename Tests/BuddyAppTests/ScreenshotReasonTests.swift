@@ -72,13 +72,13 @@ struct ScreenshotReasonTests {
         let bridge = FakeBridge(script: [BuddyCoordinatorTests.done(BuddyBlock(say: "Yes.", shape: .chip))])
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
-        let c = BuddyCoordinator(settings: settings, voice: FakeVoice(), context: context, bridge: bridge,
+        let c = BuddyCoordinator(settings: settings, voice: FakeVoice(), context: context, turns: bridge,
                                  overlay: FakeOverlay(), pointer: FixedPointer())
         c.start()
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while bridge.asked.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         #expect(bridge.asked.first?.packet.screenshotUnavailable == reason)
         #expect(bridge.asked.first?.packet.screenshot == nil)
@@ -88,13 +88,13 @@ struct ScreenshotReasonTests {
         let bridge = FakeBridge(script: [BuddyCoordinatorTests.done(BuddyBlock(say: "Yes.", shape: .chip))])
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
-        let c = BuddyCoordinator(settings: settings, voice: FakeVoice(), context: FakeContext.packet(), bridge: bridge,
+        let c = BuddyCoordinator(settings: settings, voice: FakeVoice(), context: FakeContext.packet(), turns: bridge,
                                  overlay: FakeOverlay(), pointer: FixedPointer())
         c.start()
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while bridge.asked.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         #expect(bridge.asked.first?.packet.screenshotUnavailable == nil)
     }

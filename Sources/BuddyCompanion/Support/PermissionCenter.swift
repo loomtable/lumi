@@ -39,7 +39,8 @@ public final class PermissionCenter {
     public enum Resume: Sendable, Equatable {
         case none
         case onboarding(stepID: String)
-        case settings(SettingsPane)
+        /// A Studio Settings page.
+        case page(SettingsPage)
     }
 
     public private(set) var states: [PermissionKind: State] = [:]
@@ -113,16 +114,17 @@ public final class PermissionCenter {
         switch resume {
         case .none: break
         case .onboarding(let id): defaults.set(id, forKey: OnboardingModel.resumeKey)
-        case .settings(let pane): defaults.set(pane.rawValue, forKey: Self.settingsResumeKey)
+        case .page(let page): defaults.set(page.resumeValue, forKey: Self.settingsResumeKey)
         }
         relaunchApp()
     }
 
-    /// The Settings pane a relaunch asked to come back to, once.
-    public static func takeSettingsResume(defaults: UserDefaults = .standard) -> SettingsPane? {
+    /// The Settings page a relaunch asked to come back to, once: a page Studio stored, or an old
+    /// pane (from a build before Studio) mapped onto its page.
+    public static func takeSettingsPageResume(defaults: UserDefaults = .standard) -> SettingsPage? {
         guard let raw = defaults.string(forKey: settingsResumeKey) else { return nil }
         defaults.removeObject(forKey: settingsResumeKey)
-        return SettingsPane(rawValue: raw)
+        return SettingsPage(resumeValue: raw)
     }
 
     /// Polls while the app runs: every second while something required is missing, otherwise

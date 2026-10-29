@@ -24,14 +24,14 @@ struct LocateTests {
         settings.sounds = false
         settings.rings = rings
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: context, bridge: bridge,
+            settings: settings, voice: voice, context: context, turns: bridge,
             overlay: overlay, pointer: FixedPointer(), locator: locator)
         coordinator.start()
         return coordinator
     }
 
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + .seconds(30) // a condition, not a budget: returns as soon as it holds
         while !done(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }

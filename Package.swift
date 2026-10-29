@@ -74,7 +74,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "Lumi",
-            dependencies: ["BuddyApp", "BuddyCompanion", "BuddyContext", "BuddyConversations", "BuddyTrace", "BuddyVoice"],
+            dependencies: ["BuddyApp", "BuddyCompanion", "BuddyContext", "BuddyConversations", "BuddyOverlay", "BuddyTrace", "BuddyVoice"],
             swiftSettings: ui
         ),
 

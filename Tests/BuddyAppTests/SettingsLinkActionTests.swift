@@ -23,7 +23,7 @@ extension BuddyCoordinatorTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, inserter: inserter, pointer: FixedPointer(), openURL: opener)
         coordinator.start()
         await tapToTalk(coordinator)
@@ -47,7 +47,7 @@ extension BuddyCoordinatorTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, inserter: inserter, pointer: FixedPointer(), openURL: opener)
         coordinator.start()
         await tapToTalk(coordinator)
@@ -73,7 +73,7 @@ extension TraceTests {
                              openURL: (any OpenURLPort)? = nil) -> BuddyCoordinator {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
-        let c = BuddyCoordinator(settings: settings, voice: voice, context: context, bridge: bridge,
+        let c = BuddyCoordinator(settings: settings, voice: voice, context: context, turns: bridge,
                                  overlay: overlay, pointer: FixedPointer(), trace: trace, openURL: openURL)
         c.start()
         return c
@@ -147,7 +147,7 @@ extension BuddyCoordinatorTests {
         let opener = FakeOpenURL()
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
-        let coordinator = BuddyCoordinator(settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+        let coordinator = BuddyCoordinator(settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
                                            overlay: overlay, inserter: inserter, pointer: FixedPointer(), openURL: opener)
         coordinator.start()
         await tapToTalk(coordinator)
@@ -164,7 +164,7 @@ extension BuddyCoordinatorTests {
         let opener = FakeOpenURL()
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
-        let coordinator = BuddyCoordinator(settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+        let coordinator = BuddyCoordinator(settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
                                            overlay: overlay, inserter: inserter, pointer: FixedPointer(), openURL: opener)
         coordinator.start()
         await tapToTalk(coordinator)

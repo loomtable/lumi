@@ -19,7 +19,7 @@ struct SpeechContinuationTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), research: research)
         c.start()
         return c
@@ -29,7 +29,7 @@ struct SpeechContinuationTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase != .showing, c.phase != .idle, ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -76,7 +76,7 @@ struct SpeechContinuationTests {
         let research = FakeResearch()
         let c = make(FakeBridge(), research: research)
         research.onDone?(job("QT"))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while spoken.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         #expect(voice.continuations == [false])
         withExtendedLifetime(c) {}
@@ -87,13 +87,13 @@ struct SpeechContinuationTests {
         settings.sounds = false
         let bridge = ManualBridge()
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while bridge.streamCount == 0, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
 
         bridge.send(.turn(lane: .quick, .sayFirstSentence("Let me check.")))
@@ -120,7 +120,7 @@ struct SpeechContinuationTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase != .showing, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         try? await Task.sleep(for: .milliseconds(100))
         #expect(spoken.isEmpty) // the card isn't on screen yet
@@ -132,19 +132,25 @@ struct SpeechContinuationTests {
         #expect(ContinuousClock.now - presentedAt < .milliseconds(200)) // on the event, not the cap
     }
 
+    /// The overlay never reports the card, so the voice waits for the cap and then speaks. The cap
+    /// sleeps through a sleeper the test releases: no wall-clock budget to miss under load.
     @Test func aSlowCardDelaysTheVoiceAtMostTheCap() async {
         overlay.presentsAnswersImmediately = false // and the overlay never reports it
         let c = make(FakeBridge(script: [BuddyCoordinatorTests.done(BuddyBlock(say: "Yes.", shape: .chip))]))
-        let start = ContinuousClock.now
+        let sleeper = ManualSleeper()
+        c.sleep = sleeper.sleep
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = start + .seconds(4)
-        while spoken.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(5)) }
+        let deadline = ContinuousClock.now + waitCeiling
+        while !sleeper.requested.contains(BuddyCoordinator.presentWait), ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(1))
+        }
+        #expect(sleeper.requested.contains(BuddyCoordinator.presentWait), "the voice waits on the cap")
+        #expect(spoken.isEmpty, "and doesn't speak before it")
+        sleeper.release()
+        while spoken.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         #expect(spoken == ["Yes."])
-        #expect(ContinuousClock.now - start >= BuddyCoordinator.presentWait)
-        // Under the 4 s deadline (no cap would hit it), with room for a loaded machine.
-        #expect(ContinuousClock.now - start < BuddyCoordinator.presentWait + .seconds(1))
     }
 
     @Test func aStreamedFirstSentenceShowsInThePillAsItIsSpoken() async {
@@ -166,13 +172,13 @@ struct SpeechContinuationTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(3)
+        let deadline = ContinuousClock.now + waitCeiling
         while bridge.streamCount == 0, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
 
         bridge.send(.turn(lane: .quick, .sayFirstSentence("It's the totals row.")))

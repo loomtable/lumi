@@ -46,6 +46,23 @@ struct RemoveModelsTests {
         #expect(FileManager.default.fileExists(atPath: install.store.root.path), "the models folder itself stays")
     }
 
+    /// A copy with another bundle ID (QA) shares the release app's models and FluidAudio's
+    /// lexicon: it refuses to remove anything, and the storage never lists the lexicon for it.
+    @Test func aCopyNeverDeletesTheSharedModelsOrTheLexicon() async throws {
+        let install = Install()
+        defer { try? FileManager.default.removeItem(at: install.root) }
+        try install.fill()
+        let voice = install.controller()
+        await voice.setReleaseAppForTesting(false)
+        await #expect(throws: VoiceController.VoiceError.sharedModels) { try await voice.removeModels(.lumiVoice) }
+        #expect(install.bytes(.lumiVoice) == 240 && install.bytes(.speechRecognition) == 300, "nothing removed")
+        #expect(!VoiceStorage.folders(.lumiVoice, store: install.store, lexicon: install.lexicon, sharedLexicon: false)
+            .contains(install.lexicon))
+        try VoiceStorage.remove(.lumiVoice, store: install.store, lexicon: install.lexicon, sharedLexicon: false)
+        #expect(FileManager.default.fileExists(atPath: install.lexicon.appending(path: "us_lexicon.json").path),
+                "FluidAudio's lexicon stays")
+    }
+
     @Test func neverWhileVoiceIsLoadingOrListening() async throws {
         let install = Install()
         defer { try? FileManager.default.removeItem(at: install.root) }

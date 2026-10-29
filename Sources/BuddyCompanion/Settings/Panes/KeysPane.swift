@@ -1,16 +1,21 @@
 import BuddyKeys
+import BuddyOverlay
 import SwiftUI
 
-/// Settings › Keys: buddy key, timing, conflict check, practice.
+/// Settings › General: buddy key, timing, conflict check, practice, the dictation key and the Dock.
 struct KeysPane: View {
     @Binding var settings: KeysPreferences
+    /// The dictation key's section.
+    var dictation: Binding<DictationPreferences>?
+    /// "Show in Dock".
+    var dock: Binding<DockPreferences>?
     @State private var environment = KeyEnvironment()
     @State private var practice = PracticeModel()
     @State private var practising = false
     @Environment(\.keyPractice) private var keyPractice
 
     var body: some View {
-        Form {
+        PaneForm {
             Section("Lumi key") {
                 Picker("Key", selection: $settings.key) {
                     ForEach(BuddyKey.allCases, id: \.self) { Text($0.settingsName).tag($0) }
@@ -18,10 +23,10 @@ struct KeysPane: View {
                 Text("Tap to talk and tap to send. Hold to talk. Double-tap to type.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                LabeledContent("New conversation") {
+                LabeledContent("New session") {
                     Text("\(settings.key.freshSymbol) + \(settings.key.symbol)")
                 }
-                Text("Hold it as you press the Lumi key; the plain key continues the conversation.")
+                Text("Hold it as you press the Lumi key; the plain key continues the session.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Toggle("Ignore the Lumi key while a password field is active", isOn: $settings.ignoreDuringSecureInput)
@@ -60,8 +65,18 @@ struct KeysPane: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
+
+            if let dictation {
+                DictationKeySection(settings: dictation, buddyKey: settings.key, environment: environment)
+            }
+
+            if let dock {
+                Section("Dock") {
+                    Toggle("Show in Dock", isOn: dock.showInDock)
+                    Text("Lumi stays in the menu bar either way.").font(.caption).foregroundStyle(.secondary)
+                }
+            }
         }
-        .formStyle(.grouped)
         .task { environment = KeyEnvironment.current() }
         .onChange(of: settings) { _, new in Task { await practice.update(new) } }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -93,6 +108,68 @@ struct KeysPane: View {
     }
 }
 
+/// Settings › General: tap the dictation key (or hold it), speak, and the words are typed where
+/// the cursor is. Nothing is sent to Claude. Auto picks fn when the 🌐 key does nothing, else
+/// right ⌘; the line under the picker says which key is in use and why (`DictationKeyResolver`).
+struct DictationKeySection: View {
+    @Binding var settings: DictationPreferences
+    let buddyKey: BuddyKey
+    let environment: KeyEnvironment
+
+    var body: some View {
+        Section {
+            Picker("Dictation key", selection: $settings.choice) {
+                ForEach(Self.choices, id: \.self) { Text(Self.title($0)).tag($0) }
+            }
+            let resolution = self.resolution
+            if settings.choice != .off {
+                Label(resolution.reason, systemImage: resolution.key == nil ? "exclamationmark.triangle" : "info.circle")
+                    .foregroundStyle(resolution.key == nil ? AnyShapeStyle(.lumiAmber) : AnyShapeStyle(.secondary))
+                Picker("Mode", selection: $settings.mode) {
+                    ForEach(DictationMode.allCases, id: \.self) { Text(Self.title($0)).tag($0) }
+                }
+            }
+        } header: {
+            Text("Dictation")
+        } footer: {
+            Text(Self.help(for: settings.choice == .off ? nil : resolution.key, mode: settings.mode))
+        }
+    }
+
+    private var resolution: DictationKeyResolution { settings.resolved(buddyKey: buddyKey, in: environment) }
+
+    static func title(_ mode: DictationMode) -> String {
+        switch mode {
+        case .toggle: "Tap to start and stop"
+        case .hold: "Hold to talk"
+        }
+    }
+
+    /// How to use the key in effect. A key people chord with must be pressed on its own
+    /// (`DictationKeyGate`), so its shortcuts keep working and never start a dictation.
+    static func help(for key: BuddyKey?, mode: DictationMode = .toggle) -> String {
+        let rest = "Your words are typed where the cursor is, in any app, and kept in Dictation history. Nothing is sent to Claude."
+        let name = key.map(DictationKeyResolver.name) ?? "the dictation key"
+        let how = switch mode {
+        case .toggle: "Tap \(name) to start, and tap it again to type. Or hold it while you speak. Esc cancels."
+        case .hold: "Hold \(name) and speak, then let go to type. Esc cancels."
+        }
+        guard let key, key != .function else { return how + " " + rest }
+        return how + " " + rest + " Pressed with another key, \(name) works as usual."
+    }
+
+    /// Auto, Off, then every key.
+    static let choices: [DictationKeyChoice] = [.auto, .off] + BuddyKey.allCases.map { .key($0) }
+
+    static func title(_ choice: DictationKeyChoice) -> String {
+        switch choice {
+        case .auto: "Auto"
+        case .off: "Off"
+        case .key(let key): key.settingsName
+        }
+    }
+}
+
 private struct TimingSlider: View {
     let title: String
     @Binding var value: Int
@@ -116,7 +193,7 @@ private struct ConflictRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Image(systemName: conflict.severity == .warning ? "exclamationmark.triangle" : "info.circle")
-                .foregroundStyle(conflict.severity == .warning ? Color.orange : Color.secondary)
+                .foregroundStyle(conflict.severity == .warning ? AnyShapeStyle(.lumiAmber) : AnyShapeStyle(.secondary))
             Text(conflict.message)
             Spacer()
             if conflict.fix == .openKeyboardSettings {

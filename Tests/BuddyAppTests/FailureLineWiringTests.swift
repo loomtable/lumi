@@ -137,6 +137,7 @@ extension BuddyCoordinatorTests {
         bridge.setScript([Self.done(BuddyBlock(say: "Here it is.", shape: .chip))])
         overlay.send(.action(index: 0))
         await settle(until: { bridge.asked.count == 2 && coordinator.phase == .showing })
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         #expect(bridge.asked[1].packet.utterance == bridge.asked[0].packet.utterance)
         #expect(bridge.asked[1].packet.conversation?.turn == bridge.asked[0].packet.conversation?.turn)
         #expect(chips.last?.say == "Here it is.")
@@ -159,6 +160,7 @@ extension BuddyCoordinatorTests {
         bridge.setScript([Self.done(BuddyBlock(say: "Converted.", shape: .chip), lane: .deep)])
         overlay.send(.action(index: 0))
         await settle(until: { bridge.asked.count == 3 && coordinator.phase == .showing })
+        guard bridge.asked.count >= 3 else { Issue.record("asked: \(bridge.asked.count) of 3"); return }
         #expect(bridge.asked[2].packet.utterance == "Convert column C to numbers")
         #expect(bridge.asked[1].isApprovedAction, "the press approved the first run")
         #expect(bridge.asked[2].routing == .alwaysDeep && !bridge.asked[2].isApprovedAction,
@@ -179,6 +181,7 @@ extension BuddyCoordinatorTests {
         overlay.send(.action(index: 0))
         await settle(until: { bridge.deeperCount == 2 && coordinator.phase == .showing })
         #expect(bridge.asked.count == 1, "through Go deeper, not a new question")
+        guard bridge.deeper.count >= 2 else { Issue.record("deeper: \(bridge.deeper.count) of 2"); return }
         #expect(bridge.deeper[1].packet.utterance == "what does this mean?")
     }
 
@@ -214,6 +217,7 @@ extension BuddyCoordinatorTests {
         bridge.setScript([Self.done(BuddyBlock(say: "Converted.", shape: .chip), lane: .deep)])
         overlay.send(.action(index: 0))
         await settle(until: { bridge.asked.count == 3 && coordinator.phase == .showing })
+        guard bridge.asked.count >= 3 else { Issue.record("asked: \(bridge.asked.count) of 3"); return }
         #expect(bridge.asked[2].packet.utterance == "Convert column C to numbers")
         #expect(!bridge.asked[2].isApprovedAction, "a smaller model doesn't carry the approval either")
     }
@@ -223,7 +227,7 @@ extension BuddyCoordinatorTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), conversations: conversations)
         coordinator.start()
         bridge.setScript([.turn(lane: .quick, .failed(.timedOut)), Self.done(nil)])
@@ -272,7 +276,6 @@ extension BuddyCoordinatorTests {
         await inner.record(turn, conversationID: conversationID)
     }
     func startNew() async -> ConversationTurn { await inner.startNew() }
-    func goBack() async -> ConversationTurn? { nil }
     func switchTo(_ id: String) async -> ConversationTurn? { nil }
     func recordScreenshot(_ path: String, conversationID: String) async {}
 }

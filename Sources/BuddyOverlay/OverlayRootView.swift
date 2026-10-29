@@ -26,7 +26,10 @@ struct OverlayRootView: View {
                 surfaces
             }
             RingsLayer(model: model, displayFrame: displayFrame)
-            ToastLayer(model: model, displayFrame: displayFrame, onEvent: onEvent)
+            ToastLayer(model: model, displayFrame: displayFrame)
+            if model.progressVisible, displayFrame == model.progressScreenFrame {
+                ProgressLayer(model: model, displayFrame: displayFrame, onEvent: onEvent)
+            }
             if model.capsuleVisible, displayFrame == model.capsuleScreenFrame {
                 CapsuleLayer(model: model, displayFrame: displayFrame, onEvent: onEvent, onTap: onCapsuleTap,
                              onDrag: { onDrag(.capsule, $0, $1, $2) })
@@ -64,21 +67,17 @@ struct OverlayRootView: View {
 
     private func pill(_ t: Tokens) -> some View {
         let local = model.local(model.pillFrame)
-        let listening = if case .listening = model.surface { true } else { false }
         return PillContent(model: model, t: t, onSubmit: { onSubmit(.textBox) })
-            .modifier(SurfaceChrome(t: t, shape: Capsule(), hairline: !listening, bright: model.brightBackdrop))
-            .overlay { if listening { ListeningRim(level: model.mic, t: t) } }
             // Speech can start while only the pill is up (Quick's first sentence): it glows too.
-            .modifier(SpeakingGlow(level: listening ? 0 : Self.glowLevel(speaking: model.speaking, glow: model.settings.glow,
-                                                                           speech: model.speech),
-                                   t: t, shape: Capsule()))
+            .modifier(SurfaceChrome(t: t, shape: Capsule(), hairline: !model.surface.isListening, bright: model.brightBackdrop,
+                                    rim: model.surface.isListening ? .listening(model.mic) : speakingRim))
             .surfaceDrag { onDrag(.pill, $0, $1, $2) }
             .glassEffectID("surface", in: glass)
             .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { model.pillSize = $0 }
             .padding(.leading, local.minX)
             .padding(.top, local.minY)
-            .transition(reduceMotion ? .opacity : .scale(scale: 0.6, anchor: .leading).combined(with: .opacity))
+            .transition(Motion.transition(scale: 0.6, anchor: .leading, reduceMotion: reduceMotion))
     }
 
     private func answerView(_ t: Tokens, answer: Answer, placement: Placement, style: Placer.Style) -> some View {
@@ -92,7 +91,7 @@ struct OverlayRootView: View {
         return AnswerContent(answer: answer, style: style, t: t, web: model.web,
                              webHeight: full ? model.fullScreenWebHeight : model.webHeight,
                              speaking: model.speaking, inkIn: model.settings.inkIn && !model.headlineAlreadyShown, fullScreen: full,
-                             reduceMotion: reduceMotion,
+                             scrolls: model.answerScrolls && !full, reduceMotion: reduceMotion,
                              onEvent: onEvent, onClose: onClose, onToggleFullScreen: onToggleFullScreen, onCopy: onCopy,
                              reply: model.hasFocus ? Bindable(model).reply : nil,
                              replyAutoFocus: model.typed,
@@ -101,9 +100,8 @@ struct OverlayRootView: View {
             .frame(width: body.width, height: body.height, alignment: .top)
             .padding(Self.tailPadding(side))
             .modifier(SurfaceChrome(t: t, shape: shape, bright: model.brightBackdrop,
-                                    border: answer.block.needsApproval && style != .chip ? Tokens.amberBorder : nil))
-            .modifier(SpeakingGlow(level: Self.glowLevel(speaking: model.speaking, glow: model.settings.glow, speech: model.speech),
-                                   t: t, shape: shape))
+                                    border: answer.block.needsApproval && style != .chip ? Tokens.amberBorder : nil,
+                                    rim: speakingRim))
             .surfaceDrag(enabled: !full) { onDrag(.answer, $0, $1, $2) }
             .glassEffectID("surface", in: glass)
             .glassEffectTransition(reduceMotion ? .identity : .matchedGeometry)
@@ -112,11 +110,11 @@ struct OverlayRootView: View {
             .padding(.top, local.minY)
     }
 
-    /// The speaking glow's level: zero (no glow work) when not speaking or turned off. The
-    /// level is an autoclosure so `model.speech` isn't even read (observed) when the glow is
-    /// off: otherwise the whole root re-renders ~30 times a second while speaking.
-    static func glowLevel(speaking: Bool, glow: Bool, speech: @autoclosure () -> Double) -> Double {
-        speaking && glow ? speech() : 0
+    /// The speaking glow's timeline runs only while a reply is spoken with the glow on.
+    static func glowRuns(speaking: Bool, glow: Bool) -> Bool { speaking && glow }
+
+    private var speakingRim: SurfaceRim? {
+        Self.glowRuns(speaking: model.speaking, glow: model.settings.glow) ? .speaking(model.speech) : nil
     }
 
     static func tailPadding(_ side: CardShape.Side?) -> EdgeInsets {
@@ -132,37 +130,59 @@ struct OverlayRootView: View {
 }
 
 /// Listening rim: a 1.5 pt inset ember stroke at alpha .35 + .65 × mic, plus a bloom of
-/// 10 pt × mic (alpha .45 dark, .30 light).
-struct ListeningRim: View {
+/// 10 pt × mic (alpha .45 dark, .30 light). Drawn by `SurfaceChrome` on the surface's shape.
+struct ListeningRim<S: InsettableShape>: View {
     let level: LevelBox
-    let t: Tokens
-
-    var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30)) { _ in
-            let v = level.value
-            Capsule()
-                .strokeBorder(t.emberMark.color.opacity(0.35 + 0.65 * v), lineWidth: 1.5)
-                .shadow(color: t.emberMark.color.opacity((t.variant.dark ? 0.45 : 0.30) * v), radius: 10 * v)
-        }
-        .allowsHitTesting(false)
-    }
-}
-
-/// Speaking glow: brightness follows the reply's loudness (Effects).
-struct SpeakingGlow<S: InsettableShape>: ViewModifier {
-    let level: Double
     let t: Tokens
     let shape: S
 
-    func body(content: Content) -> some View {
-        content
-            .overlay {
-                if level > 0.001 {
-                    shape.strokeBorder(t.emberMark.color.opacity(0.10 + 0.5 * level), lineWidth: 1)
-                        .allowsHitTesting(false)
-                }
+    var body: some View {
+        TimelineView(.animation(minimumInterval: Motion.levelFrameInterval)) { _ in
+            let v = level.value
+            shape
+                .strokeBorder(t.emberMark.color.opacity(0.35 + 0.65 * v), lineWidth: 1.5)
+                .shadow(color: t.emberMark.color.opacity((t.variant.dark ? 0.45 : 0.30) * v), radius: 10 * v)
+        }
+    }
+}
+
+/// Speaking glow (Effects): an ember rim and a soft bloom outside the surface, both following
+/// the reply's loudness. Drawn by `SurfaceChrome` on the surface's shape, only while a reply is
+/// spoken. Only this view redraws with the voice, on its own 30 Hz timeline; the surface under it
+/// (text, web view) is never re-evaluated by the level. The bloom keeps one blur radius and
+/// changes only opacity and scale, so no frame re-filters it.
+struct SpeakingGlow<S: InsettableShape>: View {
+    let level: LevelBox
+    let t: Tokens
+    let shape: S
+
+    static var bloomRadius: CGFloat { 22 }
+
+    /// Rim and bloom strength for a level in 0...1.
+    nonisolated static func rimOpacity(_ level: Double) -> Double { 0.10 + 0.5 * level }
+    nonisolated static func bloomOpacity(_ level: Double) -> Double { 0.5 * level }
+    nonisolated static func bloomScale(_ level: Double) -> CGFloat { 1 + 0.03 * level }
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: Motion.levelFrameInterval)) { _ in
+            let v = min(max(level.value, 0), 1)
+            ZStack {
+                shape.fill(t.emberMark.color)
+                    .blur(radius: Self.bloomRadius)
+                    .scaleEffect(Self.bloomScale(v))
+                    .opacity(Self.bloomOpacity(v))
+                    .mask {
+                        // Outside the surface only: glass would show a bloom under it.
+                        ZStack {
+                            Rectangle().padding(-Self.bloomRadius * 3)
+                            shape.blendMode(.destinationOut)
+                        }
+                        .compositingGroup()
+                    }
+                shape.strokeBorder(t.emberMark.color.opacity(Self.rimOpacity(v)), lineWidth: 1)
             }
-            .shadow(color: t.emberMark.color.opacity(0.42 * level), radius: level > 0.001 ? 6 + 52 * level : 0)
+        }
+        .accessibilityHidden(true)
     }
 }
 

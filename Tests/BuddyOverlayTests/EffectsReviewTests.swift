@@ -11,30 +11,30 @@ nonisolated private final class Fired: Sendable {
     var value: Bool { flag.withLock { $0 } }
 }
 
-@Test(.overlayExclusive) func glowOffDoesNotObserveTheSpeechLevel() {
+@Test(.overlayExclusive) func theSpeechLevelNeverReRendersTheSurface() {
     let model = OverlayModel()
     model.speaking = true
-    model.settings.glow = false
     let fired = Fired()
     withObservationTracking {
         // Exactly what the root view evaluates for the card's glow.
-        _ = OverlayRootView.glowLevel(speaking: model.speaking, glow: model.settings.glow, speech: model.speech)
+        _ = OverlayRootView.glowRuns(speaking: model.speaking, glow: model.settings.glow)
+        _ = model.speech.value
     } onChange: { fired.set() }
-    model.speech = 0.7
-    #expect(!fired.value)           // the reply level changing doesn't re-render anything
-    model.settings.glow = true
+    model.speech.value = 0.7
+    #expect(!fired.value)           // the reply level only reaches the glow's own timeline
+    model.settings.glow = false
     #expect(fired.value)            // the toggle itself is observed
 }
 
-@Test(.overlayExclusive) func glowOnObservesTheSpeechLevel() {
-    let model = OverlayModel()
-    model.speaking = true
-    let fired = Fired()
-    withObservationTracking {
-        _ = OverlayRootView.glowLevel(speaking: model.speaking, glow: model.settings.glow, speech: model.speech)
-    } onChange: { fired.set() }
-    model.speech = 0.7
-    #expect(fired.value)
+@Test(.overlayExclusive) func speechLevelsReachTheGlowWhileSpeaking() {
+    let overlay = BuddyOverlayController(observesSystem: false)
+    overlay.setSpeechLevel(0.9)
+    #expect(overlay.model.speech.value == 0)   // not speaking: nothing to light
+    overlay.setSpeaking(true)
+    for _ in 0..<5 { overlay.setSpeechLevel(0.9) }
+    #expect(overlay.model.speech.value > 0)
+    overlay.setSpeaking(false)
+    #expect(overlay.model.speech.value == 0)
 }
 
 @Test(.overlayExclusive) func inkWaitsForTheHeadlineRow() {

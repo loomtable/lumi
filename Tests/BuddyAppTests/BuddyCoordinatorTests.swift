@@ -23,7 +23,7 @@ struct BuddyCoordinatorTests {
         var settings = settings
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: context, bridge: bridge,
+            settings: settings, voice: voice, context: context, turns: bridge,
             overlay: overlay, inserter: inserter, pointer: FixedPointer())
         coordinator.start()
         return coordinator
@@ -36,7 +36,7 @@ struct BuddyCoordinatorTests {
 
     /// Waits up to 2 s for `done`, so tests don't depend on scheduling under load.
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -74,7 +74,7 @@ struct BuddyCoordinatorTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: manual,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: manual,
             overlay: overlay, inserter: inserter, pointer: FixedPointer())
         coordinator.start()
         await coordinator.handle(.gesture(.pressBegan(fresh: false)))
@@ -100,7 +100,7 @@ struct BuddyCoordinatorTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: HangingShot(), bridge: bridge,
+            settings: settings, voice: voice, context: HangingShot(), turns: bridge,
             overlay: overlay, inserter: inserter, pointer: FixedPointer())
         coordinator.screenshotDeadline = .milliseconds(50)
         coordinator.start()
@@ -260,6 +260,7 @@ struct BuddyCoordinatorTests {
         await tapToTalk(coordinator)
         await tapToTalk(coordinator)
         #expect(bridge.asked.count == 2)
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         let second = bridge.asked[1].packet.conversation
         #expect(second?.id == bridge.asked[0].packet.conversation?.id)
         #expect(second?.turn == 2)
@@ -400,6 +401,7 @@ struct BuddyCoordinatorTests {
         overlay.send(.action(index: 0))
         await settle(until: { bridge.asked.count == 2 && coordinator.phase != .thinking })
         #expect(bridge.asked.count == 2)
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         #expect(bridge.asked[1].packet.utterance == "Loosen the filter")
         #expect(bridge.asked[1].routing == .alwaysDeep)
         _ = coordinator
@@ -417,6 +419,7 @@ struct BuddyCoordinatorTests {
 
         overlay.send(.action(index: 0))
         await settle(until: { bridge.asked.count == 2 && coordinator.phase != .thinking })
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         #expect(bridge.asked[1].isApprovedAction)
 
         // Go deeper reruns the user's own question: no approval carried over.
@@ -441,6 +444,7 @@ struct BuddyCoordinatorTests {
 
         overlay.send(.action(index: 0))
         await settle(until: { bridge.asked.count == 2 })
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         #expect(bridge.asked[1].packet.utterance == "Convert column C")
     }
 
@@ -617,7 +621,32 @@ struct BuddyCoordinatorTests {
         await settle(until: { coordinator.phase == .showing })
         let headers = overlay.calls.compactMap { if case .answer(let a, _, _) = $0 { a.headerLabel } else { nil } }
         #expect(headers.last?.hasSuffix(" · long") == true)
-        #expect(overlay.calls.filter { $0 == .toast("Long conversation · ⇧ + ⌥ starts fresh") }.count == 1)
+        #expect(overlay.calls.filter { $0 == .toast("Long session · ⇧ + ⌥ starts fresh") }.count == 1)
+    }
+
+    /// The echo of Lumi's own earlier dismiss (`.requested`) can arrive after a new card is on
+    /// screen: it must not mark that card closed. A dismiss that really took the card away still does.
+    @Test func aLateEchoOfLumisOwnDismissKeepsTheNewCard() async {
+        bridge.setScript([Self.done(BuddyBlock(say: "It's QT.", shape: .card))])
+        let coordinator = makeCoordinator()
+        await tapToTalk(coordinator)
+        #expect(coordinator.phase == .showing && overlay.showsAnswer)
+        overlay.send(.dismissed(.requested))   // about the surface before this card
+        await settle()
+        #expect(coordinator.phase == .showing, "the new card is still up")
+
+        overlay.dismiss(.requested)             // something else took the card away (dictation's pill)
+        await settle(until: { coordinator.phase == .idle })
+        #expect(coordinator.phase == .idle)
+    }
+
+    /// The pill waits for the mic: not ready from the summon, ready once the mic is live (micLive).
+    @Test func thePillIsNotListeningUntilTheMicIsLive() async {
+        let coordinator = makeCoordinator()
+        await coordinator.handle(.gesture(.pressBegan(fresh: false)))
+        await settle(until: { overlay.micReadyHistory.count == 2 })
+        #expect(overlay.micReadyHistory == [false, true])
+        #expect(voice.calls.contains(.start))
     }
 
     @Test func newConversationStartsFreshId() async {
@@ -627,6 +656,7 @@ struct BuddyCoordinatorTests {
         overlay.send(.newConversation)
         await settle()
         await tapToTalk(coordinator)
+        guard bridge.asked.count >= 2 else { Issue.record("asked: \(bridge.asked.count) of 2"); return }
         #expect(bridge.asked[0].packet.conversation?.id != bridge.asked[1].packet.conversation?.id)
         #expect(bridge.asked[1].packet.conversation?.turn == 1)
     }
@@ -660,14 +690,14 @@ struct ConversationBookTests {
         #expect(book.prepare(project: nil).state.id != first.state.id)
     }
 
-    @Test func differentProjectStartsFreshButEmptyConversationAdoptsIt() {
+    @Test func aDifferentProjectContinuesAndAConversationWithoutOneAdoptsIt() {
         var book = ConversationBook(clock: { Date() })
         let first = book.prepare(project: nil)
-        #expect(book.prepare(project: "/w/a").state.id == first.state.id) // adopted, no turns yet
+        #expect(book.prepare(project: "/w/a").state.id == first.state.id) // adopted
         _ = book.recordTurn(conversationID: first.state.id, question: "q", answer: "a")
-        #expect(book.prepare(project: "/w/a").state.id == first.state.id)
         #expect(book.prepare(project: nil).state.id == first.state.id) // nothing in front: continue
-        #expect(book.prepare(project: "/w/b").state.id != first.state.id)
+        #expect(book.prepare(project: "/w/b").state.id == first.state.id, "a project change never splits")
+        #expect(book.current?.project == "/w/a")
     }
 
     @Test func recordTurnIgnoresStaleConversation() {

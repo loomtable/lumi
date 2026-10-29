@@ -137,8 +137,10 @@ public final class FakeTranscriber: SpeechTranscriber {
         var begins = 0
         var cancels = 0
         var samples = 0
+        var totalSamples = 0
         var finishes = 0
         var result = ""
+        var numbered = false
         var finishError: (any Error)?
         var finishDelay: Duration = .zero
         var beginDelay: Duration = .zero
@@ -156,8 +158,12 @@ public final class FakeTranscriber: SpeechTranscriber {
     public var finishCount: Int { state.withLock { $0.finishes } }
     /// Samples appended since the last begin().
     public var sampleCount: Int { state.withLock { $0.samples } }
+    /// Samples appended since this transcriber was made, across every begin.
+    public var totalSampleCount: Int { state.withLock { $0.totalSamples } }
 
     public func setResult(_ text: String) { state.withLock { $0.result = text } }
+    /// Each finish returns "<result> <n>", n counting finishes from 1, so chunks can be told apart.
+    public func numberResults() { state.withLock { $0.numbered = true } }
     public func failNextFinish(with error: any Error) { state.withLock { $0.finishError = error } }
     /// `finish` takes this long, like a model call on a busy Neural Engine.
     public func delayFinish(_ delay: Duration) { state.withLock { $0.finishDelay = delay } }
@@ -192,7 +198,12 @@ public final class FakeTranscriber: SpeechTranscriber {
             s.samples = 0
         }
     }
-    public func append(_ samples: [Float]) async throws { state.withLock { $0.samples += samples.count } }
+    public func append(_ samples: [Float]) async throws {
+        state.withLock { s in
+            s.samples += samples.count
+            s.totalSamples += samples.count
+        }
+    }
 
     public func finish() async throws -> String {
         let delay = state.withLock { $0.finishDelay }
@@ -200,7 +211,7 @@ public final class FakeTranscriber: SpeechTranscriber {
         return try state.withLock { s in
             s.finishes += 1
             if let e = s.finishError { s.finishError = nil; throw e }
-            return s.result
+            return s.numbered ? "\(s.result) \(s.finishes)" : s.result
         }
     }
 

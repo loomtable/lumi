@@ -92,7 +92,9 @@ struct LaunchSpecTests {
             try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
             try (rc + "\n").write(to: home.appendingPathComponent(".zshrc"), atomically: true, encoding: .utf8)
         }
-        func path(timeout: Duration = .seconds(3)) async -> String? {
+        /// 30 s: a ceiling a shell that answers never reaches, but one a loaded Mac's zsh start-up
+        /// (batch 1: load average 158) can't miss either.
+        func path(timeout: Duration = .seconds(30)) async -> String? {
             defer { try? FileManager.default.removeItem(at: home) }
             return await LaunchEnvironment.loginShellPath(shell: "/bin/zsh", home: home.path, timeout: timeout)
         }
@@ -104,37 +106,39 @@ struct LaunchSpecTests {
     }
 
     /// The flake behind loginShellPathSkipsStartupNoise: a shell that exits before its output has been
-    /// read. Here the output arrives 200 ms after the shell exits (a child still holding the pipe).
+    /// read. Here the output arrives just after the shell exits (a child still holding the pipe), well
+    /// inside the 0.5 s grace even when the child is scheduled late on a loaded machine.
     @Test func outputArrivingJustAfterTheShellExitsIsStillRead() async throws {
-        let shell = try LoginShell(rc: #"(sleep 0.2; printf '\n__SB_PATH__/usr/bin\n__SB_END__\n') & exit 0"#)
+        let shell = try LoginShell(rc: #"(sleep 0.05; printf '\n__SB_PATH__/usr/bin\n__SB_END__\n') & exit 0"#)
         #expect(await shell.path() == "/usr/bin")
     }
 
     @Test func aShellThatPrintsNothingStillGivesUpSoon() async throws {
         let shell = try LoginShell(rc: "exit 0")
         let start = ContinuousClock.now
-        #expect(await shell.path(timeout: .seconds(10)) == nil)
-        #expect(ContinuousClock.now - start < .seconds(5), "the 0.5 s grace, not the 10 s timeout")
+        #expect(await shell.path(timeout: .seconds(90)) == nil)
+        // Far below the timeout, with room for a slow zsh start on a loaded machine.
+        #expect(ContinuousClock.now - start < .seconds(45), "the 0.5 s grace, not the 90 s timeout")
     }
 
     /// Interactive shells ignore SIGTERM; the deadline must still hold.
     @Test func loginShellPathGivesUpOnAHungShell() async throws {
-        let shell = try LoginShell(rc: "trap '' TERM; sleep 30")
+        let shell = try LoginShell(rc: "trap '' TERM; sleep 120")
         let start = ContinuousClock.now
         #expect(await shell.path(timeout: .milliseconds(300)) == nil)
-        // Far below the shell's 30 s, with room for a loaded machine: the deadline held.
-        #expect(ContinuousClock.now - start < .seconds(10))
+        // Far below the shell's 120 s, with room for a loaded machine: the deadline held.
+        #expect(ContinuousClock.now - start < .seconds(60))
     }
 
     /// An rc file that forks a child holding stdout must not block the read.
     @Test func loginShellPathIgnoresAChildHoldingStdout() async throws {
         // An absolute path: with PATH set to /usr/bin, plain `sleep` (in /bin) would not be found and no
         // child would hold the pipe.
-        let shell = try LoginShell(rc: "/bin/sleep 30 & export PATH=/usr/bin")
+        let shell = try LoginShell(rc: "/bin/sleep 120 & export PATH=/usr/bin")
         let start = ContinuousClock.now
-        #expect(await shell.path(timeout: .seconds(20)) == "/usr/bin")
-        // Answered without waiting for the 30 s child, or the 20 s timeout; the margin absorbs a loaded machine.
-        #expect(ContinuousClock.now - start < .seconds(10))
+        #expect(await shell.path(timeout: .seconds(90)) == "/usr/bin")
+        // Answered without waiting for the 120 s child, or the 90 s timeout; the margin absorbs a loaded machine.
+        #expect(ContinuousClock.now - start < .seconds(60))
     }
 
     @Test func locatesClaude() {

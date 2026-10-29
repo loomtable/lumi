@@ -398,7 +398,7 @@ private func key(_ chars: String, code: UInt16 = 0, _ mods: NSEvent.ModifierFlag
     let overlay = BuddyOverlayController(observesSystem: false)
     overlay.showListening(at: CGPoint(x: 200, y: 200), hint: "h")
     let changed = Flag()
-    withObservationTracking { _ = overlay.model.surface; _ = overlay.model.speech } onChange: { changed.set() }
+    withObservationTracking { _ = overlay.model.surface; _ = overlay.model.speech.value } onChange: { changed.set() }
     for i in 0..<10 { overlay.setMicLevel(Double(i) / 10) }
     #expect(!changed.value)
     #expect(overlay.model.mic.value > 0)
@@ -430,72 +430,84 @@ nonisolated private final class Flag: Sendable {
     #expect(abs(f.midX - screen.midX) <= 1 && abs(f.midY - screen.midY) <= 1)
 }
 
-/// A gray image, with black-and-white stripes ("text") inside `busy` (image px, top-left).
-private func snapshotImage(width: Int, height: Int, busy: [CGRect]) -> CGImage {
-    let ctx = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                        space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue)!
-    ctx.setFillColor(gray: 0.95, alpha: 1)
-    ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
-    ctx.setFillColor(gray: 0.1, alpha: 1)
-    for r in busy {
-        // CGContext is bottom-left; flip to top-left image rows.
-        var y = r.minY
-        while y < r.maxY {
-            ctx.fill(CGRect(x: r.minX, y: CGFloat(height) - y - 2, width: r.width, height: 2))
-            y += 4
-        }
-    }
-    return ctx.makeImage()!
+// MARK: Placement rule (Placer): reserved zones, preferred side, any display
+
+private let zones = Placer.reservedZones(in: screen)
+
+@Test(.overlayExclusive) func reservedZonesHoldThePillCapsulesAndSwitcher() {
+    // Top (the default): one zone at the top centre for the pill, the strip that grows out of it,
+    // and the capsules.
+    #expect(zones.count == 1)
+    let top = zones[0]
+    #expect(abs(top.midX - screen.midX) <= 1 && top.minY == screen.minY)
+    #expect(top.width >= PillContent.headlineWidth)
+    let strip = SwitcherGeometry.stripWidth
+    #expect(top.width >= strip)
+    #expect(top.height >= Placer.edgeMargin + SwitcherGeometry.headerHeight + SwitcherGeometry.maxStripHeight)
+    // Bottom: the capsules keep the top, the pill and its strip take the bottom centre.
+    let bottomZones = Placer.reservedZones(in: screen, statusAtBottom: true)
+    #expect(bottomZones.count == 2)
+    let bottom = bottomZones[1]
+    #expect(abs(bottom.midX - screen.midX) <= 1 && bottom.maxY == screen.maxY)
+    #expect(bottom.width >= strip)
+    #expect(bottom.height >= Placer.edgeMargin + SwitcherGeometry.headerHeight + SwitcherGeometry.maxStripHeight)
 }
 
-@Test(.overlayExclusive) func edgeDensityFindsText() throws {
-    let img = snapshotImage(width: 400, height: 250, busy: [CGRect(x: 0, y: 0, width: 200, height: 250)])
-    let map = try EdgeMap.make(img)
-    #expect(map.density(CGRect(x: 20, y: 20, width: 150, height: 200)) > 0.3)
-    #expect(map.density(CGRect(x: 230, y: 20, width: 150, height: 200)) < 0.01)
+@Test(.overlayExclusive) func cardsStepAsideFromTheTopZone() {
+    // The pointer on a tab title at the top centre: the card stays below it, beside the zone.
+    let anchor = Anchor.point(CGPoint(x: screen.midX, y: screen.minY + 30))
+    let p = Placer.place(size: card, anchor: anchor, in: screen, style: .card, reserved: zones)
+    #expect(p.edge == .below)
+    #expect(p.frame.minY == screen.minY + 30 + Placer.gap)
+    #expect(!zones.contains { $0.intersects(p.frame) })
+    #expect(p.tailOffset == nil)  // beside the zone, not under the pointer
 }
 
-@Test(.overlayExclusive) func smartPlacementAvoidsContentBelow() async throws {
-    // Display 1600×1000 pt at scale 0.25 → 400×250 px. Text fills the band below the anchor.
-    let frame = CGRect(x: 0, y: 0, width: 1600, height: 1000)
-    let anchor = CGRect(x: 700, y: 400, width: 200, height: 20)
-    let busyBelow = CGRect(x: 100, y: 108, width: 300, height: 100)  // px: y 432–832 pt
-    let snap = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: [busyBelow]),
-                               displayID: 1, frame: frame, scale: 0.25)
-    let scores = await SmartPlacement.scores(for: snap, withSaliency: false)
-    let p = SmartPlacement.placeNextTo(size: card, anchor: .rect(anchor), in: frame, style: .card, scores: scores)
+@Test(.overlayExclusive) func cardsNeverCoverTheSwitcher() {
+    // With the pill at the bottom, its strip's zone holds there.
+    let bottomZones = Placer.reservedZones(in: screen, statusAtBottom: true)
+    let anchor = Anchor.point(CGPoint(x: screen.midX + 40, y: screen.maxY - 120))
+    let p = Placer.place(size: card, anchor: anchor, in: screen, style: .card, reserved: bottomZones)
+    #expect(screen.insetBy(dx: Placer.edgeMargin, dy: Placer.edgeMargin).contains(p.frame))
+    #expect(!bottomZones.contains { $0.intersects(p.frame) })
+    // At the top (the default), the bottom centre is free for cards.
+    let free = Placer.place(size: card, anchor: anchor, in: screen, style: .card, reserved: zones)
+    #expect(free == Placer.place(size: card, anchor: anchor, in: screen, style: .card))
+}
+
+@Test(.overlayExclusive) func zonesDontMoveCardsThatAreClearOfThem() {
+    let anchor = Anchor.rect(CGRect(x: 600, y: 300, width: 120, height: 20))
+    #expect(Placer.place(size: card, anchor: anchor, in: screen, style: .card, reserved: zones)
+            == Placer.place(size: card, anchor: anchor, in: screen, style: .card))
+}
+
+@Test(.overlayExclusive) func centredAnswersSitBetweenTheZones() {
+    let h = BuddyOverlayController.maxHeight(style: .centered, in: screen)
+    #expect(h <= screen.height * BuddyOverlayController.maxHeightFraction)
+    let p = Placer.place(size: CGSize(width: 540, height: h), anchor: .point(CGPoint(x: 10, y: 10)), in: screen,
+                         style: .centered, reserved: zones)
+    #expect(p.edge == .centered)
+    #expect(abs(p.frame.midX - screen.midX) <= 1)
+    #expect(!zones.contains { $0.intersects(p.frame) })
+}
+
+@Test(.overlayExclusive) func preferredSideComesFirst() {
+    let anchor = Anchor.rect(CGRect(x: 600, y: 400, width: 120, height: 20))
+    let p = Placer.place(size: card, anchor: anchor, in: screen, style: .card, reserved: zones, prefer: .above)
     #expect(p.edge == .above)
-    // With nothing busy, the plain order wins: below.
-    let clean = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: []), displayID: 1, frame: frame, scale: 0.25)
-    let cleanScores = await SmartPlacement.scores(for: clean, withSaliency: false)
-    #expect(SmartPlacement.placeNextTo(size: card, anchor: .rect(anchor), in: frame, style: .card,
-                                       scores: cleanScores).edge == .below)
+    #expect(p.frame.maxY == 400 - Placer.gap)
+    // A preferred side with no room falls back to the usual order.
+    let high = Anchor.rect(CGRect(x: 200, y: 60, width: 120, height: 20))
+    #expect(Placer.place(size: card, anchor: high, in: screen, style: .card, reserved: zones, prefer: .above).edge == .below)
 }
 
-@Test(.overlayExclusive) func wholePageAnswersTakeTheEmptiestRegion() async {
-    let frame = CGRect(x: 0, y: 0, width: 1600, height: 1000)
-    // Everything busy except the top-right corner.
-    let busy = [CGRect(x: 0, y: 0, width: 250, height: 250), CGRect(x: 250, y: 80, width: 150, height: 170)]
-    let snap = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: busy), displayID: 1, frame: frame, scale: 0.25)
-    let scores = await SmartPlacement.scores(for: snap, withSaliency: false)
-    let p = SmartPlacement.placeOnPage(size: card, in: frame, scores: scores)
-    #expect(p.tailOffset == nil)
-    #expect(p.frame.maxX == frame.maxX - Placer.edgeMargin)
-    #expect(p.frame.minY == frame.minY + Placer.edgeMargin)
-}
-
-@Test(.overlayExclusive) func snapshotMustMatchTheDisplayAsItIsNow() {
-    let img = snapshotImage(width: 40, height: 25, busy: [])
-    let frame = CGRect(x: 0, y: 0, width: 1600, height: 1000)
-    let snap = DisplaySnapshot(image: img, displayID: 1, frame: frame, scale: 0.025)
-    let inside = Anchor.point(CGPoint(x: 800, y: 500))
-    #expect(BuddyOverlayController.usableSnapshot(snap, for: inside, displayID: 1, displayFrame: frame) != nil)
-    // Another display, a moved or resized display, or an anchor elsewhere: no scores.
-    #expect(BuddyOverlayController.usableSnapshot(snap, for: inside, displayID: 2, displayFrame: frame) == nil)
-    #expect(BuddyOverlayController.usableSnapshot(snap, for: inside, displayID: 1,
-                                                  displayFrame: CGRect(x: 0, y: 0, width: 1920, height: 1200)) == nil)
-    #expect(BuddyOverlayController.usableSnapshot(snap, for: .point(CGPoint(x: 2000, y: 300)), displayID: 1, displayFrame: frame) == nil)
-    #expect(BuddyOverlayController.usableSnapshot(nil, for: inside, displayID: 1, displayFrame: frame) == nil)
+@Test(.overlayExclusive) func aSelectionPartlyOffScreenAnchorsWhatShows() {
+    // A selected line running off the right edge: the card's tail points at the part that shows.
+    let selection = Anchor.rect(CGRect(x: 1300, y: 300, width: 1200, height: 20))
+    let p = Placer.place(size: card, anchor: selection, in: screen, style: .card, reserved: zones)
+    #expect(p.edge == .below)
+    let shown = CGRect(x: 1300, y: 300, width: screen.maxX - 1300, height: 20)
+    #expect(abs(p.frame.minX + (p.tailOffset ?? -999) - shown.midX) <= 1)
 }
 
 /// Deterministic pseudo-random numbers for property tests.
@@ -507,79 +519,162 @@ private struct LCG {
     }
 }
 
-@Test(.overlayExclusive) func smartPlacementPropertiesHold() async {
-    // A display left of and above the primary (negative origin), random busy bands.
-    let frame = CGRect(x: -1600, y: -400, width: 1600, height: 1000)
+@Test(.overlayExclusive) func placementRuleHoldsOnSmallLargeAndOffsetDisplays() {
+    let displays = [
+        CGRect(x: 0, y: 25, width: 1024, height: 743),        // small
+        CGRect(x: 0, y: 25, width: 1512, height: 924),        // laptop
+        CGRect(x: 1512, y: -300, width: 3008, height: 1667),  // large, right of and above the main one
+        CGRect(x: -1600, y: -400, width: 1600, height: 1000), // left of and above (negative origin)
+    ]
     var rng = LCG(state: 42)
-    for _ in 0..<60 {
-        let busy = (0..<3).map { _ in CGRect(x: rng.next(0...300), y: rng.next(0...200), width: rng.next(40...200), height: rng.next(20...80)) }
-        let snap = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: busy), displayID: 7, frame: frame, scale: 0.25)
-        let scores = await SmartPlacement.scores(for: snap, withSaliency: false)
-        let w = rng.next(2...260), h = rng.next(2...40)
-        let anchor = CGRect(x: frame.minX + rng.next(20...1500), y: frame.minY + rng.next(20...950), width: w, height: h)
-        let size = CGSize(width: rng.next(200...360), height: rng.next(80...300))
-        let p = SmartPlacement.placeNextTo(size: size, anchor: .rect(anchor), in: frame, style: .card, scores: scores)
-        let area = frame.insetBy(dx: Placer.edgeMargin, dy: Placer.edgeMargin)
-        #expect(area.contains(p.frame), "12 pt from the edges")
-        guard p.avoidsAnchor else { continue }
-        #expect(!p.frame.intersects(anchor), "never covers the anchor")
-        let gap: CGFloat = switch p.edge {
-        case .below: p.frame.minY - anchor.maxY
-        case .above: anchor.minY - p.frame.maxY
-        case .trailing: p.frame.minX - anchor.maxX
-        case .leading: anchor.minX - p.frame.maxX
-        case .centered: Placer.gap
-        }
-        #expect(abs(gap - Placer.gap) <= 1, "14 pt from the anchor")
-        // The tail points at the anchor's centre whenever the card isn't clamped at an edge.
-        if let tail = p.tailOffset {
-            switch p.edge {
-            case .below, .above:
-                let lo = Tokens.cardRadius + Placer.tailHalfWidth
-                if anchor.midX - p.frame.minX >= lo, p.frame.maxX - anchor.midX >= lo {
-                    #expect(abs(p.frame.minX + tail - anchor.midX) <= 1)
+    for display in displays {
+        let zones = Placer.reservedZones(in: display)
+        let area = display.insetBy(dx: Placer.edgeMargin, dy: Placer.edgeMargin)
+        // A centred answer at its height cap sits top-centre, clear of the zones (U53: on a
+        // 3008 × 1667 display it overlapped the progress zone).
+        let centred = CGSize(width: BuddyOverlayController.width(for: .centered),
+                             height: BuddyOverlayController.maxHeight(style: .centered, in: display))
+        let c = Placer.place(size: centred, anchor: .point(CGPoint(x: display.midX, y: display.midY)), in: display,
+                             style: .centered, reserved: zones)
+        #expect(!zones.contains { $0.intersects(c.frame) }, "a centred answer clears the zones on \(display)")
+        for _ in 0..<150 {
+            // Anchors anywhere, edges and corners included.
+            let w = rng.next(0...260), h = rng.next(0...40)
+            let anchor = CGRect(x: display.minX + rng.next(-5...(display.width - w + 5)),
+                                y: display.minY + rng.next(-5...(display.height - h + 5)), width: w, height: h)
+            let size = CGSize(width: rng.next(120...BuddyOverlayController.cardWidth),
+                              height: rng.next(60...BuddyOverlayController.maxHeight(style: .card, in: display)))
+            for style in [Placer.Style.card, .chip] {
+                let p = Placer.place(size: size, anchor: .rect(anchor), in: display, style: style, reserved: zones)
+                #expect(area.contains(p.frame), "12 pt inside the display")
+                // Within the height cap, a card never covers the zones, small displays included.
+                #expect(!zones.contains { $0.intersects(p.frame) }, "clear of the zones on \(display)")
+                guard p.avoidsAnchor else { continue }
+                #expect(!p.frame.intersects(anchor), "never covers the anchor")
+                if let tail = p.tailOffset, p.edge == .below || p.edge == .above {
+                    let lo = Tokens.cardRadius + Placer.tailHalfWidth
+                    #expect(tail >= lo && tail <= p.frame.width - lo, "the tail clears the corners")
                 }
-            default:
-                break
             }
         }
     }
 }
 
-@Test(.overlayExclusive) func shiftedCandidatesKeepTheTailOnACaret() async {
-    // A caret (zero-width anchor) with text right below its centre: Smart may shift the
-    // card sideways, but the tail must still point at the caret.
-    let frame = CGRect(x: 0, y: 0, width: 1600, height: 1000)
-    let caret = CGRect(x: 800, y: 400, width: 0, height: 18)
-    let busy = [CGRect(x: 150, y: 105, width: 40, height: 80)]  // pt 600–760: under the centred candidate only
-    let snap = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: busy), displayID: 1, frame: frame, scale: 0.25)
-    let scores = await SmartPlacement.scores(for: snap, withSaliency: false)
-    let p = SmartPlacement.placeNextTo(size: card, anchor: .rect(caret), in: frame, style: .card, scores: scores)
-    #expect(p.edge == .below)
-    #expect(abs(p.frame.minX + (p.tailOffset ?? -999) - caret.midX) <= 1)
+// MARK: Placement rule (controller): stable spot, size cap
+
+private var mainVisible: CGRect { ScreenSpace.topLeft(NSScreen.screens[0].visibleFrame) }
+
+private func shownPlacement(_ overlay: BuddyOverlayController) -> Placement? {
+    if case .answer(_, let p, _) = overlay.model.surface { p } else { nil }
 }
 
-@Test(.overlayExclusive) func saliencyPathRuns() async {
-    let frame = CGRect(x: 0, y: 0, width: 1600, height: 1000)
-    let snap = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: [CGRect(x: 0, y: 0, width: 200, height: 250)]),
-                               displayID: 1, frame: frame, scale: 0.25)
-    let scores = await SmartPlacement.scores(for: snap, withSaliency: true)
-    #expect(scores.edges != nil)
-    #expect(scores.saliency != nil)
-    let c = SmartPlacement.cost(CGRect(x: 100, y: 100, width: 300, height: 300), scores)
-    #expect(c >= 0 && c <= 1)
-}
-
-@Test(.overlayExclusive) func nextToItIgnoresContent() async {
+@Test(.overlayExclusive) func followUpsAppearWhereTheFirstAnswerDid() async throws {
     let overlay = BuddyOverlayController(observesSystem: false)
-    overlay.placementMode = .nextToIt
-    let screenFrame = ScreenSpace.topLeft(NSScreen.screens[0].frame)
-    let anchor = Anchor.rect(CGRect(x: screenFrame.midX - 60, y: screenFrame.minY + 200, width: 120, height: 20))
-    let snap = DisplaySnapshot(image: snapshotImage(width: 400, height: 250, busy: [CGRect(x: 0, y: 0, width: 400, height: 250)]),
-                               displayID: NSScreen.screens[0].displayID, frame: screenFrame, scale: 400 / screenFrame.width)
-    overlay.showAnswer(answer(.card), anchor: anchor, snapshot: snap)
+    let v = mainVisible
+    overlay.showAnswer(answer(.card, turn: 1), anchor: .point(CGPoint(x: v.minX + 300, y: v.minY + 260)))
     await overlay.presentationFinished()
-    #expect(overlay.model.scores == nil)
+    let first = try #require(shownPlacement(overlay))
+    // Asked again with the pointer elsewhere on the same display: same spot, same side.
+    overlay.showAnswer(answer(.card, turn: 2), anchor: .point(CGPoint(x: v.maxX - 250, y: v.maxY - 260)))
+    await overlay.presentationFinished()
+    let second = try #require(shownPlacement(overlay))
+    #expect(second.frame.origin == first.frame.origin)
+    #expect(second.edge == first.edge)
+    // A new conversation starts over, next to its own anchor.
+    overlay.showAnswer(answer(.card, turn: 1), anchor: .point(CGPoint(x: v.maxX - 250, y: v.maxY - 260)))
+    await overlay.presentationFinished()
+    let third = try #require(shownPlacement(overlay))
+    #expect(third.frame.origin != first.frame.origin)
+    overlay.dismiss(.requested)
+}
+
+@Test(.overlayExclusive) func longAnswersScrollInsideTheCapInsteadOfBeingCut() async throws {
+    let overlay = BuddyOverlayController(observesSystem: false)
+    let v = mainVisible
+    let cap = BuddyOverlayController.maxHeight(style: .card, in: v)
+    let long = Answer(block: BuddyBlock(say: String(repeating: "This answer keeps going for a long while. ", count: 150),
+                                        shape: .card, actions: [.init(label: "Copy", prompt: "p")]),
+                      lane: Lane(mode: .quick, model: .haiku), conversation: .ember, turn: 1, replyHint: "r")
+    #expect(overlay.measureForTesting(long, style: .card).height > cap)
+    overlay.showAnswer(long, anchor: .point(CGPoint(x: v.midX - 300, y: v.minY + 200)))
+    await overlay.presentationFinished()
+    let p = try #require(shownPlacement(overlay))
+    #expect(p.frame.height <= cap)
+    #expect(overlay.model.answerScrolls)
+    // A short answer is exactly as tall as its content, and doesn't scroll.
+    overlay.showAnswer(answer(.card, turn: 1), anchor: .point(CGPoint(x: v.midX - 300, y: v.minY + 200)))
+    await overlay.presentationFinished()
+    let short = try #require(shownPlacement(overlay))
+    #expect(short.frame.height == overlay.measureForTesting(answer(.card, turn: 1), style: .card).height)
+    #expect(!overlay.model.answerScrolls)
+    overlay.dismiss(.requested)
+}
+
+@Test(.overlayExclusive) func longCardHTMLShowsAtFullHeightAndTheCardScrolls() async throws {
+    let overlay = BuddyOverlayController(observesSystem: false)
+    let v = mainVisible
+    let html = (1...160).map { "<p>Row \($0): a line of the answer with a <a href=\"https://example.com\">link</a>.</p>" }.joined()
+    let a = Answer(block: BuddyBlock(say: "Here is everything.", shape: .card, cardHTML: html),
+                   lane: Lane(mode: .quick, model: .haiku), conversation: .ember, turn: 1, replyHint: "r")
+    overlay.showAnswer(a, anchor: .point(CGPoint(x: v.midX - 300, y: v.minY + 200)))
+    await overlay.presentationFinished()
+    // The height report may come after the load budget: wait for it (and the re-layout).
+    let deadline = ContinuousClock.now + .seconds(8)
+    while overlay.model.web?.contentHeight == nil || overlay.model.webHeight != overlay.model.web?.contentHeight,
+          ContinuousClock.now < deadline {
+        try await Task.sleep(for: .milliseconds(50))
+    }
+    let content = try #require(overlay.model.web?.contentHeight)
+    #expect(overlay.model.webHeight == content)  // never shrunk: the card's body scrolls instead
+    #expect(overlay.model.answerScrolls)
+    #expect(try #require(shownPlacement(overlay)).frame.height <= BuddyOverlayController.maxHeight(style: .card, in: v))
+    overlay.dismiss(.requested)
+}
+
+@Test(.overlayExclusive) func longActionLabelsWrapInsteadOfTruncating() {
+    let overlay = BuddyOverlayController(observesSystem: false)
+    func card(_ labels: [String]) -> Answer {
+        Answer(block: BuddyBlock(say: "Done.", shape: .card, actions: labels.map { .init(label: $0, prompt: "p") }),
+               lane: Lane(mode: .quick, model: .haiku), conversation: .ember, turn: 1, replyHint: "r")
+    }
+    let short = overlay.measureForTesting(card(["Open", "Copy"]), style: .card)
+    let long = overlay.measureForTesting(card(["Loosen the date filter to include last week",
+                                               "Rebuild the weekly report", "Explain the change"]), style: .card)
+    #expect(long.width == short.width)
+    #expect(long.height > short.height + 40)  // one button per line
+    // A label longer than the card wraps onto a second line rather than ending in "…".
+    let oneLine = overlay.measureForTesting(card(["Draft a note to finance", "Copy"]), style: .card)
+    let wrapped = overlay.measureForTesting(card([
+        "Draft a note to finance explaining the March variance and the April forecast change", "Copy",
+    ]), style: .card)
+    #expect(wrapped.height > oneLine.height + 10)
+}
+
+@Test(.overlayExclusive) func onAShortDisplayTheCapLeavesASpotClearOfTheZones() {
+    let small = CGRect(x: 0, y: 25, width: 1024, height: 743)
+    let zones = Placer.reservedZones(in: small)
+    let cap = BuddyOverlayController.maxHeight(style: .card, in: small)
+    #expect(cap < small.height * BuddyOverlayController.maxHeightFraction)  // the zones, not 80%, set it here
+    for anchor in [CGPoint(x: 20, y: 40), CGPoint(x: 512, y: 40), CGPoint(x: 512, y: 700), CGPoint(x: 1000, y: 400)] {
+        let p = Placer.place(size: CGSize(width: BuddyOverlayController.cardWidth, height: cap), anchor: .point(anchor),
+                             in: small, style: .card, reserved: zones)
+        #expect(!zones.contains { $0.intersects(p.frame) }, "clear of the zones from \(anchor)")
+    }
+    // On a roomy display the 80% cap holds.
+    #expect(BuddyOverlayController.maxHeight(style: .card, in: screen) == (screen.height * 0.8).rounded(.down))
+}
+
+@Test(.overlayExclusive) func focusingACardMakesRoomForTheReplyField() async throws {
+    let overlay = BuddyOverlayController(observesSystem: false)
+    let v = mainVisible
+    let quiet = Answer(block: BuddyBlock(say: "Done.", shape: .card), lane: Lane(mode: .quick, model: .haiku),
+                       conversation: .ember, turn: 1, replyHint: "")
+    overlay.showAnswer(quiet, anchor: .point(CGPoint(x: v.midX - 300, y: v.minY + 200)))
+    await overlay.presentationFinished()
+    overlay.focusChanged(true)
+    let p = try #require(shownPlacement(overlay))
+    #expect(p.frame.height == overlay.measureForTesting(quiet, style: .card).height)  // measured with the field
+    overlay.focusChanged(false)
     overlay.dismiss(.requested)
 }
 
@@ -593,16 +688,6 @@ private struct LCG {
     #expect(overlay.model.hitFrames == [OverlayModel.outerFrame(p, style: style)])
     #expect(!overlay.model.hitFrames.contains { $0.contains(CGPoint(x: p.frame.minX - 40, y: p.frame.midY)) })
     overlay.dismiss(.requested)
-}
-
-@Test(.overlayExclusive) func pageAnchorsRouteByMode() {
-    let page = Anchor.page(CGPoint(x: 700, y: 400))
-    // Smart and Next to it: emptiest region, no tail. Centre: centred.
-    let smart = BuddyOverlayController.place(size: card, anchor: page, in: screen, style: Placer.style(for: .card, mode: .smart), scores: nil)
-    #expect(smart.tailOffset == nil && smart.edge == .centered)
-    #expect(smart.frame.maxX == screen.maxX - Placer.edgeMargin)  // fallback: trailing middle
-    let centre = BuddyOverlayController.place(size: card, anchor: page, in: screen, style: Placer.style(for: .card, mode: .centre), scores: nil)
-    #expect(abs(centre.frame.midX - screen.midX) <= 1)
 }
 
 @Test(.overlayExclusive) func newAnswerLeavesFullScreen() async throws {
@@ -1230,10 +1315,10 @@ private func lumImage(width: Int, height: Int, outside: CGFloat, inside: CGFloat
     #expect(!AnswerContent.inksIn(setting: false, sizing: false, reduceMotion: false))
     #expect(!AnswerContent.inksIn(setting: true, sizing: true, reduceMotion: false))
     #expect(!AnswerContent.inksIn(setting: true, sizing: false, reduceMotion: true))
-    // Glow: off means level 0, so no stroke or shadow is drawn.
-    #expect(OverlayRootView.glowLevel(speaking: true, glow: false, speech: 0.8) == 0)
-    #expect(OverlayRootView.glowLevel(speaking: true, glow: true, speech: 0.8) == 0.8)
-    #expect(OverlayRootView.glowLevel(speaking: false, glow: true, speech: 0.8) == 0)
+    // Glow: off, or not speaking, means no glow timeline at all.
+    #expect(!OverlayRootView.glowRuns(speaking: true, glow: false))
+    #expect(OverlayRootView.glowRuns(speaking: true, glow: true))
+    #expect(!OverlayRootView.glowRuns(speaking: false, glow: true))
 }
 // MARK: Toasts, conversation chips, fold into listening
 
@@ -1246,35 +1331,6 @@ private func lumImage(width: Int, height: Int, outside: CGFloat, inside: CGFloat
     #expect(overlay.model.toast?.text == "Discarded")
     #expect(overlay.model.toast?.origin == CGPoint(x: pointer.x + 18, y: pointer.y - 30))
     #expect(await eventually { overlay.model.toast == nil })
-}
-
-@Test(.overlayExclusive) func backChipTimesOutAndHidesWhenClicked() async {
-    let overlay = BuddyOverlayController(observesSystem: false)
-    overlay.backChipDuration = .milliseconds(150)
-    let screen = ScreenSpace.topLeft(NSScreen.screens[0].visibleFrame)
-    let pointer = CGPoint(x: screen.midX, y: screen.midY)
-    overlay.showBackChip(title: "The empty list", at: pointer)
-    #expect(overlay.model.conversationChip?.label == "↩ Back to ‘The empty list’")
-    #expect(overlay.model.conversationChip?.origin == CGPoint(x: pointer.x + 18, y: pointer.y + 8))
-    let display = ScreenSpace.topLeft(NSScreen.screens[0].frame)
-    #expect(overlay.model.hitFrames(onDisplay: display).count == 1)   // the chip takes clicks
-    #expect(await eventually { overlay.model.conversationChip == nil })
-    overlay.backChipDuration = .seconds(30)
-    overlay.showBackChip(title: "x", at: pointer)
-    overlay.chipClickedForTesting(.backToPrevious)
-    #expect(overlay.model.conversationChip == nil)
-}
-
-@Test(.overlayExclusive) func resumeChipStaysUntilTheNextSummon() async throws {
-    let overlay = BuddyOverlayController(observesSystem: false)
-    let pointer = CGPoint(x: 400, y: 400)
-    overlay.showResumeChip(title: "QT research", detail: nil, at: pointer)
-    #expect(overlay.model.conversationChip?.label == "Resume ‘QT research’")
-    try await Task.sleep(for: .milliseconds(300))
-    #expect(overlay.model.conversationChip != nil)
-    overlay.showListening(at: pointer, hint: "h")
-    #expect(overlay.model.conversationChip == nil)
-    overlay.dismiss(.requested)
 }
 
 @Test(.overlayExclusive) func listeningFoldsAnOpenCardFirst() async {
@@ -1294,13 +1350,10 @@ private func lumImage(width: Int, height: Int, outside: CGFloat, inside: CGFloat
     #expect(await awaitEvent(overlay.events) { if case .dismissed(let r) = $0 { r == .requested } else { false } })
 }
 
-@Test(.overlayExclusive) func fakeRecordsToastsAndChips() {
+@Test(.overlayExclusive) func fakeRecordsToasts() {
     let fake = FakeOverlay()
     fake.showToast("Cancelled", at: .zero)
-    fake.showBackChip(title: "a", at: .zero)
-    fake.showResumeChip(title: "b", detail: nil, at: .zero)
-    fake.hideConversationChip()
-    #expect(fake.calls == [.toast("Cancelled"), .backChip("a"), .resumeChip("b"), .hideChip])
+    #expect(fake.calls == [.toast("Cancelled")])
 }
 
 // MARK: Toasts review regressions
@@ -1316,24 +1369,6 @@ private func lumImage(width: Int, height: Int, outside: CGFloat, inside: CGFloat
     #expect(await eventually { overlay.model.surface == .none })  // listening never started
 }
 
-@Test(.overlayExclusive) func dismissHidesTheResumeChip() async {
-    let overlay = BuddyOverlayController(observesSystem: false)
-    overlay.showAnswer(answer(.card), anchor: .point(CGPoint(x: 400, y: 400)))
-    await overlay.presentationFinished()
-    overlay.showResumeChip(title: "QT", detail: nil, at: CGPoint(x: 400, y: 500))
-    overlay.dismiss(.escape)
-    #expect(overlay.model.conversationChip == nil)
-    #expect(await eventually { overlay.visiblePanelCountForTesting == 0 })
-}
-
-@Test(.overlayExclusive) func chipNearTheRightEdgeIsPulledBackInside() {
-    let model = OverlayModel()
-    let bounds = CGRect(x: 0, y: 33, width: 1512, height: 949)
-    model.conversationChipBounds = bounds
-    model.conversationChip = OverlayModel.ConversationChip(kind: .back, title: "x", origin: CGPoint(x: 1400, y: 500))
-    model.conversationChipSize = CGSize(width: 340, height: 32)
-    #expect((model.conversationChipFrame?.maxX ?? .infinity) <= bounds.maxX - Placer.edgeMargin)
-}
 // MARK: Listening hint
 
 @Test(.overlayExclusive) func listeningHintUpdatesInPlace() async throws {
@@ -1394,9 +1429,9 @@ private func lumImage(width: Int, height: Int, outside: CGFloat, inside: CGFloat
 }
 
 @Test func answerTypeFollowsTheMacScale() {
-    // Headline 15, chip line 14, body 13, buttons 12, labels 11.
+    // Headline 15, chip line 14, body 13, labels 11 (buttons are 12, in PillButtonStyle).
     let sizes: [(Font, CGFloat)] = [(Typeface.headline, 15), (Typeface.chipHeadline, 14), (Typeface.detail, 13),
-                                    (Typeface.button, 12), (Typeface.label, 11), (Typeface.labelStrong, 11)]
+                                    (Typeface.label, 11), (Typeface.labelStrong, 11)]
     for (font, size) in sizes {
         let measured = NSHostingView(rootView: Text("Hg").font(font).fixedSize()).fittingSize.height
         let reference = NSHostingView(rootView: Text("Hg").font(.system(size: size)).fixedSize()).fittingSize.height

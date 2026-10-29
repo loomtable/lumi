@@ -5,7 +5,7 @@ import BuddyCore
 import Foundation
 
 /// The coordinator's conversations over BuddyConversations' index: continue by
-/// default, fresh after the idle limit or for another project, ⌘N, and every turn saved with its
+/// default, fresh after the idle limit or on ⌘N, and every turn saved with its
 /// Claude Code session ids so a conversation resumes after relaunch and Forget can delete them.
 ///
 /// The index keeps no transcripts, so the last three Q/A texts live in memory; the cascade
@@ -41,8 +41,6 @@ public final class LiveConversations: ConversationPort {
     private var turns: [String: [TranscriptTurn]] = [:]
     private let reader: TranscriptReader?
     private var loading: Set<String> = []
-    /// Forgotten this run: a detail read that was under way when Forget ran returns nothing.
-    private var forgotten: Set<String> = []
     /// Bumped on every temporary-mode switch, so a slow read can't land in the other index.
     private var indexGeneration = 0
     /// The last call queued; each call waits for it before running.
@@ -71,18 +69,15 @@ public final class LiveConversations: ConversationPort {
 
     public func update(_ state: ConversationState) async {
         await serial { await self.performUpdate(state) }
-        turnsChanged()
     }
 
     public func recordTurn(conversationID id: String, question: String, answer: String) async -> ConversationTurn? {
-        defer { turnsChanged() }
-        return await serial { await self.performRecordTurn(conversationID: id, question: question, answer: answer) }
+        await serial { await self.performRecordTurn(conversationID: id, question: question, answer: answer) }
     }
 
     /// A shown answer with what full screen needs: also appended to the conversation's turns.
     public func record(_ turn: TranscriptTurn, conversationID id: String) async -> ConversationTurn? {
-        defer { turnsChanged() }
-        return await serial {
+        await serial {
             let result = await self.performRecordTurn(conversationID: id, question: turn.question, answer: turn.block.say)
             guard !self.retired.contains(id) else { return result }
             self.turns[id, default: []].append(turn)
@@ -96,10 +91,6 @@ public final class LiveConversations: ConversationPort {
     @discardableResult
     public func startNew() async -> ConversationTurn {
         await serial { await self.performStartNew() }
-    }
-
-    public func goBack() async -> ConversationTurn? {
-        await serial { await self.performGoBack() }
     }
 
     public func switchTo(_ id: String) async -> ConversationTurn? {
@@ -129,49 +120,8 @@ public final class LiveConversations: ConversationPort {
 
     // MARK: The shell's calls
 
-    /// "Resume" from the Conversations window: that conversation is current from the next question.
-    /// Nil: it's gone. Throws when the index couldn't be read, so the window can say so.
-    @discardableResult
-    public func resume(_ id: String) async throws -> ConversationRecord? {
-        try await serial { await self.performResume(id) }.get()
-    }
-
-    /// The conversation the next question continues, for the window's "current" mark.
-    public func currentID() async -> String? {
-        await serial { self.current?.state.id }
-    }
-
-    /// The Conversations window's detail: a conversation's shown turns, oldest first. This run's
-    /// turns when it has them all, else Claude Code's session files read off the main actor, ahead
-    /// of any recorded meanwhile. Temporary mode: memory only. Empty for an unknown id.
-    public func transcript(_ id: String) async -> [TranscriptTurn] {
-        let generation = indexGeneration
-        let recent = retired.contains(id) ? [] : turns[id] ?? []
-        // Recorded this run, or already merged with what the session files had.
-        if !recent.isEmpty, !loading.contains(id) { return recent }
-        guard let reader, !(await manager.isTemporary), let record = try? await manager.record(id: id) else { return recent }
-        let earlier = await Task.detached(priority: .userInitiated) { reader.turns(for: record) }.value
-        // A temporary-mode switch or Forget since then: those turns aren't this index's any more.
-        guard generation == indexGeneration, !forgotten.contains(id), !retired.contains(id) else { return [] }
-        // Turns recorded (or merged in) while the files were read.
-        let latest = turns[id] ?? []
-        return earlier.filter { old in !latest.contains { $0.question == old.question && $0.block == old.block } } + latest
-    }
-
-    /// "Forget this" from the Conversations window. Nil, and nothing deleted, when it changed
-    /// since `request` was shown. A forgotten conversation leaves memory too: if it was current,
-    /// the next question starts fresh instead of resuming its deleted session.
-    public func forget(_ request: ForgetRequest) async throws -> ForgetReport? {
-        try await serial { () async -> Result<ForgetReport?, IndexError> in
-            let result: Result<ForgetReport?, IndexError>
-            do throws(IndexError) { result = .success(try await self.manager.forget(request)) } catch { result = .failure(error) }
-            if case .success(.some) = result { self.drop(request.id) }
-            return result
-        }.get()
-    }
-
-    /// Settings › Conversations › Temporary, from Settings or the Conversations window. Turns
-    /// waiting to be saved are saved first when going temporary, and dropped when leaving it.
+    /// Settings › Privacy › Temporary mode. Turns waiting to be saved are saved first when going
+    /// temporary, and dropped when leaving it.
     public func setTemporary(_ on: Bool) async throws {
         let result: Result<Void, IndexError> = await serial { await self.performSetTemporary(on) }
         try result.get()
@@ -195,7 +145,7 @@ public final class LiveConversations: ConversationPort {
         do {
             let prepared = try await manager.prepare(projectFolder: project)
             await loadTurns(prepared.record)
-            return adopt(prepared, notice: await notice(for: prepared.chips))
+            return adopt(prepared)
         } catch {
             return failedOver(fresh: false)
         }
@@ -220,6 +170,8 @@ public final class LiveConversations: ConversationPort {
         } else {
             questions[id] = question
         }
+        // Persisted, so a relaunch or Resume still has it (a row not saved yet gets it on save).
+        try? await manager.setRecap(previous[id] ?? [], for: id)
         guard var turn = current, turn.state.id == id else { return nil }
         turn.turn += 1
         turn.previous = previous[id] ?? []
@@ -231,7 +183,7 @@ public final class LiveConversations: ConversationPort {
         await saveStale()
         do {
             let prepared = try await manager.newConversation()
-            return adopt(prepared, notice: await notice(for: prepared.chips))
+            return adopt(prepared)
         } catch {
             return failedOver(fresh: true)
         }
@@ -248,33 +200,12 @@ public final class LiveConversations: ConversationPort {
         }
     }
 
-    /// A forgotten conversation leaves memory: its recap and turns, and `current` if it was. Its
-    /// unsaved session ids stay, and late updates still reach `manager.finish`, which deletes the
-    /// session files a question still running in it creates (and saves nothing).
-    private func drop(_ id: String) {
-        forgotten.insert(id)
-        untitled.remove(id)
-        previous[id] = nil
-        turns[id] = nil
-        loading.remove(id)
-        if current?.state.id == id { current = nil }
-    }
-
-    private func performGoBack() async -> ConversationTurn? {
-        await saveStale()
-        guard let record = try? await manager.goBack() else { return nil }
-        await become(record)
-        return current
-    }
-
-    /// `record` is current from the next question, with its stored sessions.
+    /// `record` is current from the next question, with its stored sessions, Deep folder, recap and
+    /// when Deep last answered (a resumed Deep conversation follows up on Deep, with its recap).
     private func become(_ record: ConversationRecord) async {
         await loadTurns(record)
-        var state = ConversationState(id: record.id)
-        state.quickSessionID = record.quickSessionID
-        state.deepSessionID = record.deepSessionID
-        state.lastLane = record.lastLane
-        state.deepFolder = record.projectFolder.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        let state = record.bridgeState
+        if previous[record.id] == nil, !record.recap.isEmpty { previous[record.id] = record.recap }
         retired.remove(record.id)
         known.insert(record.id)
         current = ConversationTurn(state: state, color: record.color, turn: record.turns, previous: previous[record.id] ?? [],
@@ -310,40 +241,18 @@ public final class LiveConversations: ConversationPort {
 
     // MARK: Helpers
 
-    /// Tells an open Conversations window to re-read, so its detail shows the new turn.
-    private func turnsChanged() {
-        NotificationCenter.default.post(name: ConversationHistoryModel.turnsChanged, object: nil)
-    }
-
-    private func adopt(_ prepared: PreparedConversation, notice: ConversationNotice? = nil) -> ConversationTurn {
+    private func adopt(_ prepared: PreparedConversation) -> ConversationTurn {
         // Within a session the cached state is newer than the index (Go deeper's last answer).
         let state = current?.state.id == prepared.id ? current!.state : prepared.bridgeState
+        // After a relaunch the recap comes from the index, so a continued conversation keeps it.
+        if previous[prepared.id] == nil, let recap = prepared.record?.recap, !recap.isEmpty { previous[prepared.id] = recap }
         let turn = ConversationTurn(state: state, color: prepared.color, turn: prepared.record?.turns ?? current?.turn ?? 0,
-                                    previous: previous[prepared.id] ?? [], turns: turns[prepared.id] ?? [], notice: notice)
+                                    previous: previous[prepared.id] ?? [], turns: turns[prepared.id] ?? [])
         // The current index handed it out, so it belongs to this index again.
         retired.remove(prepared.id)
         known.insert(prepared.id)
         current = turn
         return turn
-    }
-
-    /// The Back or Resume chip for a fresh start, when the conversation left behind was saved
-    /// (one that never finished a turn has no row to go back to). "Keep in the old one" isn't
-    /// offered yet.
-    private func notice(for chips: [ConversationChip]) async -> ConversationNotice? {
-        for chip in chips {
-            switch chip {
-            case .back(let id, _):
-                if let record = try? await manager.record(id: id) { return .back(title: record.title) }
-            case .resume(let id):
-                if let record = try? await manager.record(id: id) {
-                    return .resume(id: id, title: record.title, lastUsed: record.lastUsed)
-                }
-            case .keepInOld:
-                break
-            }
-        }
-        return nil
     }
 
     /// A saved conversation returning for the first time this session (continued after relaunch,
@@ -386,6 +295,7 @@ public final class LiveConversations: ConversationPort {
         do {
             _ = try await manager.finish(id: id, update: TurnUpdate(state), utterance: question)
             if question.isEmpty { untitled.insert(id) }
+            if let recap = previous[id] { try await manager.setRecap(recap, for: id) }
             onSaveProblem(false)
         } catch {
             onSaveProblem(true)
@@ -396,34 +306,4 @@ public final class LiveConversations: ConversationPort {
     private func saveStale() async {
         for id in Array(unsaved.keys) { await save(id, question: questions.removeValue(forKey: id) ?? "") }
     }
-}
-
-/// The Conversations window's source: reads straight from the index, while Resume, Forget and
-/// temporary mode go through `LiveConversations`, so they keep the port's call order.
-public struct LiveHistorySource: ConversationHistorySource {
-    private let manager: ConversationManager
-    private let conversations: LiveConversations
-
-    public init(conversations: LiveConversations) {
-        self.manager = conversations.manager
-        self.conversations = conversations
-    }
-
-    public func list(limit: Int, offset: Int) async throws -> [ConversationRecord] {
-        try await manager.list(limit: limit, offset: offset)
-    }
-
-    public func search(_ query: String) async throws -> [ConversationRecord] { try await manager.search(query) }
-    public func resume(_ id: String) async throws -> ConversationRecord? { try await conversations.resume(id) }
-    public func currentID() async -> String? { await conversations.currentID() }
-    /// The window's prune on a "Keep for" change, before it reloads: the same rule as AppRuntime's
-    /// (idempotent with it; never the current conversation or the ↩ Back target).
-    public func prune(retentionDays days: Int) async throws {
-        try await manager.prune(unusedSince: Date().addingTimeInterval(-TimeInterval(days) * 86_400))
-    }
-    public func prepareForget(_ id: String) async throws -> ForgetRequest? { try await manager.prepareForget(id) }
-    public func forget(_ request: ForgetRequest) async throws -> ForgetReport? { try await conversations.forget(request) }
-    public func turns(_ id: String) async -> [TranscriptTurn] { await conversations.transcript(id) }
-    public func isTemporary() async -> Bool { await manager.isTemporary }
-    public func setTemporary(_ on: Bool) async throws { try await conversations.setTemporary(on) }
 }

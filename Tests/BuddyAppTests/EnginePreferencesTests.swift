@@ -70,8 +70,10 @@ struct EnginePreferencesMappingTests {
         return SettingsStore(defaults: UserDefaults(suiteName: suite)!)
     }
 
+    /// v1 parity: with every v2 flag off, the defaults are the v1 engine's.
     @Test func defaultsMapToTheEngineDefaults() {
-        let prefs = EnginePreferences(store: store())
+        let prefs = EnginePreferences(store: store(), features: .allOff)
+        #expect(prefs.keys.dictationKey == nil, "no dictation key with the flag off")
         var expected = BuddyCoordinator.Settings()
         expected.keySymbol = BuddyKey.rightOption.symbol
         #expect(prefs.coordinator == expected)

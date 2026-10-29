@@ -1,11 +1,13 @@
 # buddy plugin
 
-The Claude Code plugin Lumi runs every question through. The app copies it to
-`~/Library/Application Support/com.loomtable.lumi/plugin` and passes `--plugin-dir` to each `claude` process.
+The Claude Code plugin behind Lumi's Quick, Deep and Research lanes. The app copies it to
+`~/Library/Application Support/com.loomtable.lumi/plugin` and passes `--plugin-dir` to each of those `claude` processes.
+Open sessions (typed turns, and Quick's hand-offs within a session) are the user's own Claude Code and don't load the plugin:
+on voice turns only, Lumi sends `buddy-answer`'s rules plus `open.md` inside a `<lumi-voice>` envelope.
 
 | Part | Role |
 | --- | --- |
-| `skills/buddy-answer` | How to answer: the `buddy` block (`say` first), shapes, voice, card HTML, handoff. |
+| `skills/buddy-answer` | How to answer: the `buddy` block (`say` first), shapes, voice, card HTML, handoff. `open.md` adds the rules for voice turns in an open session. |
 | `skills/find-context` | Deep: packet → project, files, recent session, git, browser. |
 | `agents/buddy-quick.md` | Quick lane main agent (Haiku, low effort, Read/Glob/Grep only). |
 | `agents/buddy-deep.md`, `buddy-research.md` | Deep and Research lanes (Opus; high and max effort). |

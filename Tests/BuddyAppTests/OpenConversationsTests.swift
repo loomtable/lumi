@@ -5,11 +5,11 @@ import BuddyOverlay
 import Testing
 
 extension BuddyCoordinatorTests {
-    @Test func commandYInACardAsksTheShellForTheConversationsWindow() async {
+    @Test func commandYInACardAsksTheShellForTheLumiWindow() async {
         bridge.setScript([Self.done(BuddyBlock(say: "It's QT.", shape: .card))])
         let coordinator = makeCoordinator()
         var opened = 0
-        coordinator.onOpenConversations = { opened += 1 }
+        coordinator.onOpenLumiWindow = { opened += 1 }
         await tapToTalk(coordinator)
         overlay.send(.openConversations)
         await settle(until: { opened == 1 })
@@ -18,11 +18,11 @@ extension BuddyCoordinatorTests {
         #expect(bridge.asked.count == 1, "no model turn")
     }
 
-    @Test func popOutOnARichCardOpensTheConversationsWindow() async {
+    @Test func popOutOnARichCardWithoutThePanelOpensTheLumiWindow() async {
         bridge.setScript([Self.done(BuddyBlock(say: "It's QT.", shape: .card))])
         let coordinator = makeCoordinator()
         var opened = 0
-        coordinator.onOpenConversations = { opened += 1 }
+        coordinator.onOpenLumiWindow = { opened += 1 }
         await tapToTalk(coordinator)
         overlay.send(.popOut)
         await settle(until: { opened == 1 })
