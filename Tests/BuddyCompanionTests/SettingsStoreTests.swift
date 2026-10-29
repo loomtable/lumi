@@ -148,3 +148,20 @@ struct SettingsStoreTests {
         #expect(!FileManager.default.fileExists(atPath: URL.libraryDirectory.appending(path: "Preferences/" + file).path))
     }
 }
+
+@MainActor
+struct DockPreferencesTests {
+    @Test func showInDockIsOnByDefaultAndSaved() throws {
+        let t = TestDefaults()
+        let store = SettingsStore(defaults: t.defaults)
+        #expect(store.dock.showInDock, "on by default")
+        store.dock.showInDock = false
+        #expect(!SettingsStore(defaults: t.defaults).dock.showInDock, "kept across launches")
+        store.resetAll()
+        #expect(store.dock.showInDock)
+        // A section saved before the field existed reads as on.
+        t.defaults.set(Data("{}".utf8), forKey: DockPreferences.storageKey)
+        #expect(SettingsStore(defaults: t.defaults).dock.showInDock)
+        #expect(SettingsPage.general.storageKeys.contains(DockPreferences.storageKey), "on Settings › General")
+    }
+}

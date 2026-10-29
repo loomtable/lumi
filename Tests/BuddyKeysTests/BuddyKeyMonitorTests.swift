@@ -203,7 +203,14 @@ struct BuddyKeyMonitorTests {
         try await monitor.start()
         for i in 0..<50 { down(at: UInt64(i) * 1000); up(at: UInt64(i) * 1000 + 50) }
         await monitor.stop()
-        let countAtStop = events.all.count
+        // Events yielded before stop() may still be on their way into the recorder: let it settle.
+        var countAtStop = events.all.count
+        while true {
+            try await Task.sleep(for: .milliseconds(20))
+            let now = events.all.count
+            if now == countAtStop { break }
+            countAtStop = now
+        }
         try await Task.sleep(for: .milliseconds(200))
         #expect(events.all.count == countAtStop)
         #expect(clock.sleeperCount == 0)

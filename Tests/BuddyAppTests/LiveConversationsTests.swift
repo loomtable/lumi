@@ -47,32 +47,24 @@ struct LiveConversationsTests {
         return turn
     }
 
-    @Test func aNewConversationOffersBackToTheSavedOneAndGoesBack() async throws {
+    @Test func aNewConversationTakesTheNextQuestionAndTheOldOneCanBePicked() async throws {
         let c = try live()
         let old = await saved(c, "refund flow")
         let fresh = await c.startNew()
-        #expect(fresh.notice == .back(title: "refund flow"))
-        let back = await c.goBack()
-        #expect(back?.state.id == old.state.id && back?.state.quickSessionID == "q-11")
-        #expect(await c.prepare(project: nil).state.id == old.state.id, "the next question continues the old one")
+        #expect(await c.prepare(project: nil).state.id == fresh.state.id)
+        let picked = await c.switchTo(old.state.id)
+        #expect(picked?.state.id == old.state.id && picked?.state.quickSessionID == "q-11")
+        #expect(await c.prepare(project: nil).state.id == old.state.id, "the next question continues the picked one")
     }
 
-    @Test func afterTheIdleLimitTheFreshOneOffersResume() async throws {
+    @Test func afterTheIdleLimitTheNextQuestionStartsFresh() async throws {
         let clock = ManualConversationClock()
         let c = try live(clock: clock)
         let old = await saved(c, "heat pumps")
         clock.advance(26 * 3600)
         let fresh = await c.prepare(project: nil)
         #expect(fresh.state.id != old.state.id)
-        guard case .resume(let id, let title, _) = fresh.notice else { Issue.record("no resume offer"); return }
-        #expect(id == old.state.id && title == "heat pumps")
-        #expect(await c.switchTo(id)?.state.id == old.state.id)
-    }
-
-    @Test func nothingToGoBackToWithoutANewConversation() async throws {
-        let c = try live()
-        _ = await saved(c, "one")
-        #expect(await c.goBack() == nil)
+        #expect(await c.switchTo(old.state.id)?.state.id == old.state.id, "still there to pick")
     }
 
     @Test func theQuestionCanArriveBeforeTheSessionIDs() async throws {
@@ -105,7 +97,7 @@ struct LiveConversationsTests {
         _ = await before.recordTurn(conversationID: turn.state.id, question: "draw it", answer: "Here.")
 
         let after = try live(try ConversationIndex(url: url))
-        try await after.resume(turn.state.id)
+        _ = await after.switchTo(turn.state.id)
         #expect(after.current?.state.id == turn.state.id && after.current?.state.quickSessionID == "q1")
         #expect(after.current?.turn == 1)
         let next = await after.prepare(project: nil)
@@ -164,18 +156,6 @@ struct LiveConversationsTests {
         #expect(titles.contains("why is this list empty?") && !titles.contains("Untitled"))
     }
 
-    @Test func resumeFromTheWindowGoesThroughTheQueue() async throws {
-        let c = try live()
-        let a = await c.prepare(project: nil)
-        await c.update(done(a, quick: "q-a"))
-        _ = await c.recordTurn(conversationID: a.state.id, question: "about A", answer: "…")
-        _ = await c.startNew()
-        let source = LiveHistorySource(conversations: c)
-        let record = try await source.resume(a.state.id)
-        #expect(record?.id == a.state.id && c.current?.state.id == a.state.id && c.current?.state.quickSessionID == "q-a")
-        #expect(await c.prepare(project: nil).state.id == a.state.id)
-    }
-
     @Test func recordedTurnsReachFullScreen() async throws {
         let c = try live()
         let a = await c.prepare(project: nil)
@@ -207,68 +187,13 @@ struct LiveConversationsTests {
         try s.write(to: projects, id: quick)
 
         let after = try live(try ConversationIndex(url: indexURL), reader: TranscriptReader(root: dir.appending(path: "claude")))
-        try await after.resume(a.state.id)                          // from the Conversations window
+        _ = await after.switchTo(a.state.id)
         #expect(after.current?.state.id == a.state.id)
         for _ in 0..<200 where after.current?.turns.isEmpty != false { try await Task.sleep(for: .milliseconds(5)) }
         #expect(after.current?.turns.map(\.question) == ["why is this list empty?"])
         #expect(after.current?.turns.first?.block.say == "Your filter.")
         let next = await after.prepare(project: nil)
         #expect(next.turns.count == 1, "the next question keeps them")
-    }
-
-    @Test func theWindowsDetailShowsThisRunsTurnsAndNothingForAnUnknownID() async throws {
-        let c = try live()
-        let a = await c.prepare(project: nil)
-        await c.update(done(a, quick: "q1"))
-        _ = await c.record(shown("one", "1"), conversationID: a.state.id)
-        _ = await c.record(shown("two", "2"), conversationID: a.state.id)
-        // As the window holds it, so a missing implementation can't hide behind the default.
-        let source: any ConversationHistorySource = LiveHistorySource(conversations: c)
-        #expect(await source.turns(a.state.id).map(\.question) == ["one", "two"])
-        #expect(await source.turns("c_nope").isEmpty)
-    }
-
-    @Test func afterARelaunchTheWindowsDetailReadsTheSessionFiles() async throws {
-        let dir = FileManager.default.temporaryDirectory.appending(path: "live-detail-\(UUID().uuidString)")
-        let projects = dir.appending(path: "claude/projects/-Users-me")
-        try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let indexURL = dir.appending(path: "index.sqlite")
-        let quick = UUID().uuidString
-        let before = try live(try ConversationIndex(url: indexURL))
-        let a = await before.prepare(project: nil)
-        await before.update(done(a, quick: quick))
-        _ = await before.record(shown("why is this list empty?", "Your filter."), conversationID: a.state.id)
-        let s = TranscriptReaderTests.Session()
-        s.prompt("why is this list empty?", at: 1)
-        s.answer("Your filter.", id: "a1")
-        try s.write(to: projects, id: quick)
-
-        let after = try live(try ConversationIndex(url: indexURL), reader: TranscriptReader(root: dir.appending(path: "claude")))
-        let source: any ConversationHistorySource = LiveHistorySource(conversations: after)
-        let turns = await source.turns(a.state.id)
-        #expect(turns.map(\.question) == ["why is this list empty?"])
-        #expect(turns.first?.block.say == "Your filter.")
-        #expect(after.current == nil, "looking isn't resuming")
-    }
-
-    @Test func inTemporaryModeTheDetailNeverReadsSessionFiles() async throws {
-        let dir = FileManager.default.temporaryDirectory.appending(path: "live-temp-detail-\(UUID().uuidString)")
-        let projects = dir.appending(path: "claude/projects/-Users-me")
-        try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let c = try live(reader: TranscriptReader(root: dir.appending(path: "claude")))
-        try await c.setTemporary(true)
-        let quick = UUID().uuidString
-        let a = await c.prepare(project: nil)
-        await c.update(done(a, quick: quick))
-        // Saved without a shown turn in memory, and its session file is on disk.
-        _ = await c.recordTurn(conversationID: a.state.id, question: "one", answer: "1")
-        let s = TranscriptReaderTests.Session()
-        s.prompt("one", at: 1)
-        s.answer("1", id: "a1")
-        try s.write(to: projects, id: quick)
-        #expect(await c.transcript(a.state.id).isEmpty)
     }
 
     @Test func aConversationFromBeforeATemporaryRoundTripStillRecords() async throws {
@@ -278,7 +203,7 @@ struct LiveConversationsTests {
         _ = await c.record(shown("one", "1"), conversationID: a.state.id)
         try await c.setTemporary(true)
         try await c.setTemporary(false)
-        try await c.resume(a.state.id)
+        _ = await c.switchTo(a.state.id)
         _ = await c.prepare(project: nil)
         await c.update(done(a, quick: "q1"))
         let after = await c.record(shown("two", "2"), conversationID: a.state.id)
@@ -286,9 +211,9 @@ struct LiveConversationsTests {
     }
 }
 
-/// The Conversations window's calls: current mark, Forget, screenshots.
+/// Screenshots and Forget (Studio forgets through the session store, which calls the manager).
 @MainActor
-struct LiveHistorySourceTests {
+struct LiveConversationsForgetTests {
     let files = FakeSessionFiles()
 
     private func live() throws -> LiveConversations {
@@ -308,41 +233,11 @@ struct LiveHistorySourceTests {
         return turn
     }
 
-    @Test func theCurrentMarkFollowsResume() async throws {
-        let c = try live(), source = LiveHistorySource(conversations: c)
-        #expect(await source.currentID() == nil, "no conversation before the first question")
-        let old = await saved(c, "refund flow")
-        let fresh = await c.startNew()
-        _ = await saved(c, "pricing page")
-        #expect(await source.currentID() == fresh.state.id)
-        #expect(try await source.resume(old.state.id)?.id == old.state.id)
-        #expect(await source.currentID() == old.state.id)
-        #expect(try await source.resume("no-such-id") == nil, "gone, not an error")
-    }
-
-    @Test func forgettingTheCurrentConversationStartsTheNextQuestionFresh() async throws {
-        let c = try live(), source = LiveHistorySource(conversations: c)
-        let turn = await saved(c, "refund flow")
-        let request = try #require(try await source.prepareForget(turn.state.id))
-        #expect(try await source.forget(request) != nil)
-        #expect(await source.currentID() == nil && c.current == nil)
-        let next = await c.prepare(project: nil)
-        #expect(next.state.id != turn.state.id && next.state.quickSessionID == nil, "no resume of the deleted session")
-        #expect(next.previous.isEmpty)
-        // A question still running in it finishes: its new session file is deleted, nothing saved.
-        var late = turn.state
-        late.quickSessionID = "q-late"
-        await c.update(late)
-        _ = await c.recordTurn(conversationID: turn.state.id, question: "late", answer: "x")
-        #expect(files.deletedSessions.contains(["q-late"]))
-        #expect(try await c.manager.list().allSatisfy { $0.id != turn.state.id })
-    }
-
     @Test func aScreenshotArrivingAfterForgetIsDeleted() async throws {
         let c = try live()
         let turn = await saved(c, "refund flow")
         let request = try #require(try await c.manager.prepareForget(turn.state.id))
-        _ = try await c.forget(request)
+        _ = try await c.manager.forget(request)
         let shot = FileManager.default.temporaryDirectory.appending(path: "late-\(UUID().uuidString).png")
         try Data([1]).write(to: shot)
         defer { try? FileManager.default.removeItem(at: shot) }

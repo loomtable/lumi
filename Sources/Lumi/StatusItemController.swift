@@ -2,6 +2,7 @@ import AppKit
 import BuddyApp
 import BuddyCompanion
 import BuddyCore
+import BuddyOverlay
 import Observation
 import SwiftUI
 
@@ -14,8 +15,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let model: AppModel
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let menu = NSMenu()
-    private var pulse: Task<Void, Never>?
-    private var dim = false
     private var appearance: NSKeyValueObservation?
     private var displayOptions: (any NSObjectProtocol)?
 
@@ -82,7 +81,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let rows = StatusMenuItem.menu(
             answerKept: model.runtime.answerKept, problems: model.runtime.problems,
             needsSetUp: OnboardingModel.needsOnboarding(external: model.onboardingSteps),
-            keyName: model.settings.keys.key.settingsName, paused: model.isPaused)
+            keyName: model.settings.keys.key.shortName, paused: model.isPaused)
         for row in rows {
             guard let title = row.title else {
                 menu.addItem(.separator())
@@ -110,26 +109,18 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         case .openPane(let pane): model.openSettings(at: pane)
         case .setUp: model.openOnboarding()
         case .openSettings: model.openSettings()
-        case .conversations: model.openConversations()
+        case .openStudio: model.openStudio(at: .home)
+        case .newSession: model.openNewSession()
         case .togglePause: model.isPaused.toggle()
         case .checkForUpdates: NSWorkspace.shared.open(StatusMenuItem.releasesURL)
-        case .sendFeedback: sendFeedback()
+        case .sendFeedback: model.sendFeedback()
         case .quit: NSApp.terminate(nil)
         }
     }
 
-    /// A new email in the user's mail app; with no mail app set up, the address goes to the
-    /// clipboard instead and a note says so.
-    private func sendFeedback() {
-        guard !NSWorkspace.shared.open(StatusMenuItem.feedbackURL()) else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(StatusMenuItem.feedbackAddress, forType: .string)
-        model.runtime.showNote("Copied \(StatusMenuItem.feedbackAddress)")
-    }
-
     // MARK: Icon
 
-    /// Re-renders whenever what the icon shows changes, and pulses while busy.
+    /// Re-renders whenever what the icon shows changes, and breathes while busy.
     private func follow() {
         withObservationTracking {
             render()
@@ -139,33 +130,29 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         updatePulse()
     }
 
+    /// While Lumi works, the orb breathes (`Motion.Loop.pulse`) on the button's layer: Core
+    /// Animation runs it, so there is no timer and no image redraw per beat. Static at rest,
+    /// paused, and with Reduce Motion.
     private func updatePulse() {
         let pulsing = model.runtime.activity == .busy && !model.isPaused
-            && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        if pulsing, pulse == nil {
-            // A menu bar image can't animate itself; swapping it on a timer can.
-            pulse = Task { [weak self] in
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .milliseconds(550))
-                    guard let self else { return }
-                    dim.toggle()
-                    render()
-                }
-            }
-        } else if !pulsing, pulse != nil {
-            pulse?.cancel()
-            pulse = nil
-            dim = false
-            render()
+            && Motion.loopRuns(visible: true, reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+        guard let button = item.button else { return }
+        button.wantsLayer = true
+        guard let layer = button.layer else { return }
+        if pulsing, layer.animation(forKey: Self.breathKey) == nil {
+            layer.add(Motion.caBreathe(.pulse), forKey: Self.breathKey)
+        } else if !pulsing {
+            layer.removeAnimation(forKey: Self.breathKey)
         }
     }
+
+    private static let breathKey = "lumi.breathe"
 
     private func render() {
         guard let button = item.button else { return }
         let paused = model.isPaused, attention = model.runtime.permissions.needsAttention
         let dark = button.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-        button.image = MenuBarDot.image(activity: model.runtime.activity, paused: paused, dark: dark,
-                                        alpha: dim ? 0.4 : 1, badge: attention)
+        button.image = MenuBarDot.image(activity: model.runtime.activity, paused: paused, dark: dark, badge: attention)
         button.setAccessibilityLabel(MenuBarDot.accessibilityText(activity: model.runtime.activity, paused: paused,
                                                                  attention: attention))
     }

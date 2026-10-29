@@ -108,7 +108,7 @@ public final class PracticeModel {
         case .doubleTap: doubleTaps += 1; last = "Double-tap: opens the text box"
         case .cancelled: last = "Cancelled: another key, click or scroll came in between"
         case .holdDiscarded: last = "Hold discarded: another key came in while holding"
-        case .pressBegan, .holdBegan: break
+        case .pressBegan, .holdBegan, .switcher, .switcherReleased: break
         }
     }
 }

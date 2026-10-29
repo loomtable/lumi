@@ -135,7 +135,7 @@ struct LevelBars: View {
     }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30)) { _ in
+        TimelineView(.animation(minimumInterval: Motion.levelFrameInterval)) { _ in
             let v = level.value
             HStack(alignment: .center, spacing: 2) {
                 ForEach(0..<Self.count, id: \.self) { i in

@@ -271,7 +271,7 @@ private struct VoiceOptionRow<Trailing: View>: View {
             Button(action: select) {
                 HStack(alignment: .top, spacing: 10) {
                     Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                        .foregroundStyle(selected ? Color.accentColor : .secondary)
+                        .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(title)
@@ -296,10 +296,10 @@ private struct RecommendedBadge: View {
     var body: some View {
         Text("Recommended")
             .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(.tint)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
-            .background(Color.accentColor.opacity(0.12), in: Capsule())
+            .background(.tint.opacity(0.12), in: Capsule())
     }
 }
 

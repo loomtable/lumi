@@ -34,7 +34,7 @@
 ## 系统要求
 
 - Apple Silicon（M1 或更新）上的 macOS 26。不支持 Intel Mac 和更早的 macOS 版本。
-- 已安装并登录的 `claude` 命令行工具，版本 2.1.259 或更新。你的 Claude 账号需要在 Anthropic 提供服务的国家或地区使用。
+- 已安装并登录的 `claude` 命令行工具，版本 2.1.312 或更新。你的 Claude 账号需要在 Anthropic 提供服务的国家或地区使用。
 - 建议 16 GB 内存。在 8 GB 内存的机器上同时开很多应用时，回答可能会慢一些。
 
 ## 怎么用
@@ -145,7 +145,7 @@ open -a Lumi
 免费，并以 GPL-3.0 开源。你的问题经由你的代理处理，所以会计入你自己的 Claude 套餐或 API 用量。
 
 **需要另外安装什么吗？**
-需要已安装并登录的 `claude` 命令行工具，版本 2.1.259 或更新。Lumi 在你的 Mac 上运行它，自己没有登录系统，也没有服务器。
+需要已安装并登录的 `claude` 命令行工具，版本 2.1.312 或更新。Lumi 在你的 Mac 上运行它，自己没有登录系统，也没有服务器。
 
 **Lumi 是 Anthropic 做的吗？**
 不是。Lumi 由 Loomtable 出品，通过你的代理由 Claude 驱动，不是 Anthropic 制作的，也与 Anthropic 没有关联。

@@ -10,12 +10,15 @@ import Foundation
 // The coordinator talks to every module through these ports, so the whole flow runs in tests
 // with fakes. Live adapters live in `LiveAdapters.swift`.
 
-/// Mic, transcription, speech and sounds. Mirrors BuddyVoice's `VoiceController`; the transcript
-/// only ever travels from `finishListening` to the bridge and is never shown.
+/// Mic, transcription, speech and sounds. Mirrors BuddyVoice's `VoiceController`; a question's
+/// transcript only ever travels from `finishListening` to the bridge and is never shown. A
+/// dictation's goes to the cursor and to Dictation history.
 public protocol VoicePort: AnyObject, Sendable {
     /// Loads and warms the speech models. Listening before it finishes fails with a true line.
     func prepare() async throws
     func startListening() async throws
+    /// A dictation's listen: no stop on silence, a 60-minute limit, transcribed in chunks.
+    func startDictation() async throws
     /// Finalises on the send gesture and returns the transcript ("" when nothing was said).
     func finishListening() async throws -> String
     /// Esc. More than 30 s of speech needs `confirmed: true` (safeguards).
@@ -35,9 +38,17 @@ public protocol VoicePort: AnyObject, Sendable {
     /// Mic and reply levels (0...1, envelopes applied) for the dots, rim and glow.
     var levels: AsyncStream<VoiceLevel> { get }
     var events: AsyncStream<VoiceEvent> { get }
+    /// Seconds of speech the VAD has heard in the current listen; 0 when not listening.
+    func heardSpeechSeconds() async -> Double
 }
 
 extension VoicePort {
+    /// Fakes: a dictation listens like a question.
+    public func startDictation() async throws { try await startListening() }
+
+    /// Fakes and voices without a VAD hear nothing.
+    public func heardSpeechSeconds() async -> Double { 0 }
+
     /// A new reply: cuts whatever is speaking.
     @discardableResult public func speak(_ text: String) async throws -> Bool {
         try await speak(text, continuing: false)
@@ -161,11 +172,114 @@ public protocol LocatePort: Sendable {
     func locate(_ quotes: [String], pid: Int32, shot: CapturedShot?) async -> [LocatedPoint]
 }
 
-/// Runs a question through Quick and Deep.
-public protocol BridgePort: Sendable {
+/// Runs a question through Quick and Deep. Every bridge is a `TurnPort` for cascade turns.
+public protocol BridgePort: TurnPort {
     func ask(_ question: Question, state: ConversationState) async -> AsyncStream<CascadeEvent>
     func goDeeper(_ question: Question, state: ConversationState) async -> AsyncStream<CascadeEvent>
     func cancel(conversation: String) async
+}
+
+/// One user turn for `TurnPort`: Quick/Deep through the cascade, or an open session's turn.
+public struct TurnRequest: Sendable {
+    public enum Target: Sendable {
+        /// Quick first, as `BridgePort.ask`.
+        case cascade
+        /// Straight to Deep, as `BridgePort.goDeeper`.
+        case deeper
+        /// One turn in an open session (the session engine).
+        case session(SessionID, SessionLaunch)
+    }
+
+    public var question: Question
+    public var state: ConversationState
+    public var kind: TurnKind
+    public var target: Target
+    /// A Quick or v1 session continued as an open one: its recap, for the first message.
+    public var seed: String?
+    /// Files the user attached in a page's composer (Panel, Studio), for a typed open-session turn.
+    public var attachments: [TurnAttachment]
+
+    public init(question: Question, state: ConversationState, kind: TurnKind, target: Target, seed: String? = nil,
+                attachments: [TurnAttachment] = []) {
+        self.question = question
+        self.state = state
+        self.kind = kind
+        self.target = target
+        self.seed = seed
+        self.attachments = attachments
+    }
+}
+
+public enum TurnStreamEvent: Sendable, Equatable {
+    case cascade(CascadeEvent)
+    case session(SessionEvent)
+}
+
+/// Runs user turns: the cascade's lanes and, once the engine lands, open sessions.
+public protocol TurnPort: Sendable {
+    func send(_ request: TurnRequest) async -> AsyncStream<TurnStreamEvent>
+    func cancel(conversation: String) async
+}
+
+/// The sessions the switcher, capsules, Studio and attention read and act on. Real: `LiveSessions`.
+@MainActor public protocol SessionsPort: AnyObject {
+    /// Every session that isn't forgotten, most recently used first.
+    var snapshots: [SessionSnapshot] { get }
+    var current: SessionID? { get }
+    /// Sessions a Lumi page or the Glance shows now: their answers are already seen.
+    var onScreen: Set<SessionID> { get }
+    /// The snapshots now, then after every change.
+    func changes() -> AsyncStream<[SessionSnapshot]>
+    /// The next summon continues `id`.
+    func setCurrent(_ id: SessionID) async
+    func setPinned(_ pinned: Bool, for id: SessionID) async
+    func setArchived(_ archived: Bool, for id: SessionID) async
+    /// Locks the title against automatic re-titling.
+    func rename(_ id: SessionID, to title: String) async
+    /// Deletes the session, its Claude sessions' transcripts and its screenshots.
+    func forget(_ id: SessionID) async throws
+    /// One event from the session's stream: status, live line, teammates.
+    func apply(_ event: SessionEvent, to id: SessionID)
+    /// A Lumi page (Panel, Studio) started or stopped showing a session: seen, kept warm, and
+    /// continued by a summon soon after.
+    func pageShown(_ id: SessionID, kind: PageKind)
+    func pageHidden(_ id: SessionID, kind: PageKind)
+}
+
+extension SessionsPort {
+    public var onScreen: Set<SessionID> { [] }
+    public func pageShown(_ id: SessionID, kind: PageKind) {}
+    public func pageHidden(_ id: SessionID, kind: PageKind) {}
+}
+
+/// The Lumi pages on screen (Panel, Studio), for routing a talk-key turn into the page.
+@MainActor public protocol PageSurfaces: AnyObject {
+    var visiblePage: (id: SessionID, kind: PageKind)? { get }
+}
+
+/// No page on screen: the stub until the Panel and Studio land.
+@MainActor public final class NoPageSurfaces: PageSurfaces {
+    public init() {}
+    public var visiblePage: (id: SessionID, kind: PageKind)? { nil }
+}
+
+extension BridgePort {
+    /// `.cascade` asks, `.deeper` goes deeper; a session turn has no bridge yet and ends at once.
+    public func send(_ request: TurnRequest) async -> AsyncStream<TurnStreamEvent> {
+        let stream: AsyncStream<CascadeEvent>
+        switch request.target {
+        case .cascade: stream = await ask(request.question, state: request.state)
+        case .deeper: stream = await goDeeper(request.question, state: request.state)
+        case .session: return AsyncStream { $0.finish() }
+        }
+        return AsyncStream { continuation in
+            let relay = Task {
+                for await event in stream { continuation.yield(.cascade(event)) }
+                continuation.finish()
+            }
+            continuation.onTermination = { _ in relay.cancel() }
+        }
+    }
 }
 
 /// Inserts drafts into the user's app.
@@ -194,14 +308,6 @@ public protocol EscapePort: Sendable {
 
 extension ResearchController: ResearchPort {}
 
-/// What the shell offers after the conversation changed under the user.
-public enum ConversationNotice: Sendable, Equatable {
-    /// Started fresh on request: "↩ Back to '…'" for 8 s.
-    case back(title: String)
-    /// Started fresh after the idle limit: "Resume '…' · yesterday" until the next summon.
-    case resume(id: String, title: String, lastUsed: Date)
-}
-
 /// One conversation as the coordinator uses it (Conversations).
 public struct ConversationTurn: Sendable, Equatable {
     public var state: ConversationState
@@ -213,17 +319,14 @@ public struct ConversationTurn: Sendable, Equatable {
     /// Every finished turn, oldest first, the one just recorded included: full screen's transcript.
     /// Empty when the port doesn't keep them.
     public var turns: [TranscriptTurn]
-    /// Set by the call that started this conversation fresh, when there's one to go back to.
-    public var notice: ConversationNotice?
 
     public init(state: ConversationState, color: ConversationColor, turn: Int, previous: [String],
-                turns: [TranscriptTurn] = [], notice: ConversationNotice? = nil) {
+                turns: [TranscriptTurn] = []) {
         self.state = state
         self.color = color
         self.turn = turn
         self.previous = previous
         self.turns = turns
-        self.notice = notice
     }
 }
 
@@ -238,8 +341,8 @@ public struct ConversationTurn: Sendable, Equatable {
 @MainActor public protocol ConversationPort: AnyObject {
     /// Cached, so Esc, Go deeper and typed replies read it without a suspension point.
     var current: ConversationTurn? { get }
-    /// The conversation the next question belongs to: continue, or fresh after the idle limit or
-    /// when a different project is in front. Updates `current`.
+    /// The conversation the next question belongs to: continue, or fresh after the idle limit.
+    /// Updates `current`.
     func prepare(project: String?) async -> ConversationTurn
     /// Session ids and last lane from the cascade's `.done`; ignored unless `state.id` is current.
     func update(_ state: ConversationState) async
@@ -250,17 +353,13 @@ public struct ConversationTurn: Sendable, Equatable {
     func record(_ turn: TranscriptTurn, conversationID: String) async -> ConversationTurn?
     /// ⌘N, ＋ or "new topic".
     @discardableResult func startNew() async -> ConversationTurn
-    /// "↩ Back" or "go back": the conversation before the last ⌘N, while its window is open.
-    /// Nil when there's nothing to go back to.
-    func goBack() async -> ConversationTurn?
-    /// The Resume chip: that conversation is current from the next question. Nil if it's gone.
+    /// A pick from the history: that conversation is current from the next question. Nil if it's gone.
     func switchTo(_ id: String) async -> ConversationTurn?
     /// The summon screenshot a turn of `conversationID` was asked with, so Forget deletes it.
     func recordScreenshot(_ path: String, conversationID: String) async
 }
 
 extension ConversationPort {
-    public func goBack() async -> ConversationTurn? { nil }
     public func switchTo(_ id: String) async -> ConversationTurn? { nil }
     public func recordScreenshot(_ path: String, conversationID: String) async {}
 
@@ -297,6 +396,20 @@ extension ConversationPort {
 /// The opt-in trace log: kinds, timings and counts only, never text. Real: `TraceLog`.
 public protocol TracePort: Sendable {
     func record(_ event: TraceEvent, duration: Duration?, lane: Mode?, outcome: TraceOutcome?, count: Int?)
+    /// With why it was dropped. Default: recorded without the reason.
+    func record(_ event: TraceEvent, duration: Duration?, outcome: TraceOutcome?, reason: TraceReason)
+    /// With a surface's frame (`cardShown`). Default: recorded without it.
+    func record(_ event: TraceEvent, frame: CGRect)
+}
+
+extension TracePort {
+    public func record(_ event: TraceEvent, duration: Duration?, outcome: TraceOutcome?, reason: TraceReason) {
+        record(event, duration: duration, lane: nil, outcome: outcome, count: nil)
+    }
+
+    public func record(_ event: TraceEvent, frame: CGRect) {
+        record(event, duration: nil, lane: nil, outcome: nil, count: nil)
+    }
 }
 
 extension TraceLog: TracePort {}

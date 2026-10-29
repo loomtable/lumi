@@ -57,35 +57,14 @@ struct RetentionTests {
             let a = try await m.prepare(projectFolder: nil)
             _ = try await m.finish(id: a.id, update: TurnUpdate(quickSessionID: "q-a", lastLane: .quick), utterance: "about A")
             clock.advance(100 * 86_400)
-            let b = try await m.newConversation()      // A becomes the ↩ Back target
+            let b = try await m.newConversation()      // A is no longer current
             _ = try await m.finish(id: b.id, update: TurnUpdate(quickSessionID: "q-b", lastLane: .quick), utterance: "about B")
-            clock.advance(10)                          // the 8 s window closes: A is no longer referenced
+            clock.advance(10)
             #expect(try await m.prune(unusedSince: clock.now().addingTimeInterval(-90 * 86_400)) == [a.id])
             let late = try await m.finish(id: a.id, update: TurnUpdate(quickSessionID: "q-a", lastLane: .quick), utterance: "late")
             let remaining = try await m.list()
             #expect(late == nil && remaining.map(\.id) == [b.id], "A is not recreated")
             #expect(files.deletedSessions.isEmpty, "and its sessions are kept")
-        }
-    }
-
-    @Test("↩ Back counts as use, and the Back target is kept while its window is open")
-    func backTargetAndTouch() async throws {
-        try await withTempDir { dir in
-            let clock = ManualConversationClock(t0)
-            let ids = Counter()
-            let m = ConversationManager(index: try ConversationIndex(url: nil), sessionFiles: FakeSessionFiles(),
-                                        screenshotDirectory: dir, clock: clock, makeID: { ids.next() })
-            let a = try await m.prepare(projectFolder: nil)
-            _ = try await m.finish(id: a.id, update: TurnUpdate(quickSessionID: "q-a", lastLane: .quick), utterance: "about A")
-            clock.advance(100 * 86_400)
-            _ = try await m.newConversation()
-            let cutoff = clock.now().addingTimeInterval(-90 * 86_400)
-            #expect(try await m.prune(unusedSince: cutoff).isEmpty, "the Back target stays")
-            #expect(try await m.goBack()?.id == a.id)
-            _ = try await m.newConversation()
-            clock.advance(10)
-            _ = try await m.newConversation()
-            #expect(try await m.prune(unusedSince: cutoff).isEmpty, "going back touched it")
         }
     }
 }

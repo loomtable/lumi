@@ -39,7 +39,7 @@ Ob Gründung, Produkt, Design, Analyse, Forschung, Marketing, Vertrieb, Schreibe
 ## Voraussetzungen
 
 - **Mac:** macOS 26 auf Apple Silicon (M1 oder neuer). Intel-Macs und ältere macOS-Versionen werden nicht unterstützt.
-- **Setup:** das Setup aus dem Satz oben, ab Version 2.1.259, installiert und angemeldet.
+- **Setup:** das Setup aus dem Satz oben, ab Version 2.1.312, installiert und angemeldet.
 - **Arbeitsspeicher:** 16 GB werden empfohlen. Mit 8 GB können Antworten langsamer sein, wenn viele Apps offen sind.
 
 ## So funktioniert's
@@ -190,7 +190,7 @@ Eine kostenlose Open-Source-App für die macOS-Menüleiste. Du tippst in einer b
 Ja. Lumi ist kostenlos und Open Source unter GPL-3.0. Deine Fragen laufen über dein eigenes Setup und zählen deshalb zu deinem eigenen Claude-Plan oder deiner API-Nutzung.
 
 **Was brauche ich außer Lumi?**
-Das Setup aus den [Voraussetzungen](#voraussetzungen), ab Version 2.1.259, installiert und angemeldet. Lumi startet es auf deinem Mac und hat selbst weder Login noch Server.
+Das Setup aus den [Voraussetzungen](#voraussetzungen), ab Version 2.1.312, installiert und angemeldet. Lumi startet es auf deinem Mac und hat selbst weder Login noch Server.
 
 **Ist Lumi von Anthropic?**
 Nein. Lumi wird von Loomtable entwickelt. Lumi ist powered by Claude, über dein eigenes Setup, und wird nicht von Anthropic entwickelt und ist nicht mit Anthropic verbunden.

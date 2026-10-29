@@ -1,5 +1,6 @@
 import AppKit
 import BuddyBridge
+import BuddyOverlay
 import SwiftUI
 
 /// What Settings › Connections needs from the shell, which owns Claude Code (`ClaudeCodeMCP`). Nil
@@ -71,7 +72,7 @@ struct ConnectionsPane: View {
     @Environment(\.mcpServers) private var servers
 
     var body: some View {
-        Form {
+        PaneForm {
             Section {
                 ForEach(MCPCatalog.recommended) { recommendation in
                     ConnectionRow(recommendation: recommendation, store: store)
@@ -92,7 +93,6 @@ struct ConnectionsPane: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
 
     /// The last session's servers that aren't one of the recommendations.
@@ -152,12 +152,12 @@ struct ConnectionRow: View {
                     Button("Cancel") { askingToken = false; tokenDraft = "" }
                 }
                 HStack(spacing: 6) {
-                    Link("Create a token", destination: tokenPage).font(.caption)
+                    Link("Create a token", destination: tokenPage).buttonStyle(.lumiLink).font(.caption)
                     Text("Lumi keeps the token in a private file on this Mac.").font(.caption).foregroundStyle(.secondary)
                 }
             }
             if let note {
-                Text(note).font(.caption).foregroundStyle(.orange)
+                Text(note).font(.caption).foregroundStyle(.lumiAmber)
             }
         }
         .confirmationDialog("Add \(recommendation.name)?", isPresented: $confirmingAdd, titleVisibility: .visible) {
@@ -183,7 +183,7 @@ struct ConnectionRow: View {
             case .connector(let page):
                 Button("Connect on claude.ai") { openURL(page) }
             case .local(_, _, let requirement) where actions.hasRequirement?(recommendation) == false:
-                Link("Needs \(requirement.name)", destination: requirement.download)
+                Link("Needs \(requirement.name)", destination: requirement.download).buttonStyle(.lumiLink)
             case .remoteWithToken:
                 if actions.add != nil, !askingToken { Button("Add…") { askingToken = true } }
             case .remote, .local:

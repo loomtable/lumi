@@ -22,8 +22,10 @@ import WebKit
         return first
     }
     #expect(finished, "presentation must not wait on scrolling")
-    #expect(asked, "an over-tall card still asks for scrolling")
     guard case .answer = overlay.model.surface else { Issue.record("the card never appeared"); return }
+    // Over-tall HTML shows at its full height and the card's body scrolls; only when its height
+    // didn't arrive in time does the web view scroll itself instead.
+    #expect(overlay.model.answerScrolls || asked)
     overlay.dismiss(.requested)
 }
 

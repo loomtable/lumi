@@ -5,6 +5,8 @@ public typealias Nanos = UInt64
 public enum InputEvent: Sendable, Equatable {
     case flagsChanged(keyCode: UInt16, flags: UInt64, time: Nanos)
     case keyDown(keyCode: UInt16, time: Nanos)
+    /// A key-down the switcher tap consumed (and the listen-only tap dropped), already mapped.
+    case switcherKeyDown(SwitcherKey, keyCode: UInt16, time: Nanos)
     case mouseDown(time: Nanos)
     case scroll(time: Nanos)
     /// The tap was disabled (timeout or user input) or secure input started: events may be lost.
@@ -15,7 +17,7 @@ public enum InputEvent: Sendable, Equatable {
 
     public var time: Nanos {
         switch self {
-        case .flagsChanged(_, _, let t), .keyDown(_, let t), .tick(let t, _): t
+        case .flagsChanged(_, _, let t), .keyDown(_, let t), .tick(let t, _), .switcherKeyDown(_, _, let t): t
         case .mouseDown(let t), .scroll(let t), .tapInterrupted(let t): t
         }
     }
@@ -49,6 +51,11 @@ public enum GestureEvent: Sendable, Equatable {
     case holdDiscarded(CancelReason)
     /// The gesture was abandoned before it was confirmed.
     case cancelled(CancelReason)
+    /// A switcher key while the buddy key is down (only with `GestureConfig.switcher` set). The
+    /// gesture is now `switching`: the recording goes on and the release commits.
+    case switcher(SwitcherKey)
+    /// Released while `switching`: commit to the highlighted session.
+    case switcherReleased
 }
 
 public struct GestureConfig: Sendable, Equatable {
@@ -58,17 +65,22 @@ public struct GestureConfig: Sendable, Equatable {
     public var doubleTapEnabled: Bool
     /// While holding or suppressed, how often to poll hardware flags for a release the tap lost.
     public var releasePollInterval: Nanos
+    /// The session switcher's keys, or nil (the default) for none: every other key cancels a
+    /// gesture, as before v2.
+    public var switcher: SwitcherKeyMap?
 
     public init(
         holdThreshold: Nanos = 300_000_000,
         doubleTapWindow: Nanos = 300_000_000,
         doubleTapEnabled: Bool = true,
-        releasePollInterval: Nanos = 250_000_000
+        releasePollInterval: Nanos = 250_000_000,
+        switcher: SwitcherKeyMap? = nil
     ) {
         self.holdThreshold = holdThreshold
         self.doubleTapWindow = doubleTapWindow
         self.doubleTapEnabled = doubleTapEnabled
         self.releasePollInterval = releasePollInterval
+        self.switcher = switcher
     }
 }
 
@@ -88,12 +100,18 @@ public struct GestureConfig: Sendable, Equatable {
 ///   becomes a hold (the user meant to talk).
 /// - After a double-tap, buddy-key presses are ignored for one more window (no triple taps).
 /// - After a cancel or discard, nothing happens until the buddy key is released.
+/// - With `config.switcher` set, Tab (or the buddy key's "next"/"previous" key) while the key is
+///   down opens the switcher instead of cancelling: the gesture becomes `switching`, a hold whose
+///   release is `.switcherReleased`. Inside it mapped keys are `.switcher(key)`, Esc goes back to
+///   a plain hold, and any other key discards as a hold does. ⇧ alone is tolerated while the key
+///   is down, for ⇧Tab. The switcher tap delivers those keys already mapped (`.switcherKeyDown`).
 /// - A deadline that has passed is settled before any later input, so a late timer never lets
 ///   input that arrived after the window rewrite the outcome.
 /// - The tap may deliver events late or not at all. At a deadline the hardware flags decide:
 ///   key up at the hold deadline is a release, key down at the window end is a second press.
 ///   While holding or suppressed the driver polls the flags for a lost release, and a second
-///   buddy-key down implies one (modifiers do not autorepeat).
+///   buddy-key down implies one (modifiers do not autorepeat). For fn a snapshot never shows a
+///   release (`BuddyKey.snapshotShowsRelease`): only the tap's flagsChanged lets fn go.
 /// - Key state comes from the device bit. When an event has no device bits (some keyboards,
 ///   remappers, Universal Control, Screen Sharing), each buddy-key flagsChanged toggles it.
 public struct GestureMachine: Sendable {
@@ -110,8 +128,18 @@ public struct GestureMachine: Sendable {
         case cooldown(until: Nanos)
         /// Gesture abandoned; waiting for the buddy key to come up.
         case suppressed(nextPoll: Nanos)
+        /// The switcher is open while the key is held: a hold whose release commits.
+        case switching(nextPoll: Nanos)
 
         public var isHolding: Bool { if case .holding = self { true } else { false } }
+        public var isSwitching: Bool { if case .switching = self { true } else { false } }
+        /// The buddy key is down in a live gesture: a switcher key can open the strip here.
+        public var isKeyDownInGesture: Bool {
+            switch self {
+            case .firstDown, .holding, .secondDown, .switching: true
+            case .idle, .awaitingSecond, .cooldown, .suppressed: false
+            }
+        }
         public var isSuppressed: Bool { if case .suppressed = self { true } else { false } }
     }
 
@@ -120,7 +148,7 @@ public struct GestureMachine: Sendable {
     public private(set) var state: State = .idle {
         didSet {
             switch state {
-            case .firstDown, .holding, .awaitingSecond, .secondDown: break
+            case .firstDown, .holding, .awaitingSecond, .secondDown, .switching: break
             case .idle, .cooldown, .suppressed: fresh = false  // the gesture is over
             }
         }
@@ -129,6 +157,9 @@ public struct GestureMachine: Sendable {
     private var keyDown = false
     /// The gesture in progress began with the fresh modifier held.
     private var fresh = false
+
+    /// Whether the gesture in progress is fresh (it will start a new conversation).
+    public var isFresh: Bool { fresh }
 
     public init(key: BuddyKey, config: GestureConfig = GestureConfig()) {
         self.key = key
@@ -140,7 +171,7 @@ public struct GestureMachine: Sendable {
         switch state {
         case .firstDown(let since), .secondDown(let since): since &+ config.holdThreshold &+ 1
         case .awaitingSecond(let until), .cooldown(let until): until
-        case .holding(let nextPoll), .suppressed(let nextPoll): nextPoll
+        case .holding(let nextPoll), .suppressed(let nextPoll), .switching(let nextPoll): nextPoll
         case .idle: nil
         }
     }
@@ -163,13 +194,20 @@ public struct GestureMachine: Sendable {
             guard keyCode == key.keyCode else {
                 // A fresh gesture's ⇧ may be let go (or pressed again) before or after the key.
                 if fresh, key.freshKeyCodes.contains(keyCode) { return [] }
+                // ⇧ on its way to ⇧Tab (or ⇧` with a ⌘ key).
+                if config.switcher != nil, state.isKeyDownInGesture,
+                   SwitcherKeyMap.shiftKeyCodes.contains(keyCode) { return [] }
                 return interrupt(.otherModifier, at: time)
             }
             let wasDown = keyDown
             keyDown = key.isDown(in: flags) ?? !keyDown
             return keyDown ? buddyDown(flags: flags, time: time, wasDown: wasDown) : buddyUp(time: time)
         case .keyDown(let keyCode, let time):
+            // fn/🌐 may send key-downs of its own (and repeat them) while held: not another key.
+            if key == .function, BuddyKey.fnKeyDownCodes.contains(keyCode) { return [] }
             return interrupt(.otherKey(keyCode), at: time)
+        case .switcherKeyDown(let switcherKey, let keyCode, let time):
+            return switcherKeyDown(switcherKey, keyCode: keyCode, time: time)
         case .mouseDown(let time):
             return interrupt(.mouseDown, at: time)
         case .scroll(let time):
@@ -188,7 +226,7 @@ public struct GestureMachine: Sendable {
         case .firstDown, .secondDown, .awaitingSecond, .cooldown:
             guard let deadline, time >= deadline else { return [] }
             return tick(time: time, flags: nil)
-        case .idle, .holding, .suppressed:
+        case .idle, .holding, .suppressed, .switching:
             return []
         }
     }
@@ -231,6 +269,10 @@ public struct GestureMachine: Sendable {
             // The release was lost; the user did let go, so send, then start fresh.
             state = .idle
             return [.holdEnded] + buddyDown(flags: flags, time: time, wasDown: false)
+        case .switching:
+            guard wasDown else { return [] }
+            state = .idle
+            return [.switcherReleased] + buddyDown(flags: flags, time: time, wasDown: false)
         case .suppressed:
             // Not a lost release: e.g. the queued down of a press the cooldown tick already saw.
             guard wasDown else { return [] }
@@ -254,6 +296,9 @@ public struct GestureMachine: Sendable {
         case .holding:
             state = .idle
             return [.holdEnded]
+        case .switching:
+            state = .idle
+            return [.switcherReleased]
         case .secondDown:
             state = .cooldown(until: time &+ config.doubleTapWindow)
             return [.doubleTap]
@@ -272,7 +317,7 @@ public struct GestureMachine: Sendable {
         case .firstDown, .secondDown:
             state = suppressed(at: time)
             return [.cancelled(reason)]
-        case .holding:
+        case .holding, .switching:
             state = suppressed(at: time)
             return [.holdDiscarded(reason)]
         case .awaitingSecond:
@@ -282,8 +327,27 @@ public struct GestureMachine: Sendable {
         }
     }
 
+    /// A key the switcher tap took. Opens the strip from a press or hold; inside the strip every
+    /// mapped key passes through, and Esc closes the strip but keeps the hold (the user is still
+    /// talking to the current session). Without a switcher it is just another key.
+    private mutating func switcherKeyDown(_ switcherKey: SwitcherKey, keyCode: UInt16, time: Nanos) -> [GestureEvent] {
+        guard config.switcher != nil else { return interrupt(.otherKey(keyCode), at: time) }
+        switch state {
+        case .firstDown, .secondDown, .holding:
+            guard SwitcherKeyMap.opens(switcherKey) else { return interrupt(.otherKey(keyCode), at: time) }
+            state = .switching(nextPoll: time &+ config.releasePollInterval)
+            return [.switcher(switcherKey)]
+        case .switching:
+            if switcherKey == .cancel { state = .holding(nextPoll: time &+ config.releasePollInterval) }
+            return [.switcher(switcherKey)]
+        case .idle, .awaitingSecond, .cooldown, .suppressed:
+            return interrupt(.otherKey(keyCode), at: time)
+        }
+    }
+
     private mutating func tick(time: Nanos, flags: UInt64?) -> [GestureEvent] {
-        let down = flags.flatMap { key.isDown(in: $0) }
+        var down = flags.flatMap { key.isDown(in: $0) }
+        if down == false, !key.snapshotShowsRelease { down = nil }
         switch state {
         case .firstDown(let since), .secondDown(let since):
             guard elapsed(since, time) > config.holdThreshold else { return [] }
@@ -321,6 +385,14 @@ public struct GestureMachine: Sendable {
                 return [.holdEnded]
             }
             state = .holding(nextPoll: time &+ config.releasePollInterval)
+            return []
+        case .switching:
+            if down == false {
+                keyDown = false
+                state = .idle
+                return [.switcherReleased]
+            }
+            state = .switching(nextPoll: time &+ config.releasePollInterval)
             return []
         case .suppressed:
             if down == false {

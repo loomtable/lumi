@@ -69,6 +69,16 @@ public enum BuddyKey: String, Sendable, Hashable, CaseIterable {
         return nil
     }
 
+    /// Whether a hardware flags snapshot showing this key up counts as its release. Not for fn:
+    /// its only bit, `NX_SECONDARYFNMASK`, may be missing from the HID state while fn/🌐 is held
+    /// (QA U43), so fn is released only by the tap's own flagsChanged. A snapshot showing fn down
+    /// still counts.
+    public var snapshotShowsRelease: Bool { self != .function }
+
+    /// Key-downs the fn/🌐 key itself may send while held (QA U43): kVK_Function (63) and the
+    /// Globe key (179). With fn as the key they are not "another key".
+    public static let fnKeyDownCodes: Set<UInt16> = [0x3F, 0xB3]
+
     /// Device-independent bit this key also sets (both sides share it).
     public var independentMask: UInt64 {
         switch self {

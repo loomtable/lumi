@@ -158,4 +158,35 @@ struct BuddyBlockTests {
         #expect(json.contains("\"card_html\""))
         #expect(try decode(json) == block)
     }
+
+    @Test func decodesTopicAndAsksUser() throws {
+        let block = try decode("""
+        { "say": "x", "topic": { "title": " Q3 burn model ", "symbol": "chart.pie" }, "asks_user": "Which quarter?" }
+        """)
+        #expect(block.topic == SessionTopic(title: "Q3 burn model", symbol: "chart.pie"))
+        #expect(block.asksUser == "Which quarter?")
+    }
+
+    @Test func malformedTopicAndAsksUserAreNil() throws {
+        for json in [
+            #"{ "say": "x", "topic": "Q3 burn", "asks_user": 3 }"#,
+            #"{ "say": "x", "topic": { "title": "  " }, "asks_user": "  " }"#,
+            #"{ "say": "x", "topic": { "symbol": "chart.pie" } }"#,
+        ] {
+            let block = try decode(json)
+            #expect(block.topic == nil)
+            #expect(block.asksUser == nil)
+        }
+    }
+
+    @Test func topicWithoutSymbolKeepsTitle() throws {
+        let block = try decode(#"{ "say": "x", "topic": { "title": "Trip to Lisbon", "symbol": 7 } }"#)
+        #expect(block.topic == SessionTopic(title: "Trip to Lisbon"))
+    }
+
+    @Test func newFieldsRoundTrip() throws {
+        let block = BuddyBlock(say: "x", shape: .chip, topic: SessionTopic(title: "Fix login bug", symbol: "hammer"), asksUser: "Ship it?")
+        let again = try JSONDecoder().decode(BuddyBlock.self, from: JSONEncoder().encode(block))
+        #expect(again == block)
+    }
 }

@@ -26,7 +26,7 @@ struct LiveVoicePermissionTests {
             }
             return seen
         }
-        let deadline = Task { try? await Task.sleep(for: .seconds(2)); collector.cancel() }
+        let deadline = Task { try? await Task.sleep(for: waitCeiling); collector.cancel() }
         let seen = await collector.value
         deadline.cancel()
         let denied = seen.firstIndex(of: .permissionDenied)

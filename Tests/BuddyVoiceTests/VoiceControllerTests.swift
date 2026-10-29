@@ -36,6 +36,18 @@ private struct Rig {
     }
 
     var events: [VoiceController.Event] { recorded.all }
+
+    /// Moves the clock `seconds` and sends one 20 ms chunk standing for that stretch of audio: the
+    /// safeguards and chunking run on the clock, and debug-build DSP over every real sample would
+    /// make an hour-long stream take minutes.
+    func stretch(seconds: Double, amplitude: Float) async {
+        let before = await controller.processedChunks
+        clock.advance(seconds)
+        guard mic.send(.audio(AudioChunk(samples: [Float](repeating: amplitude, count: Self.stretchSamples), capturedAt: 0))) else { return }
+        _ = await eventually { await controller.processedChunks > before || !mic.isRunning }
+    }
+
+    static let stretchSamples = 320
     var levels: [VoiceController.Level] { recorded.levels.withLock { $0 } }
 
     /// Moves the clock to the end of a chunk of `seconds` of audio, sends it, and waits until the
@@ -92,13 +104,13 @@ struct VoiceControllerTests {
         #expect(levels.last == 0)
     }
 
-    @Test func tenSecondsOfSilenceStopsAndHoldsWithoutSending() async throws {
+    @Test func thirtySecondsOfSilenceStopsAndHoldsWithoutSending() async throws {
         let rig = Rig()
         try await rig.controller.startListening()
         await rig.feed(seconds: 1, amplitude: 0.2)      // speech
-        for _ in 0 ..< 10 { await rig.feed(seconds: 1, amplitude: 0) }  // silence starts with the first chunk
-        #expect(await rig.controller.state == .listening, "9 s of silence so far")
-        await rig.feed(seconds: 1, amplitude: 0)        // 10 s
+        for _ in 0 ..< 30 { await rig.feed(seconds: 1, amplitude: 0) }  // silence starts with the first chunk
+        #expect(await rig.controller.state == .listening, "29 s of silence so far")
+        await rig.feed(seconds: 1, amplitude: 0)        // 30 s
 
         #expect(await eventually { await rig.controller.state == .held })
         #expect(await eventually { rig.events.contains(.autoStopped(.silence, held: true)) })
@@ -130,6 +142,19 @@ struct VoiceControllerTests {
         #expect(try await rig.controller.finishListening() == "why is this list empty?", "the gesture sends a held recording")
         try await rig.controller.startListening()
         #expect(rig.mic.startCount == 2)
+    }
+
+    @Test func heardSpeechSecondsCountsTheVADTotalOnlyWhileListening() async throws {
+        let rig = Rig()
+        #expect(await rig.controller.heardSpeechSeconds() == 0)
+        try await rig.controller.startListening()
+        await rig.feed(seconds: 1, amplitude: 0)   // silence
+        #expect(await rig.controller.heardSpeechSeconds() == 0)
+        for _ in 0 ..< 3 { await rig.feed(seconds: 1, amplitude: 0.2) }   // speech from the first loud chunk's end
+        let heard = await rig.controller.heardSpeechSeconds()
+        #expect(heard >= 1.9 && heard <= 3)
+        _ = try await rig.controller.finishListening()
+        #expect(await rig.controller.heardSpeechSeconds() == 0)
     }
 
     @Test func discardingOverThirtySecondsOfSpeechAsksFirst() async throws {
@@ -390,18 +415,18 @@ struct VoiceControllerTests {
     }
 
     // Waiting for the mic to go live (about 450 ms with VP) must not hold the lock.
-    @Test func waitingForMicLiveNeverBlocksDiscardOrSend() async throws {
+    /// The mic never goes live here (the signal is held for good), so a discard that waited for it
+    /// would never return: returning at all is the proof, with no wall-clock budget to miss under
+    /// load. The time limit only turns such a hang into a failure.
+    @Test(.timeLimit(.minutes(1)))
+    func waitingForMicLiveNeverBlocksDiscardOrSend() async throws {
         let rig = Rig()
         rig.mic.holdLiveSignal(true)
-        let clock = ContinuousClock()
         let start = Task { try await rig.controller.startListening() }
         _ = await eventually { rig.mic.isRunning }
-        try await Task.sleep(for: .milliseconds(20))
-        let began = clock.now
         #expect(await rig.controller.discard(playSound: false) == .discarded)
-        #expect(clock.now - began < .milliseconds(50))
+        #expect(!rig.mic.isRunning, "the discard stopped the capture without the mic ever going live")
         try await start.value                                // returns once the capture stopped
-        #expect(clock.now - began < .milliseconds(100))
         #expect(await rig.controller.state == .idle)
 
         let second = Task { try await rig.controller.startListening() }
@@ -516,7 +541,7 @@ struct VoiceControllerTests {
         let rig = Rig()
         rig.transcriber.setResult("")
         try await rig.controller.startListening()
-        for _ in 0 ..< 11 { await rig.feed(seconds: 1, amplitude: 0) }
+        for _ in 0 ..< 31 { await rig.feed(seconds: 1, amplitude: 0) }
         #expect(await eventually { rig.events.contains(.autoStopped(.silence, held: false)) })
         #expect(await rig.controller.state == .idle)
         #expect(try await rig.controller.sendHeld() == nil)
@@ -560,7 +585,7 @@ struct VoiceControllerTests {
         let rig = Rig()
         rig.detector.setFailing(true)
         try await rig.controller.startListening()
-        for _ in 0 ..< 15 { await rig.feed(seconds: 1, amplitude: 0.2) }
+        for _ in 0 ..< 35 { await rig.feed(seconds: 1, amplitude: 0.2) }
         #expect(await rig.controller.state == .listening)
         #expect(!rig.events.contains { if case .autoStopped(.silence, _) = $0 { true } else { false } })
         #expect(try await rig.controller.finishListening() == "why is this list empty?")
@@ -714,13 +739,19 @@ struct VoiceControllerTests {
         let rig = Rig(setupChosen: false)
         rig.mic.prepareGate.close()
         let first = Task { try await rig.controller.prepare() }
-        #expect(await eventually { await rig.controller.prepareState == .preparing(.microphone) })
+        // Conditions, not timings: 2 s and an unwaited event stream both missed at load average 58.
+        #expect(await eventually(.seconds(30)) { await rig.controller.prepareState == .preparing(.microphone) })
         await rig.controller.setSetupChosen(true)
         rig.mic.prepareGate.open()
         try await first.value
         #expect(rig.transcriber.loadCount == 1, "the same prepare goes on to load what the choice needs")
         #expect(await rig.controller.prepareState == .ready)
-        let states = rig.events.compactMap { if case .prepare(let p) = $0 { p } else { nil } }
+        // The rig records events from the stream on its own task: wait for `.ready` to arrive.
+        func prepareStates() -> [VoiceController.PrepareState] {
+            rig.events.compactMap { if case .prepare(let p) = $0 { p } else { nil } }
+        }
+        #expect(await eventually(.seconds(30)) { prepareStates().contains(.ready) })
+        let states = prepareStates()
         #expect(states.firstIndex(of: .notStarted) ?? 0 < states.firstIndex(of: .preparing(.speechModel(nil))) ?? 0,
                 "never ready for settings it didn't load")
         #expect(states.filter { $0 == .ready }.count == 1)
@@ -749,5 +780,120 @@ struct VoiceControllerTests {
         #expect(await off.soundsEnabled == false)
         let on = VoiceController.live(settings: VoiceSettings())
         #expect(await on.soundsEnabled == true)
+    }
+}
+
+/// Dictation listens (owner, Oct 29: never lose speech): no stop on silence, a 60-minute limit
+/// that keeps the recording, and a transcript built chunk by chunk so length never matters.
+struct DictationListenTests {
+    /// `cycles` of `speech` seconds of talking then `pause` seconds of silence, in 5 s stretches.
+    /// Returns how many stretches were sent.
+    @discardableResult
+    private func talk(_ rig: Rig, cycles: Int, speech: Int, pause: Int) async -> Int {
+        var sent = 0
+        for _ in 0 ..< cycles {
+            for _ in 0 ..< speech / 5 { await rig.stretch(seconds: 5, amplitude: 0.2); sent += 1 }
+            for _ in 0 ..< pause / 5 { await rig.stretch(seconds: 5, amplitude: 0); sent += 1 }
+        }
+        return sent
+    }
+
+    @Test("40 minutes with 20 s pauses: never stops, every chunk is in the transcript, no audio lost")
+    func longDictation() async throws {
+        let rig = Rig()
+        rig.transcriber.setResult("part")
+        rig.transcriber.numberResults()
+        try await rig.controller.startListening(.dictation)
+        let sent = await talk(rig, cycles: 48, speech: 30, pause: 20)  // 40 min
+        #expect(await rig.controller.state == .listening)
+        #expect(!rig.events.contains { if case .autoStopped = $0 { true } else { false } })
+        let text = try await rig.controller.finishListening()
+        let finishes = rig.transcriber.finishCount
+        #expect(finishes > 20, "transcribed in chunks, not in one go")
+        #expect(text == (1 ... finishes).map { "part \($0)" }.joined(separator: " "))
+        #expect(rig.transcriber.totalSampleCount == sent * Rig.stretchSamples, "every chunk reached STT, none fell between chunks")
+        #expect(rig.transcriber.beginCount == finishes, "one begin per chunk")
+    }
+
+    @Test("the 60-minute limit stops and keeps everything said, with a warning before")
+    func hourLimit() async throws {
+        let rig = Rig()
+        rig.transcriber.setResult("part")
+        rig.transcriber.numberResults()
+        try await rig.controller.startListening(.dictation)
+        for _ in 0 ..< 348 { await rig.stretch(seconds: 10, amplitude: 0.2) }  // 58 min, never a pause
+        await rig.stretch(seconds: 0.02, amplitude: 0.2)
+        #expect(await eventually { rig.events.contains(.nearLimit) })
+        #expect(await rig.controller.state == .listening)
+        for _ in 0 ..< 12 { await rig.stretch(seconds: 10, amplitude: 0.2) }
+        #expect(await eventually { rig.events.contains(.autoStopped(.maxLength, held: true)) })
+        let held = try #require(try await rig.controller.sendHeld())
+        let finishes = rig.transcriber.finishCount
+        #expect(finishes >= 12, "chunked every 5 minutes without a pause")
+        #expect(held == (1 ... finishes).map { "part \($0)" }.joined(separator: " "))
+    }
+
+    @Test("a chunk that fails to transcribe loses only itself")
+    func failedChunk() async throws {
+        let rig = Rig()
+        rig.transcriber.setResult("part")
+        rig.transcriber.numberResults()
+        try await rig.controller.startListening(.dictation)
+        struct Hiccup: Error {}
+        rig.transcriber.failNextFinish(with: Hiccup())
+        await talk(rig, cycles: 3, speech: 30, pause: 20)
+        let text = try await rig.controller.finishListening()
+        #expect(!text.contains("part 1 "))
+        #expect(text.hasSuffix("part \(rig.transcriber.finishCount)"))
+        #expect(text.contains("part 2"))
+    }
+
+    @Test("if the next chunk can't begin, the chunks so far are still returned")
+    func failedBegin() async throws {
+        let rig = Rig()
+        rig.transcriber.setResult("part")
+        rig.transcriber.numberResults()
+        try await rig.controller.startListening(.dictation)
+        struct NoModel: Error {}
+        await talk(rig, cycles: 1, speech: 30, pause: 20)
+        rig.transcriber.failNextBegin(with: NoModel())
+        await talk(rig, cycles: 2, speech: 30, pause: 20)
+        #expect(try await rig.controller.finishListening() == "part 1")
+    }
+
+    @Test("a discard drops the chunks; the next dictation starts clean")
+    func discardClears() async throws {
+        let rig = Rig()
+        rig.transcriber.setResult("part")
+        rig.transcriber.numberResults()
+        try await rig.controller.startListening(.dictation)
+        await talk(rig, cycles: 2, speech: 30, pause: 20)
+        #expect(await rig.controller.discard(confirmed: true, playSound: false) == .discarded)
+        try await rig.controller.startListening(.dictation)
+        await rig.stretch(seconds: 5, amplitude: 0.2)
+        let text = try await rig.controller.finishListening()
+        #expect(text == "part \(rig.transcriber.finishCount)")
+    }
+
+    @Test("a talk-key listen waits out 25 s of silence and stops at 30 s")
+    func questionStopsAtThirtySeconds() async throws {
+        let rig = Rig()
+        try await rig.controller.startListening(.question)
+        await rig.feed(seconds: 1, amplitude: 0.2)
+        for _ in 0 ..< 25 { await rig.feed(seconds: 1, amplitude: 0) }
+        #expect(await rig.controller.state == .listening, "a long pause to think doesn't end it")
+        #expect(!rig.events.contains(.autoStopped(.silence, held: true)))
+        for _ in 0 ..< 6 { await rig.feed(seconds: 1, amplitude: 0) }
+        #expect(await eventually { rig.events.contains(.autoStopped(.silence, held: true)) })
+    }
+
+    @Test("chunk rules: the first pause after 45 s, or 5 minutes regardless")
+    func chunkRules() {
+        #expect(!VoiceController.nextChunk(after: 44, pause: true))
+        #expect(VoiceController.nextChunk(after: 45, pause: true))
+        #expect(!VoiceController.nextChunk(after: 299, pause: false))
+        #expect(VoiceController.nextChunk(after: 300, pause: false))
+        #expect(ListenSafeguards.Limits.dictation.silenceStop == .infinity)
+        #expect(ListenSafeguards.Limits.dictation.maxLength == 3600)
     }
 }

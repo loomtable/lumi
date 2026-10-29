@@ -1,4 +1,3 @@
-import BuddyConversations
 import Foundation
 import SwiftUI
 
@@ -63,6 +62,24 @@ public nonisolated struct SettingsPaneOpener: Sendable {
     @MainActor public func callAsFunction(_ pane: SettingsPane) { open?(pane) }
 }
 
+/// Settings › Privacy's "Forget all sessions": the shell runs it over Studio's sessions.
+public nonisolated struct ForgetAllAction: Sendable {
+    /// Whether there are sessions to forget: the store is attached (not with the `sessions` kill
+    /// switch off). Read when the page draws.
+    public var available: @MainActor @Sendable () -> Bool
+    /// Forgets every session; returns how many couldn't be forgotten.
+    public var run: (@MainActor @Sendable () async -> Int)?
+
+    public init(available: @escaping @MainActor @Sendable () -> Bool = { true },
+                run: (@MainActor @Sendable () async -> Int)? = nil) {
+        self.available = available
+        self.run = run
+    }
+
+    /// The row shows only with an action and a store to run it on.
+    @MainActor public var runnable: (@MainActor @Sendable () async -> Int)? { available() ? run : nil }
+}
+
 /// A folder Lumi writes to, for Settings › Privacy "what is stored" (the shell maps
 /// BuddyVoice's VoiceStorage and others onto these).
 public nonisolated struct StorageLocation: Sendable, Equatable, Identifiable {
@@ -79,13 +96,13 @@ public nonisolated struct StorageLocation: Sendable, Equatable, Identifiable {
     }
 }
 
-/// Services the app shell injects into Settings and onboarding. Panes read these; SettingsView's
-/// initialiser never changes when a pane needs something new.
+/// Services the app shell injects into Settings and onboarding. Pages read these, so a page's
+/// initialiser never changes when it needs something new.
 extension EnvironmentValues {
     /// Non-prompting permission checks and fix actions.
     @Entry public var permissions: any PermissionChecking = SystemPermissions.shared
-    /// The conversation index, for Settings › Conversations. Nil in previews and tests.
-    @Entry public var conversationManager: ConversationManager? = nil
+    /// Settings › Privacy's "Forget all sessions". Unset in previews and tests: the button is hidden.
+    @Entry public var forgetAllSessions = ForgetAllAction()
     @Entry public var claudeCodeStatus = ClaudeCodeStatus()
     @Entry public var claudeCodeActions = ClaudeCodeActions()
     @Entry public var storageLocations: [StorageLocation] = []

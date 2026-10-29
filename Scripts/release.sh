@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Builds a release disk image and zip of Lumi.app with their SHA-256 checksums. It uploads nothing.
 #
-#   git tag v0.1.0 && Scripts/release.sh     # dist/Lumi-0.1.0.dmg, Lumi.dmg and Lumi.zip, each with .sha256
+#   git tag v0.2.0 && Scripts/release.sh     # dist/Lumi-0.2.0.dmg, Lumi.dmg and Lumi.zip, each with .sha256
 #   Upload all six to the release. The website's Download button and install.sh use
 #   releases/latest/download/Lumi.zip; the disk images stay for anyone who wants one.
 #

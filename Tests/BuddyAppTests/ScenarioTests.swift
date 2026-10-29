@@ -36,7 +36,7 @@ struct ScenarioTests {
         var settings = settings
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: context, bridge: bridge ?? self.bridge,
+            settings: settings, voice: voice, context: context, turns: bridge ?? self.bridge,
             overlay: overlay, inserter: inserter, pointer: FixedPointer(), interruptions: interruptions,
             research: research, conversations: conversations, trust: { FolderTrust(trustedPaths: []) })
         c.start()
@@ -62,7 +62,7 @@ struct ScenarioTests {
     /// Waits up to 2 s for `done`, then lets pending work run; with no condition, only the latter.
     func settle(_ done: (() -> Bool)? = nil) async {
         if let done {
-            let deadline = ContinuousClock.now + .seconds(2)
+            let deadline = ContinuousClock.now + waitCeiling
             while !done(), ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         }
         for _ in 0..<20 {
@@ -108,9 +108,6 @@ struct ScenarioTests {
         case .capsule(let jobs): "capsule: " + jobs.map { "\($0.topic) \($0.status)" }.joined(separator: ", ")
         case .rings(let rings): "rings: \(rings.count)"
         case .toast(let text): "toast: \(text)"
-        case .backChip(let title): "back chip: \(title)"
-        case .resumeChip(let title, _): "resume chip: \(title)"
-        case .hideChip: "hide chip"
         case .thinking(let lane, let status): "thinking \(lane.mode)" + (status.map { ": \($0)" } ?? "")
         case .status(let status): "status: \(status ?? "-")"
         case .headline(let text): "headline: \(text)"
@@ -342,9 +339,9 @@ struct ScenarioTests {
         #expect(manual.cancelled.count == 1, "Esc cancels the turn in flight")
     }
 
-    @Test func shiftKeyStartsANewConversationThenGoBack() async {
+    @Test func shiftKeyStartsANewConversation() async {
         bridge.setScript([Self.done(BuddyBlock(say: "First topic answer.", shape: .chip))])
-        // The app's own conversation store, in memory: "go back" needs its back stack.
+        // The app's own conversation store, in memory.
         let manager = ConversationManager(index: try! ConversationIndex(url: nil), sessionFiles: FakeSessionFiles(),
                                           screenshotDirectory: FileManager.default.temporaryDirectory,
                                           clock: ManualConversationClock())
@@ -360,8 +357,6 @@ struct ScenarioTests {
         await c.handle(.gesture(.tap))
         await settle { bridge.asked.count == 2 && c.phase == .showing }
         let second = bridge.asked.last?.packet.conversation?.id
-        voice.setTranscript("go back")
-        await tapToTalk(c)
         await settle()
         #expect(timeline == [
             "not speaking",
@@ -375,27 +370,19 @@ struct ScenarioTests {
             "🔊 First topic answer.",
             "speaking",
             "not speaking",
-            "listening: new conversation · tap ⌥ to send",
+            "listening: new session · tap ⌥ to send",
             "🔇",
             "🎤 on",
             "thinking quick",
             "🎤 off",
             "status: Looking at Safari",
-            "back chip: what does this mean?",
+            "toast: New session",
             "chip: New topic answer.",
             "🔊 New topic answer.",
             "speaking",
-            "not speaking",
-            "listening: tap ⌥ to send",
-            "🔇",
-            "🎤 on",
-            "thinking quick",
-            "🎤 off",
-            "dismissed (requested)",
-            "toast: Back to the previous conversation",
         ], "\(timeline)")
         #expect(first != nil && second != nil && first != second, "⇧ + key started a new conversation")
-        #expect(bridge.asked.count == 2, "\"go back\" is a command, not a question")
+        #expect(bridge.asked.count == 2)
     }
 
     @Test func theMainButtonReplacesTheSelection() async {
@@ -616,7 +603,7 @@ struct ScenarioTests {
                                                points: [.init(quote: "Total", label: "1")], insert: "=SUM(B2:B9)"))])
         var s2 = settings; s2.sounds = false
         let c = BuddyCoordinator(settings: s2, voice: voice, context: FakeContext.packet(editable: .init(field: true, selection: false)),
-                                 bridge: bridge, overlay: overlay, inserter: inserter, pointer: FixedPointer(),
+                                 turns: bridge, overlay: overlay, inserter: inserter, pointer: FixedPointer(),
                                  locator: locator, trust: { FolderTrust(trustedPaths: []) })
         c.start()
         await tapToTalk(c)

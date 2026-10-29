@@ -38,7 +38,7 @@ Hecho para el trabajo que haces: fundadores, diseñadores, analistas, escritores
 ## Requisitos
 
 - macOS 26 en Apple Silicon (M1 o posterior). Los Mac con Intel y las versiones anteriores de macOS no son compatibles.
-- La versión 2.1.259 o posterior de ese agente, instalada y con la sesión iniciada (el comando `claude`). En este README lo llamamos «tu agente de Claude».
+- La versión 2.1.312 o posterior de ese agente, instalada y con la sesión iniciada (el comando `claude`). En este README lo llamamos «tu agente de Claude».
 - Se recomiendan 16 GB de memoria. Con 8 GB, las respuestas pueden tardar más cuando hay muchas apps abiertas.
 
 ## Cómo funciona
@@ -147,7 +147,7 @@ Una app gratuita y de código abierto para la barra de menús de macOS. Tocas un
 Sí. Lumi es gratis y de código abierto, con licencia GPL-3.0. Tus preguntas pasan por tu propio agente de Claude, así que cuentan en tu propio plan de Claude o en tu uso de la API.
 
 **¿Qué necesito para usar Lumi?**
-Un Mac con macOS 26 en Apple Silicon y tu agente de Claude, versión 2.1.259 o posterior, instalado y con la sesión iniciada. Lumi lo ejecuta en tu Mac. Lumi no tiene inicio de sesión ni servidores propios.
+Un Mac con macOS 26 en Apple Silicon y tu agente de Claude, versión 2.1.312 o posterior, instalado y con la sesión iniciada. Lumi lo ejecuta en tu Mac. Lumi no tiene inicio de sesión ni servidores propios.
 
 **¿Lumi está hecho por Anthropic?**
 No. Lumi está hecho por Loomtable. Funciona con Claude, a través de tu agente de Claude, y no está hecho por Anthropic ni afiliado a ella.

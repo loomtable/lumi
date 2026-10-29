@@ -200,22 +200,31 @@ final class CardWebContent: NSObject, WKNavigationDelegate, WKScriptMessageHandl
     })();
     """
 
+    /// The card's CSS colour variables, from the tokens (so the theme reaches the HTML too).
+    static func cssColors(_ t: Tokens) -> String {
+        func css(_ c: TokenColor) -> String {
+            "rgba(\(Int((c.red * 255).rounded())),\(Int((c.green * 255).rounded())),\(Int((c.blue * 255).rounded())),\(c.alpha))"
+        }
+        let d = t.variant.dark
+        return "--text:\(css(t.text)); --secondary:\(css(t.secondaryText)); --ember:\(css(d ? t.emberMark : t.emberText)); "
+            + "--sage:\(css(t.sage)); --amber:\(css(t.amber)); --rose:\(css(t.rose)); --mist:\(css(t.mist)); "
+            + "--hair:\(css(t.text.opacity(d ? 0.13 : 0.12))); --panel:\(css(d ? t.windowBackground.opacity(0.6) : t.text.opacity(0.05)));"
+    }
+
     /// Wraps the model's fragment: both appearances, transparent, our type scale, no
     /// scrolling (the card is sized to the content). Lists follow the prototype: ember markers,
     /// a 1.2 em indent, 0.35 em between bullets, and no browser-default gap above them. Tables,
     /// code panels and the gap between blocks follow the prototype's `.tbl`, `.codeb` and `.cbd`. Bullets
     /// keep the 15 pt detail size (Type) rather than the prototype's smaller .86 em.
-    static func document(body: String, jumps: Bool = true, scrolls: Bool = false) -> String {
+    static func document(body: String, jumps: Bool = true, scrolls: Bool = false,
+                         theme: Theme = ThemeSelection.shared.theme) -> String {
         """
         <!doctype html><html><head><meta charset="utf-8">
         <meta name="color-scheme" content="light dark">
         <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:">
         <style>
-        :root { color-scheme: light dark; --text:#1B1C20; --secondary:#5A606B; --ember:#B4451F; --sage:#1F7A4F;
-                --amber:#8A5A00; --rose:#B42318; --mist:#2F6488; --hair:rgba(0,0,0,.12); --panel:rgba(0,0,0,.05); }
-        @media (prefers-color-scheme: dark) { :root { --text:#F2EFEA; --secondary:#A9AEB8; --ember:#FF8A5B;
-                --sage:#7FD1A8; --amber:#F5C060; --rose:#FF7B7B; --mist:#8FB8D8;
-                --hair:rgba(255,255,255,.13); --panel:rgba(0,0,0,.4); } }
+        :root { color-scheme: light dark; \(Self.cssColors(Tokens(.init(dark: false, theme: theme)))) }
+        @media (prefers-color-scheme: dark) { :root { \(Self.cssColors(Tokens(.init(dark: true, theme: theme)))) } }
         html, body { margin:0; padding:0; background:transparent; overflow:\(scrolls ? "auto" : "hidden"); overscroll-behavior:none; }
         body { font: 13px/1.4 -apple-system, "SF Pro Text", system-ui; color: var(--text);
                -webkit-font-smoothing: antialiased; word-wrap: break-word; }

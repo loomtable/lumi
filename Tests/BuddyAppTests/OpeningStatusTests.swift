@@ -19,7 +19,7 @@ struct OpeningStatusTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         return c
@@ -29,7 +29,7 @@ struct OpeningStatusTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase != .showing, c.phase != .idle, ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -82,7 +82,7 @@ struct QuietStatusTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         // Wide margins: the "not yet" checks run 100 ms in, so a loaded machine can't reach 600.
         c.quietAfter = .milliseconds(600)
@@ -95,14 +95,14 @@ struct QuietStatusTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while bridge.streamCount == 0, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
     }
 
     func settle() async { for _ in 0..<50 { await Task.yield() } }
 
     func wait(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(3)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(5)) }
     }
 

@@ -1,3 +1,4 @@
+import CoreGraphics
 import BuddyCore
 import Foundation
 import Synchronization
@@ -49,6 +50,44 @@ struct TraceLogTests {
             #expect(l[0].hasSuffix("\tsummon"))
             #expect(l[1].hasSuffix("\tcontextPacket\tms=12.0\tlane=quick\toutcome=ok\tcount=3"))
             #expect(l[1].hasPrefix("2026-10-14T12:00:00"))
+        }
+    }
+
+    @Test("a dropped event records why: a closed reason, a key code only when the caller allows one")
+    func reasons() async throws {
+        try await withLog { log, dir, _ in
+            log.record(.dictationInserted, duration: .milliseconds(142), outcome: .cancelled, reason: .release)
+            log.record(.dictationInserted, duration: nil, outcome: .cancelled, reason: .otherKey(179))
+            log.record(.dictationInserted, duration: nil, outcome: .cancelled, reason: .otherKey(nil))
+            await log.flush()
+            let l = try lines(dir, "trace-2026-10-14.log")
+            #expect(l[0].hasSuffix("\tdictationInserted\tms=142.0\toutcome=cancelled\treason=release"))
+            #expect(l[1].hasSuffix("\tdictationInserted\toutcome=cancelled\treason=otherKey(179)"))
+            #expect(l[2].hasSuffix("\tdictationInserted\toutcome=cancelled\treason=otherKey"))
+        }
+    }
+
+    @Test("a card records where it sat and why it left, never what it said")
+    func cards() async throws {
+        try await withLog { log, dir, _ in
+            log.record(.cardShown, frame: CGRect(x: 120.4, y: 88, width: 330, height: 212.6))
+            log.record(.cardClosed, duration: nil, outcome: nil, reason: .replaced)
+            await log.flush()
+            let l = try lines(dir, "trace-2026-10-14.log")
+            #expect(l[0].hasSuffix("\tcardShown\tframe=120,88,331,213"))
+            #expect(l[1].hasSuffix("\tcardClosed\treason=replaced"))
+        }
+    }
+
+    @Test("a dictation that didn't go in records why, by kind")
+    func insertFailureReasons() async throws {
+        try await withLog { log, dir, _ in
+            for reason in [TraceReason.noField, .secureField, .blockedApp, .pasteUnconfirmed] {
+                log.record(.dictationInserted, duration: nil, outcome: .failed, reason: reason)
+            }
+            await log.flush()
+            let l = try lines(dir, "trace-2026-10-14.log")
+            #expect(l.map { $0.components(separatedBy: "\treason=").last } == ["noField", "secure", "blocked", "pasteUnconfirmed"])
         }
     }
 

@@ -54,12 +54,18 @@ public enum StatusItemClick: Sendable, Equatable {
 /// One row of the menu bar item's menu, built from the app's state each time it opens.
 public struct StatusMenuItem: Sendable, Equatable {
     public enum Action: Sendable, Equatable {
-        case showLastAnswer, relaunch, openPane(SettingsPane), setUp, openSettings, conversations, togglePause,
+        case showLastAnswer, relaunch, openPane(SettingsPane), setUp, openSettings, togglePause,
              checkForUpdates, sendFeedback, quit
+        /// The Lumi window at Home.
+        case openStudio
+        /// The Lumi window at Home, its composer ready to type (the Dock menu's New Session).
+        case newSession
     }
 
     /// "Check for Updates…" opens this page in the browser; the app itself makes no network call.
     public static let releasesURL = URL(string: "https://github.com/loomtable/lumi/releases/latest")!
+    /// Help › Lumi Website.
+    public static let siteURL = URL(string: "https://lumi.loomtable.com")!
 
     /// Where "Send Feedback…" writes to (forwards to the company inbox). This is the one place to
     /// change it; it can later point to a web page instead of an email address.
@@ -109,9 +115,21 @@ public struct StatusMenuItem: Sendable, Equatable {
         self.checked = checked
     }
 
-    /// Show Last Answer first, then each problem as one true line (where a pane fixes it, the
-    /// line opens it), then setup, Settings, Conversations, the key, Pause, Check for Updates,
-    /// Send Feedback and Quit.
+    /// Show Last Answer first, then each problem as one true line (where a page fixes it, the
+    /// line opens it), then setup or the Lumi window, the key, Pause, Check for Updates, Send
+    /// Feedback and Quit. There is one Lumi window: "Open Lumi" opens it at Home, "Settings…" (⌘,)
+    /// at Settings; history is its sidebar.
+    /// The Dock icon's menu (shown with "Show in Dock" on): Open Lumi, New Session and Settings,
+    /// or setup until it's finished.
+    public static func dockMenu(needsSetUp: Bool) -> [StatusMenuItem] {
+        if needsSetUp { return [StatusMenuItem(title: "Set Up \(BuddyCore.appName)…", action: .setUp)] }
+        return [
+            StatusMenuItem(title: "Open \(BuddyCore.appName)", action: .openStudio),
+            StatusMenuItem(title: "New Session", action: .newSession),
+            StatusMenuItem(title: "Settings…", action: .openSettings),
+        ]
+    }
+
     public static func menu(answerKept: Bool, problems: [AppProblem], needsSetUp: Bool, keyName: String,
                             paused: Bool) -> [StatusMenuItem] {
         let name = BuddyCore.appName
@@ -126,9 +144,9 @@ public struct StatusMenuItem: Sendable, Equatable {
         if needsSetUp {
             items.append(StatusMenuItem(title: "Set Up \(name)…", action: .setUp, keyEquivalent: ","))
         } else {
-            items.append(StatusMenuItem(title: "Open \(name)", action: .openSettings, keyEquivalent: ","))
+            items.append(StatusMenuItem(title: "Open \(name)", action: .openStudio, keyEquivalent: "o"))
+            items.append(StatusMenuItem(title: "Settings…", action: .openSettings, keyEquivalent: ","))
         }
-        items.append(StatusMenuItem(title: "Conversations", action: .conversations, keyEquivalent: "y"))
         // the key can be changed any time from the menu bar (once Settings is there).
         if !needsSetUp { items.append(StatusMenuItem(title: "Lumi Key: \(keyName)…", action: .openPane(.keys))) }
         items += [

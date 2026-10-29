@@ -20,14 +20,14 @@ struct CoordinatorRaceTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: context, bridge: bridge,
+            settings: settings, voice: voice, context: context, turns: bridge,
             overlay: overlay, escape: escape, pointer: FixedPointer())
         coordinator.start()
         return coordinator
     }
 
     func waitFor(_ condition: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !condition(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -229,7 +229,7 @@ struct CoordinatorRaceTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: unavailable, context: FakeContext.packet(), bridge: FakeBridge(),
+            settings: settings, voice: unavailable, context: FakeContext.packet(), turns: FakeBridge(),
             overlay: overlay, pointer: FixedPointer())
         await c.handle(.gesture(.pressBegan(fresh: false)))
         #expect(answers == ["Voice isn't set up yet."])

@@ -20,14 +20,14 @@ struct InterruptionTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), interruptions: system)
         coordinator.start()
         return coordinator
     }
 
     func settle(until done: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !done(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }
@@ -149,7 +149,7 @@ struct InterruptionTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let coordinator = BuddyCoordinator(
-            settings: settings, voice: gated, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: gated, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), interruptions: system)
         coordinator.start()
         await settle(until: { system.openStreams == 1 })

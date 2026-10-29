@@ -10,6 +10,8 @@ private actor StubSpeaker: LoadableSpeaker {
     /// Speak waits this long before failing or answering, so a stop can land in between.
     var speakDelay: Duration = .zero
     private(set) var spoken: [String] = []
+    /// Speak calls started, answered or not.
+    private(set) var speakCalls = 0
     private(set) var continued: [String] = []
     private(set) var stops = 0
     private(set) var warmUps = 0
@@ -39,6 +41,7 @@ private actor StubSpeaker: LoadableSpeaker {
     var speakDelays: [Duration] = []
     func setSpeakDelays(_ delays: [Duration]) { speakDelays = delays }
     func speak(_ text: String) async throws -> AsyncStream<Float> {
+        speakCalls += 1
         if loadDelay > .zero, !loaded { try await load() }   // like KokoroSpeaker.speak
         let delay = speakDelays.isEmpty ? speakDelay : speakDelays.removeFirst()
         if delay > .zero { try await Task.sleep(for: delay) }
@@ -54,6 +57,26 @@ private actor StubSpeaker: LoadableSpeaker {
 }
 
 struct FallbackSpeakerTests {
+    /// Live (Oct 29): a re-summon that stops the reply while the primary is still on its first
+    /// sentence makes it throw. That's the stop, not a failure: the system voice says nothing, and
+    /// a load error thrown then doesn't switch voices for good.
+    @Test func aStopWhileThePrimaryStartsIsNeverAFailure() async throws {
+        for error in [VoiceUnavailable.synthesisFailed("cancelled"), .loadFailed("cancelled")] {
+            let primary = StubSpeaker(speakError: error, speakDelay: .milliseconds(200))
+            let fallback = StubSpeaker()
+            let speaker = FallbackSpeaker(primary: primary, fallback: fallback)
+            let reply = Task { try await speaker.speak("an answer") }
+            while await primary.speakCalls == 0 { await Task.yield() }
+            await speaker.stop()
+            let levels = try await reply.value
+            var heard = 0
+            for await _ in levels { heard += 1 }
+            #expect(heard == 0)
+            #expect(await fallback.spoken.isEmpty, "the system voice never says a stopped reply")
+            #expect(await speaker.active == .primary, "a stop never switches voices")
+        }
+    }
+
     @Test func aContinuationGoesToTheVoiceThatSaidTheReply() async throws {
         let primary = StubSpeaker(speakError: VoiceUnavailable.synthesisFailed("too many phonemes"))
         let fallback = StubSpeaker()
@@ -83,12 +106,15 @@ struct FallbackSpeakerTests {
     }
 
     /// Review: a reply that times out after a stop and a newer reply must not stop the newer one.
+    /// The old reply's primary never starts within the deadline, and the newer one starts at once:
+    /// the deadline is long enough that a loaded machine can't make the newer reply miss it too
+    /// (QA R18b: 200 ms did, at load average 60+). Waiting for `first` waits out the deadline.
     @Test func aTimedOutReplyOvertakenByANewerOneLeavesItAlone() async throws {
         let primary = StubSpeaker(), fallback = StubSpeaker()
-        await primary.setSpeakDelays([.milliseconds(600), .zero])
-        let speaker = FallbackSpeaker(primary: primary, fallback: fallback, primaryDeadline: .milliseconds(200))
+        await primary.setSpeakDelays([.seconds(60), .zero])
+        let speaker = FallbackSpeaker(primary: primary, fallback: fallback, primaryDeadline: .seconds(2))
         let first = Task { try await speaker.speak("old") }
-        try await Task.sleep(for: .milliseconds(50))
+        while await primary.speakCalls < 1 { try await Task.sleep(for: .milliseconds(1)) } // the old reply is waiting
         await speaker.stop()
         _ = try await speaker.speak("new")
         _ = try await first.value

@@ -38,7 +38,7 @@ public final class AppRuntime {
     public private(set) var isRunning = false
 
     @ObservationIgnored private var coordinator: BuddyCoordinator?
-    @ObservationIgnored private var monitor: BuddyKeyMonitor?
+    @ObservationIgnored var monitor: BuddyKeyMonitor?
     @ObservationIgnored private var quick: QuickLane?
     /// The Quick spec for a model choice, once Claude Code and the plugin are known.
     @ObservationIgnored private var quickSpec: (@Sendable (ModeConfig) -> LaunchSpec)?
@@ -46,6 +46,8 @@ public final class AppRuntime {
     /// Builds the overlay at `start` (tests pass a fake, so no live panels are made).
     private let makeOverlay: @MainActor () -> any OverlayPresenting
     @ObservationIgnored private var deep: DeepLane?
+    /// Open sessions' processes (`LumiFeatures.sessions`); nil when off.
+    @ObservationIgnored var sessionEngine: SessionEngine?
     @ObservationIgnored private var tasks: [Task<Void, Never>] = []
     /// While Settings › Keys or onboarding practises the buddy key, its gestures don't summon.
     @ObservationIgnored public private(set) var isPractisingKey = false
@@ -80,8 +82,8 @@ public final class AppRuntime {
     @ObservationIgnored var startKeyListener: (@MainActor () async throws(KeySourceError) -> Void)?
     /// Called each time a model answer is shown (onboarding's "Try it" step listens).
     @ObservationIgnored public var onAnswerShown: (@MainActor () -> Void)?
-    /// ⌘Y in a card: the shell opens the Conversations window.
-    @ObservationIgnored public var onOpenConversations: (@MainActor () -> Void)?
+    /// ⌘Y in a card: the shell opens the Lumi window.
+    @ObservationIgnored public var onOpenLumiWindow: (@MainActor () -> Void)?
     /// A failure chip's "Use <model>": the shell writes Settings › Models and applies it (which
     /// reloads the lane), returning once that's done.
     @ObservationIgnored public var onUseModel: (@MainActor (ModelID, Mode) async -> Void)?
@@ -89,14 +91,27 @@ public final class AppRuntime {
     @ObservationIgnored public var onOpenSettingsPane: (@MainActor (SettingsPane) -> Void)?
     /// ⌘, in a card: the shell opens Settings at its last pane.
     @ObservationIgnored public var onOpenSettings: (@MainActor () -> Void)?
+    /// "Saved in Dictation history" › Open: the Lumi window on its Dictation page. Set by the app.
+    @ObservationIgnored public var onOpenDictationHistory: (@MainActor () -> Void)?
+    /// Every dictation's words (Settings › Privacy applies; `applyConversations`). In memory only
+    /// unless the app passes the file-backed one, so tests never touch the user's history.
+    @ObservationIgnored public let dictationHistory: DictationHistory
+    /// ⌘⇧E in the Panel: the Lumi window (Studio) opens on that session. Set by the app.
+    @ObservationIgnored public var onOpenStudioSession: (@MainActor (SessionID) -> Void)?
+    /// The Studio window's sessions and engine calls (AppRuntime+Studio).
+    @ObservationIgnored public let studioSource = SessionsStudioSource()
     @ObservationIgnored private var appliedConversations = false
 
     private let voice: any VoicePort
-    /// The conversation index, shared with the Conversations window. Nil if it couldn't
+    /// The conversation index, shared with the session store. Nil if it couldn't
     /// be opened: questions still work, in conversations kept in memory, and `problems` says so.
     public let conversationManager: ConversationManager?
     /// The coordinator's conversations over that index.
     public let conversations: LiveConversations?
+    /// The saved index itself, for the v2 session store.
+    let savedIndex: ConversationIndex?
+    /// v2 sessions over the same index (LumiFeatures.sessions); nil while the flag is off.
+    @ObservationIgnored public internal(set) var sessions: LiveSessions?
     private let indexProblem: String?
     let preferences = EnginePreferencesBox()
 
@@ -123,8 +138,10 @@ public final class AppRuntime {
                 overlay makeOverlay: @escaping @MainActor () -> any OverlayPresenting = { BuddyOverlayController() },
                 traceDirectory: URL = TraceLog.defaultDirectory,
                 physicalMemory: UInt64 = ProcessInfo.processInfo.physicalMemory,
-                permissions: PermissionCenter = PermissionCenter()) {
+                permissions: PermissionCenter = PermissionCenter(),
+                dictationHistory: DictationHistory = DictationHistory(file: nil)) {
         self.voice = voice
+        self.dictationHistory = dictationHistory
         self.permissions = permissions
         self.makeOverlay = makeOverlay
         self.traceDirectory = traceDirectory
@@ -135,10 +152,12 @@ public final class AppRuntime {
                                               reportsDirectory: ResearchController.reportsDirectory)
             conversationManager = manager
             conversations = LiveConversations(manager: manager)
+            savedIndex = index
             indexProblem = nil
         } else {
             conversationManager = nil
             conversations = nil
+            savedIndex = nil
             indexProblem = Self.indexFailed
         }
         problems = indexProblem.map { [AppProblem(text: $0, fix: Self.fix(for: $0))] } ?? []
@@ -219,7 +238,12 @@ public final class AppRuntime {
            onBusy: holdResearch)
         self.quick = quick
         self.deep = deep
-        let cascade = Cascade(quick: quick, deep: deep, home: home, trust: { FolderTrust.load(home: home) })
+        // The v2 flags, read once for the whole start (each `v2.<name>` set to false turns one off).
+        let features = LumiFeatures.current()
+        let sessionEngine = makeSessionPool(claude: claude, environment: env, plugin: plugin, home: home,
+                                            features: features)
+        let cascade = Cascade(quick: quick, deep: deep, home: home, openHandoff: sessionHandoff(sessionEngine),
+                              trust: { FolderTrust.load(home: home) })
 
         // Context: AX timeout and screenshot retention, then a long-lived recent-apps observer.
         // Blocked apps and retention are read from Settings each time they're needed.
@@ -237,11 +261,13 @@ public final class AppRuntime {
         overlay.settings = preferences.current.overlay
         // A tucked answer folds into the menu bar item, wherever it is at that moment.
         overlay.foldTarget = { [weak self] in self?.statusItemFrame?() }
+        // Every card's frame and close in the trace log: qa-ui checks there's never two at once.
+        (overlay as? BuddyOverlayController)?.onCard = { [traceLog] change in Self.traceCard(change, to: traceLog) }
         self.overlay = overlay
         let inserter = LiveInserter(inserter: TextInserter(isBlocked: { blocklist().isBlocked(bundleID: $0) }))
 
         // The buddy key. Input Monitoring is checked without prompting first.
-        let monitor = BuddyKeyMonitor(options: preferences.current.keys, source: EventTapSource())
+        let monitor = Self.makeKeyMonitor(preferences.current.keys, features: features)
         self.monitor = monitor
         // Research jobs run sandboxed in their reports folder; the coordinator activates the capsule.
         // Settings › Models › Research isn't fed in yet.
@@ -249,7 +275,7 @@ public final class AppRuntime {
             runner: researchRunner,
             overlay: overlay, model: { [researchConfig] in researchConfig().model })
         let coordinator = BuddyCoordinator(
-            voice: voice, context: context, bridge: LiveBridge(cascade: cascade),
+            voice: voice, context: context, turns: LiveBridge(cascade: cascade, sessions: sessionEngine?.turns),
             overlay: overlay, inserter: inserter, escape: LiveEscape(), pointer: LivePointer(),
             locator: LiveLocator(blocklist: blocklist),
             interruptions: SystemInterruptions(),
@@ -272,14 +298,24 @@ public final class AppRuntime {
             self?.updateActivity()
         }
         coordinator.settings = Self.coordinatorSettings(preferences.current)
+        // v2 streams attach here, each behind its LumiFeatures flag. Order matters: the session store
+        // first (the Panel, switcher and Studio read it), the Panel before dictation (its composer).
+        makeSessionEngine(coordinator, features: features)
+        // Typed sessions (and voice answers without a topic) are named after their first answer.
+        sessions?.titler = ClaudeTitler(claude: claude, environment: env)
+        makePanel(coordinator, features: features, sessions: sessions)
+        makeSwitcher(coordinator, features: features)
+        makeDictation(coordinator, features: features)
+        makeStudioBridge(coordinator, features: features)
         coordinator.onAnswerShown = { [weak self] in self?.onAnswerShown?() }
-        coordinator.onOpenConversations = { [weak self] in self?.onOpenConversations?() }
+        coordinator.onOpenLumiWindow = { [weak self] in self?.onOpenLumiWindow?() }
         coordinator.onRepairPlugin = { [weak self] in self?.repairPluginFromChip() }
         coordinator.onPermissionMode = { [weak self] mode in self?.setPermissionMode(mode) }
         coordinator.onMCPServers = { [weak self] lane, servers in self?.setMCPServers(servers, lane: lane) }
         coordinator.onUseModel = { [weak self] model, mode in await self?.onUseModel?(model, mode) }
         coordinator.onOpenSettingsPane = { [weak self] pane in self?.onOpenSettingsPane?(pane) }
         coordinator.onOpenSettings = { [weak self] in self?.onOpenSettings?() }
+        coordinator.onOpenDictationHistory = { [weak self] in self?.onOpenDictationHistory?() }
         coordinator.hintDefaults = .standard // the reply hint, once learned, stays hidden
         coordinator.onGrantPermission = { [weak self] kind in Task { await self?.permissions.fix(kind) } }
         coordinator.setMissingPermission(Self.missingForChip(permissions)) // watched before it existed
@@ -369,7 +405,11 @@ public final class AppRuntime {
         await applyConversations(new, old: old)
         coordinator?.settings = Self.coordinatorSettings(new)
         overlay?.settings = new.overlay
-        if new.keys != old.keys { await monitor?.update(new.keys) }
+        if new.keys != old.keys {
+            await monitor?.update(Self.keyOptions(new.keys))
+            // "1 waiting · Tab" names the new key's next key.
+            coordinator?.switcherFlow?.nextKeyName = Self.switcherNextKeyName(new.keys.key)
+        }
         // A new Quick model: the spare restarts on it and the current conversation moves over at
         // its next turn. A new Deep model: the idle Deep process stops; the next handoff uses it.
         if new.coordinator.quick != old.coordinator.quick, let quickSpec {
@@ -379,6 +419,25 @@ public final class AppRuntime {
     }
 
     /// The coordinator's settings, with the hint symbol always from the bound key.
+    /// `cardShown frame=x,y,w,h` and `cardClosed reason=…`: where cards sat and why they left, no content.
+    static func traceCard(_ change: BuddyOverlayController.CardChange, to trace: any TracePort) {
+        switch change {
+        case .shown(let frame):
+            trace.record(.cardShown, frame: frame)
+        case .closed(let close):
+            let reason: TraceReason = switch close {
+            case .dismissed(.escape): .escape
+            case .dismissed(.clickAway): .clickAway
+            case .dismissed(.appSwitched): .appSwitched
+            case .dismissed(.closeButton): .closeButton
+            case .dismissed(.requested): .requested
+            case .replaced: .replaced
+            case .summon: .summon
+            }
+            trace.record(.cardClosed, duration: nil, outcome: nil, reason: reason)
+        }
+    }
+
     static func coordinatorSettings(_ prefs: EnginePreferences) -> BuddyCoordinator.Settings {
         var settings = prefs.coordinator
         settings.keySymbol = prefs.keys.key.symbol
@@ -388,16 +447,20 @@ public final class AppRuntime {
 
     /// Idle timeout and temporary mode apply at once; a shorter retention prunes at once.
     private func applyConversations(_ new: EnginePreferences, old: EnginePreferences) async {
+        dictationHistory.setPolicy(temporary: new.temporaryConversations, retentionDays: new.retentionDays)
         guard let manager = conversationManager else { return }
         let first = !appliedConversations
         appliedConversations = true
         if first || new.idleTimeout != old.idleTimeout {
             await manager.setPolicy(ConversationPolicy(idleTimeout: new.idleTimeout))
+            sessions?.policy.idleLimit = new.idleTimeout
         }
+        sessions?.maxSubagents = new.sessions.maxSubagents
         if first || new.temporaryConversations != old.temporaryConversations, let conversations {
             do {
                 try await conversations.setTemporary(new.temporaryConversations)
                 setProblem(Self.temporaryFailed, active: false)
+                await sessions?.setStore(SessionStore(index: await manager.activeIndex))
             } catch {
                 setProblem(Self.temporaryFailed, active: true)
             }
@@ -575,7 +638,7 @@ public final class AppRuntime {
 
     static let temporaryFailed = "Temporary mode couldn't be changed."
     static let claudeMissing = "Claude Code isn't installed, or isn't on your PATH."
-    static let claudeTooOld = "Update Claude Code to use Lumi (needs \(ClaudeCodeProbe.minimumVersion) or newer)."
+    static let claudeTooOld = "Claude Code is too old for Lumi. Update it to \(ClaudeCodeProbe.minimumVersion) or newer: run claude update in Terminal."
     static let pluginFailedPrefix = "The Lumi plugin couldn't be installed: "
 
     /// A problem line that can resolve (a later save or switch worked).
@@ -596,6 +659,7 @@ public final class AppRuntime {
         tasks.forEach { $0.cancel() }
         tasks.removeAll()
         coordinator?.stop()
+        await shutdownSessions()
         await monitor?.stop()
         await quick?.shutdown()
         await deep?.shutdown()
@@ -937,8 +1001,16 @@ public final class LiveVoice: VoicePort {
     }
 
     public func startListening() async throws {
+        try await start(.question)
+    }
+
+    public func startDictation() async throws {
+        try await start(.dictation)
+    }
+
+    private func start(_ kind: ListenKind) async throws {
         do {
-            try await controller.startListening()
+            try await controller.startListening(kind)
         } catch VoiceController.VoiceError.stillSettingUp where prepareFailure.message != nil {
             // Setup failed earlier: say so, and retry in the background.
             Task { [weak self] in try? await self?.prepare() }
@@ -982,6 +1054,7 @@ public final class LiveVoice: VoicePort {
     }
     public func stopSpeaking() async { await controller.stopSpeaking() }
     public func play(_ sound: BuddySound) async { await controller.play(sound) }
+    public func heardSpeechSeconds() async -> Double { await controller.heardSpeechSeconds() }
 
     static func message(for problem: MicProblem) -> String {
         switch problem {

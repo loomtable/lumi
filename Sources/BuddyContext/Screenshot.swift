@@ -183,7 +183,7 @@ public struct Screenshot: Sendable {
         }
     }
 
-    /// A small in-memory copy of the whole display for placement saliency: `pointScale` pixels
+    /// A small in-memory copy of the whole display for backdrop brightness: `pointScale` pixels
     /// per point (0.25 gives 378×246 for a 1512×982 pt display). Made from `full`, so it needs no
     /// second capture and, like `full`, has no Lumi or blocked-app windows in it.
     public func backdrop(pointScale: Double = 0.25) -> CGImage? {
@@ -370,8 +370,7 @@ public struct ScreenshotStore: Sendable {
     }
 
     public static var defaultDirectory: URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appending(path: "\(BuddyCore.folderName)/shots", directoryHint: .isDirectory)
+        BuddyCore.paths.screenshots
     }
 
     func newFileURL(extension ext: String = "png", now: Date = Date()) -> URL {

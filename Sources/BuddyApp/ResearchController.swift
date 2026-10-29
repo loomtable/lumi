@@ -217,8 +217,8 @@ extension ResearchController {
             ignoredPrefixes: [home.appending(path: ".claude").path + "/", plugin.path + "/"])
     }
 
-    /// `~/Library/Application Support/com.loomtable.lumi/reports`.
+    /// `~/Library/Application Support/<bundle id>/reports`.
     public static var reportsDirectory: URL {
-        URL.applicationSupportDirectory.appending(path: "\(BuddyCore.folderName)/reports", directoryHint: .isDirectory)
+        BuddyCore.paths.reports
     }
 }

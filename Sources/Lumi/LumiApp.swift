@@ -3,6 +3,7 @@ import BuddyCompanion
 import BuddyContext
 import BuddyConversations
 import BuddyCore
+import BuddyOverlay
 import BuddyTrace
 import BuddyVoice
 import SwiftUI
@@ -11,57 +12,99 @@ import SwiftUI
 struct LumiApp: App {
     @NSApplicationDelegateAdaptor private var delegate: AppDelegate
 
+    /// The app's two windows (`LumiWindow`). Every scene says how it launches: SwiftUI presents
+    /// a scene left on `.automatic`, the first one declared, at launch, which is how the v1
+    /// Conversations window (declared first, never suppressed) opened in v2 (owner, QA 0.2.0).
     var body: some Scene {
-        Window("Conversations", id: WindowID.conversations) {
-            ConversationsScene(model: delegate.model)
+        // The Lumi window, with Settings in its sidebar: only ever opened when asked.
+        Window(BuddyCore.appName, id: LumiWindow.studio.id) {
+            StudioScene(model: delegate.model)
                 .companionServices(delegate.model)
+                .lumiTheme()
         }
+        .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
+        .defaultSize(width: 1120, height: 760)
+        .commandsRemoved()
 
-        Settings {
-            SettingsView(store: delegate.model.settings, selection: Bindable(delegate.model).settingsPane)
+        // First run: shown at launch until every step has been completed once.
+        Window("Welcome to \(BuddyCore.appName)", id: LumiWindow.onboarding.id) {
+            OnboardingScene(model: delegate.model)
                 .companionServices(delegate.model)
+                .lumiTheme()
         }
-        // The app menu's Settings… (⌘, while a Lumi window is key) goes through the same gate.
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(LumiWindow.atLaunch(needsOnboarding: delegate.model.needsOnboarding).contains(.onboarding)
+                               ? .presented : .suppressed)
+        .restorationBehavior(.disabled)
+        // The app menu's Settings… (⌘, while a Lumi window is key): Studio's Settings, through the
+        // same setup gate as every other request.
         .commands {
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { delegate.model.openSettings() }
                     .keyboardShortcut(",")
             }
+            SessionCommands(app: delegate.model, studio: delegate.model.studio)
+            // Help: the site and feedback (QA S-17); macOS's own Help book doesn't exist.
+            CommandGroup(replacing: .help) {
+                Button("\(BuddyCore.appName) Website") { NSWorkspace.shared.open(StatusMenuItem.siteURL) }
+                Button("Send Feedback…") { delegate.model.sendFeedback() }
+            }
         }
-
-        // First run: shown at launch until every step has been completed once.
-        Window("Welcome to \(BuddyCore.appName)", id: WindowID.onboarding) {
-            OnboardingScene(model: delegate.model)
-                .companionServices(delegate.model)
-        }
-        .windowResizability(.contentSize)
-        .defaultLaunchBehavior(delegate.model.needsOnboarding ? .presented : .suppressed)
     }
 }
 
-/// Opens windows the engine and the menu bar item ask for (⌘Y in a card, a menu row). It lives in
-/// the status item's button because that exists for the app's whole life, and SwiftUI's
-/// `openWindow` and `openSettings` need a SwiftUI view, which the runtime and AppKit aren't.
+/// The menu bar's Session menu (QA S-17): what the Lumi window does to a session, so its keys are
+/// findable. Rename, Archive and Stop act on the session open in the Lumi window.
+struct SessionCommands: Commands {
+    let app: AppModel
+    let studio: StudioModel
+
+    var body: some Commands {
+        CommandMenu("Session") {
+            Button("New Session") { app.openNewSession() }
+                .keyboardShortcut("n")
+            Divider()
+            Button("Rename…") { studio.requestRename() }
+                .disabled(studio.selectedSession == nil)
+            Button(studio.selectedSession?.archived == true ? "Unarchive" : "Archive") {
+                guard let session = studio.selectedSession else { return }
+                Task { await studio.setArchived(!session.archived, for: session.id) }
+            }
+            .disabled(studio.selectedSession == nil)
+            Button("Stop") { studio.stopSelected() }
+                .keyboardShortcut(".")
+                .disabled(!studio.canStop)
+        }
+    }
+}
+
+/// Opens the windows the engine and the menu bar item ask for (⌘Y in a card, a menu row, a Fix
+/// chip). It lives in the status item's button because that exists for the app's whole life, and
+/// SwiftUI's `openWindow` needs a SwiftUI view, which the runtime and AppKit aren't.
 struct WindowRequests: View {
     let model: AppModel
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Color.clear
-            .onChange(of: model.conversationsRequests) {
-                NSApp.activate()
-                openWindow(id: WindowID.conversations)
-            }
-            // A failure chip's Fix: `settingsPane` is already set, so Settings opens at that pane.
-            .onChange(of: model.settingsRequests) {
-                NSApp.activate()
-                openSettings()
-            }
             .onChange(of: model.onboardingRequests) {
                 NSApp.activate()
-                openWindow(id: WindowID.onboarding)
+                openWindow(id: LumiWindow.onboarding.id)
             }
+            .onChange(of: model.studioRequests) {
+                NSApp.activate()
+                openWindow(id: LumiWindow.studio.id)
+            }
+    }
+}
+
+/// Studio over the shared store.
+struct StudioScene: View {
+    let model: AppModel
+
+    var body: some View {
+        StudioView(model: model.studio, store: model.settings)
     }
 }
 
@@ -72,26 +115,14 @@ struct OnboardingScene: View {
 
     var body: some View {
         OnboardingView(model: model.onboarding, store: model.settings) {
-            dismissWindow(id: WindowID.onboarding)
+            dismissWindow(id: LumiWindow.onboarding.id)
+            LumiWindow.afterOnboarding.forEach(model.show)
         }
     }
 }
 
-/// The Conversations window over the shared store and the engine's index. Resume makes that
-/// conversation current from the next question.
-struct ConversationsScene: View {
-    let model: AppModel
-
-    var body: some View {
-        @Bindable var store = model.settings
-        // Resume and temporary mode go through the engine's conversations, in call order.
-        ConversationsWindow(source: model.runtime.conversations.map { LiveHistorySource(conversations: $0) },
-                            identity: model.runtime.conversations, preferences: $store.conversations)
-    }
-}
-
 extension View {
-    /// The services Settings, onboarding and the Conversations window read from the environment
+    /// The services Studio (its Settings pages) and onboarding read from the environment
     /// (BuddyCompanion's CompanionEnvironment). Values the shell doesn't provide yet keep their
     /// defaults, which the panes show as "not available".
     func companionServices(_ model: AppModel) -> some View {
@@ -116,15 +147,15 @@ private struct CompanionServices<Content: View>: View {
             .environment(\.traceLogActions, TraceLogActions(delete: { [traceLog = model.runtime.traceLog] in await traceLog.deleteAll() }))
             .environment(\.claudeCodeStatus, claudeCode.status)
             .environment(\.claudeCodeActions, claudeCode.actions)
-            .environment(\.conversationManager, model.runtime.conversationManager)
+            .environment(\.forgetAllSessions, ForgetAllAction(
+                available: { [studio = model.studio] in studio.hasSessions || studio.showsDictation },
+                run: { [studio = model.studio] in
+                    studio.dictationHistory?.clearAll()
+                    return await studio.forgetAll()
+                }))
             .environment(\.voicePrepareState, model.voicePrepareState)
             .environment(\.voiceActions, model.voice.actions { [settings = model.settings] in settings.voice.replyVoice })
     }
-}
-
-enum WindowID {
-    static let conversations = "conversations"
-    static let onboarding = "onboarding"
 }
 
 /// Starts the engine once AppKit has finished launching, and stops it on quit.
@@ -135,13 +166,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = StatusItemController(model: model)
+        model.observeTheme()
+        model.observeDock()
         model.runtime.watchPermissions()
         Task {
             await model.applySettingsToEngine()
             model.observeVoice()
             // Reopened from Settings to apply a grant: back to the pane it was on, through the same
             // request a failure chip's Fix uses (the menu bar label is up by now).
-            if let pane = PermissionCenter.takeSettingsResume() { model.openSettings(at: pane) }
+            if let page = PermissionCenter.takeSettingsPageResume() { model.openStudio(at: .settings(page)) }
             await model.runtime.start()
         }
     }
@@ -150,25 +183,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var quit = QuitSequence(
         stop: { [model] in await model.runtime.stop() },
         // Chrome/Electron AX switches Lumi turned on go back off, even if the watchdog ends the quit.
-        beforeStop: { AccessibilityEnabler.shared.restoreAll() })
+        beforeStop: { AccessibilityEnabler.shared.restoreAll() },
+        // Sessions still working: ask before their turns are interrupted (QA S-08).
+        working: { [model] in model.studio.workingCount })
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         quit.shouldTerminate()
     }
 
-    /// Opened again from Spotlight, Finder or the Dock: the kept answer comes back, or Settings
-    /// opens when there's none (onboarding, until setup is finished).
+    /// A click on the Dock icon, or opened again from Spotlight or Finder: the Lumi window
+    /// (onboarding until setup is finished). The menu bar's Show Last Answer brings back a kept answer.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
-        if !model.runtime.recallLastAnswer(), !hasVisibleWindows { model.openSettings() }
+        model.reopen()
         return false
+    }
+
+    /// The Dock icon's menu: Open Lumi, New Session, Settings (setup until it's finished).
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let menu = NSMenu()
+        for row in StatusMenuItem.dockMenu(needsSetUp: model.needsSetUp) {
+            guard let title = row.title, let action = row.action else { continue }
+            let item = NSMenuItem(title: title, action: #selector(dockMenuChose), keyEquivalent: "")
+            item.target = self
+            item.representedObject = DockAction(action)
+            menu.addItem(item)
+        }
+        return menu
+    }
+
+    private final class DockAction: NSObject {
+        let action: StatusMenuItem.Action
+        init(_ action: StatusMenuItem.Action) { self.action = action }
+    }
+
+    @objc private func dockMenuChose(_ sender: NSMenuItem) {
+        switch (sender.representedObject as? DockAction)?.action {
+        case .openStudio: model.openStudio(at: .home)
+        case .newSession: model.openNewSession()
+        case .openSettings: model.openSettings()
+        case .setUp: model.openOnboarding()
+        default: break
+        }
     }
 }
 
 /// App-wide state owned by the shell.
 @Observable
 final class AppModel {
-    /// The Settings window's pane; the menu bar sets it to open Settings where a problem is fixed.
-    var settingsPane: SettingsPane = .keys
+    /// The Lumi window's state.
+    @ObservationIgnored let studio: StudioModel
     var isPaused = false {
         didSet { Task { await runtime.setPaused(isPaused) } }
     }
@@ -186,9 +249,14 @@ final class AppModel {
         let settings = SettingsStore()
         self.settings = settings
         voice = LiveVoice.live(settings: Self.voiceSettings(settings))
-        runtime = AppRuntime(voice: voice)
-        // "Try it": done once a real answer has been shown, even before onboarding opens.
-        runtime.onOpenConversations = { [weak self] in self?.openConversations() }
+        runtime = AppRuntime(voice: voice, dictationHistory: DictationHistory(retentionDays: settings.conversations.retentionDays))
+        studio = StudioModel(source: runtime.studioSource, dictationHistory: runtime.dictationHistory)
+        runtime.studioSource.pageHost = studio
+        // The Panel's ⌘⇧E: the session in the Lumi window.
+        runtime.onOpenStudioSession = { [weak self] id in self?.openStudio(at: .session(id)) }
+        // ⌘Y in a card (and ⇱ with the Panel off): history is the Lumi window's sidebar.
+        runtime.onOpenLumiWindow = { [weak self] in self?.openStudio() }
+        runtime.onOpenDictationHistory = { [weak self] in self?.openStudio(at: .dictation) }
         runtime.onOpenSettingsPane = { [weak self] pane in
             self?.openSettings(at: pane)
         }
@@ -196,6 +264,7 @@ final class AppModel {
             self?.openSettings() // the pane it last showed
         }
         runtime.onUseModel = { [weak self] model, mode in await self?.useModel(model, for: mode) }
+        // "Try it": done once a real answer has been shown, even before onboarding opens.
         runtime.onAnswerShown = { [weak self] in
             guard let self else { return }
             answeredOnce = true
@@ -204,30 +273,83 @@ final class AppModel {
     }
 
     @ObservationIgnored private var answeredOnce = false
-    /// Bumped each time the engine asks for the Conversations window (WindowRequests opens it).
-    private(set) var conversationsRequests = 0
-    /// Bumped each time the engine asks for a Settings pane (WindowRequests opens it at `settingsPane`).
-    private(set) var settingsRequests = 0
     /// Bumped by the menu's "Set Up …" (WindowRequests opens onboarding).
     private(set) var onboardingRequests = 0
+    /// Bumped each time something asks for the Lumi window (WindowRequests opens it).
+    private(set) var studioRequests = 0
 
     /// Every request for Settings comes here; until setup is finished it opens onboarding instead.
+    /// Settings is a page of the Lumi window: an old pane opens the page that holds it.
     func openSettings(at pane: SettingsPane?) {
         switch SettingsRoute.route(pane, needsSetUp: needsSetUp) {
         case .onboarding:
             openOnboarding()
         case .settings(let pane):
-            if let pane { settingsPane = pane }
-            settingsRequests += 1
+            studio.showSettings(pane.map(SettingsPage.init))
+            show(.studio)
         }
+    }
+
+    /// The Lumi window (Studio) at `selection`; onboarding instead until setup is finished, as for
+    /// Settings, which it contains.
+    func openStudio(at selection: StudioModel.Selection? = nil) {
+        if needsSetUp { return openOnboarding() }
+        if let selection { studio.selection = selection }
+        show(.studio)
     }
 
     /// Settings at the pane it last showed.
     func openSettings() { openSettings(at: nil) }
+    /// New Session (the Dock menu): Home, ready to type.
+    func openNewSession() {
+        if needsSetUp { return openOnboarding() }
+        studio.newSession()
+        show(.studio)
+    }
+    /// Send Feedback… (the menu bar item, Help): a new email in the user's mail app; with no mail
+    /// app set up, the address goes to the clipboard instead and a note says so.
+    func sendFeedback() {
+        guard !NSWorkspace.shared.open(StatusMenuItem.feedbackURL()) else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(StatusMenuItem.feedbackAddress, forType: .string)
+        runtime.showNote("Copied \(StatusMenuItem.feedbackAddress)")
+    }
+
+    /// A Dock click or reopen (`LumiWindow.onReopen`).
+    func reopen() { show(LumiWindow.onReopen(needsSetUp: needsSetUp)) }
+
+    /// "Show in Dock", now and on every change (no relaunch).
+    @ObservationIgnored private let dock = DockPresence.live()
+    @ObservationIgnored private var dockObserver: Task<Void, Never>?
+    @ObservationIgnored private var themeObserver: Task<Void, Never>?
+    /// Settings › Appearance › Theme, applied now and on every change (no relaunch).
+    func observeTheme() {
+        ThemeSelection.shared.theme = settings.appearance.theme
+        guard themeObserver == nil else { return }
+        let settings = settings
+        themeObserver = Task { @MainActor in
+            for await theme in Observations({ settings.appearance.theme }) { ThemeSelection.shared.theme = theme }
+        }
+    }
+
+    func observeDock() {
+        dock.show(inDock: settings.dock.showInDock)
+        guard dockObserver == nil else { return }
+        let (settings, dock) = (settings, dock)
+        dockObserver = Task { @MainActor in
+            for await showInDock in Observations({ settings.dock.showInDock }) { dock.show(inDock: showInDock) }
+        }
+    }
     /// Read now, not at launch, so Settings opens as soon as onboarding's Done is pressed.
     var needsSetUp: Bool { OnboardingModel.needsOnboarding(external: onboardingSteps) }
-    func openConversations() { conversationsRequests += 1 }
-    func openOnboarding() { onboardingRequests += 1 }
+    func openOnboarding() { show(.onboarding) }
+    /// Asks WindowRequests to bring `window` forward.
+    func show(_ window: LumiWindow) {
+        switch window {
+        case .studio: studioRequests += 1
+        case .onboarding: onboardingRequests += 1
+        }
+    }
     /// The onboarding model if its window has been built (it's created lazily).
     @ObservationIgnored private var onboardingIfCreated: OnboardingModel?
 
@@ -309,8 +431,12 @@ final class AppModel {
         }
     }
 
+    /// Only the dictation key reads the Mac's key environment, so it's skipped while dictation is
+    /// off and cached while it's on (QA R15: this runs on every settings change).
     static func engine(_ store: SettingsStore) -> EnginePreferences {
-        EnginePreferences(store: store)
+        let features = LumiFeatures.current()
+        let environment = features.dictation ? KeyEnvironmentCache.shared.current() : KeyEnvironment()
+        return EnginePreferences(store: store, keyEnvironment: environment, features: features)
     }
 
     /// Folders Lumi writes to (Settings › Privacy, "Stored on this Mac"). The trace folder

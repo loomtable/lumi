@@ -94,7 +94,11 @@ public actor KokoroSpeaker: SpeechSpeaker {
             await self.speakSentences(rest, into: handle, generation: id)
         }
         // A failure in the first sentence throws, so FallbackSpeaker can say the reply with the system voice.
-        try await head.value
+        // Not a stop: a reply stopped or replaced while its first sentence synthesized just ends.
+        do { try await head.value } catch {
+            guard id == generation else { return AsyncStream { $0.finish() } }
+            throw error
+        }
         let handle = try await opening.value
         guard id == generation else { return AsyncStream { $0.finish() } }
         return handle.levels
@@ -131,6 +135,8 @@ public actor KokoroSpeaker: SpeechSpeaker {
                 let (samples, _) = try await synthesize(sentence)
                 guard id == generation, try await reply.append(samples) else { break }
             } catch {
+                // Stopped or replaced (a new summon, Esc, the switcher): ended on purpose, not a failure.
+                guard id == generation, !Task.isCancelled else { break }
                 log.error("Kokoro failed mid-reply, ending it early: \(String(describing: error), privacy: .private)")
                 break
             }

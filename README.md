@@ -36,7 +36,7 @@ Ask a question from any app, and Lumi finds the right file, works through it and
 curl -fsSL https://lumi.loomtable.com/install.sh | sh
 ```
 
-**Requires:** macOS 26 on Apple Silicon, and Claude Code 2.1.259 or newer, signed in. Other ways: [Install](#install).
+**Requires:** macOS 26 on Apple Silicon, and Claude Code 2.1.312 or newer, signed in. Other ways: [Install](#install).
 
 Star the repo to follow what ships next.
 
@@ -50,7 +50,7 @@ Star the repo to follow what ships next.
 | **Integrates with your tools.** | Slack, Notion, Linear, GitHub, Jira, Drive, Calendar, a browser: whichever you've connected. |
 | **Free, local and open source.** | No account, no servers of ours, no analytics. Speech-to-text and the default voice run on your Mac. |
 
-Questions start in **Quick**, on a fast model. When a question needs files, commands or the browser, Lumi hands it to **Deep**, on a stronger model, and tells you. Start with "go deep" to go straight to Deep, or with "research" for a long background job.
+Questions start in **Quick**, on a fast model. When a question needs files, commands or the browser, Lumi hands it to **Deep**, your full Claude Code, in the same session, and tells you. Start with "go deep" to go straight to Deep, or with "research" for a long background job.
 
 ## Answers built for you
 
@@ -62,6 +62,17 @@ One line, a picture when it helps, and a ring on the exact spot. No wall of text
 - **Insert** puts the text into the field you're writing in. It never sends.
 
 Ask once and you've got the hang of it.
+
+## Every question keeps its thread
+
+Each thing you ask becomes a session. A follow-up from another app picks up where you left off, and the history survives a relaunch.
+
+- **Hold the Lumi key and press Tab** to switch. Your recent sessions open under the listening pill; speak before you let go, and the words go to the one you picked. N starts a new one.
+- **Type, and it opens in the Panel.** Double-tap the key: the answer streams in beside your work, code blocks and all, as your full Claude Code with your skills, slash commands and MCP servers. Paste or drop images and files, type `@` for a file or `/` for a command, and edit an earlier question to take the conversation from there.
+- **Long work keeps going.** Each running question gets a small capsule at the top of the screen. A finished answer waits its turn instead of covering the one you're reading, and anything that needs your OK turns amber and opens with one click.
+- **Teammates.** A big job can split across background helpers, 3 at most by default, each in its own lane. Lumi proposes the split first and waits for your yes; Settings › Teammates changes that.
+- **The Lumi window** holds every session, Home and Settings, and opens from the Dock. Search with ⌘K, start fresh with ⌘N. Pick a theme in Settings › Appearance.
+- **Dictation key.** Tap it, speak, tap again: the words are typed at your cursor in any app, and nothing goes to Claude. Holding works too. Every dictation is saved to your Dictation history in the Lumi window and kept as long as your sessions (Settings › Privacy › Keep sessions for). One refused by a password field is never saved. Lumi picks fn or right ⌘ for you; change it in Settings › General.
 
 ## Built for the work you do
 
@@ -215,7 +226,13 @@ No. It looks only when you press the Lumi key, and it skips password managers an
 <details>
 <summary><b>Can I use it without talking?</b></summary>
 
-Yes. Double-tap the Lumi key to type. The microphone permission is optional.
+Yes. Double-tap the Lumi key to type; the answer opens in the Panel. The microphone permission is optional.
+</details>
+
+<details>
+<summary><b>Can I turn a new feature off?</b></summary>
+
+Yes. Settings › Teammates › Off stops teammates, and the dictation key has its own setting. For the rest, run `defaults write com.loomtable.lumi v2.<name> -bool NO` in Terminal and reopen Lumi, where `<name>` is `switcher`, `panel`, `permissionHost` (approval cards), `dictation` or `sessions` (all of them, back to Lumi 0.1's answers in the Glance). `defaults delete com.loomtable.lumi v2.<name>` turns it back on.
 </details>
 
 <details>
@@ -269,7 +286,7 @@ See [Build from source](CONTRIBUTING.md#build-from-source) in CONTRIBUTING.md, w
 <summary><b>Remove Lumi and everything it stored</b></summary>
 <br>
 
-1. If you want your harness's records of Lumi's conversations gone too, delete them first: in Conversations, use Forget on each one. They're kept under `~/.claude/projects/`, mixed in with your own sessions.
+1. If you want your harness's records of Lumi's conversations gone too, delete them first: in the Lumi window, use Forget on each session. They're kept under `~/.claude/projects/`, mixed in with your own sessions.
 2. Quit Lumi from its menu-bar menu and drag `/Applications/Lumi.app` to the Trash.
 3. Delete its data:
    ```sh
@@ -294,7 +311,7 @@ See [Build from source](CONTRIBUTING.md#build-from-source) in CONTRIBUTING.md, w
 ### Requirements
 
 - macOS 26 on Apple Silicon (M1 or later). Intel Macs and older macOS versions aren't supported.
-- Claude Code 2.1.259 or newer, installed and signed in. It's the harness Lumi works with: your login, your MCP servers, your CLAUDE.md and skills. Questions count against your own Claude plan or API usage.
+- Claude Code 2.1.312 or newer, installed and signed in. It's the harness Lumi works with: your login, your MCP servers, your CLAUDE.md and skills. Questions count against your own Claude plan or API usage.
 - 16 GB of memory recommended; on 8 GB, answers can be slower when many apps are open.
 
 ### License

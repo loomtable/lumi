@@ -15,6 +15,8 @@ public enum FixAction: Sendable, Equatable {
     case retry
     /// Grant a missing permission: the runtime's grant flow (the system prompt, then its pane).
     case grantPermission(PermissionKind)
+    /// Open the Lumi window's Dictation page: dictated words that weren't typed are there.
+    case openDictationHistory
 
     /// The button's label.
     public var label: String {
@@ -25,6 +27,7 @@ public enum FixAction: Sendable, Equatable {
         case .repairPlugin: "Repair plugin"
         case .useModel(let model): "Use \(model.displayName)"
         case .retry: "Try again"
+        case .openDictationHistory: "Open"
         }
     }
 }
@@ -102,7 +105,7 @@ public enum TurnFailureLine {
         default: break
         }
         if r.terminalReason == "prompt_too_long" {
-            return Line("This conversation got too long. Start a new one with ⌘N.")
+            return Line("This session got too long. Start a new one with ⌘N.")
         }
         if signedOutWording.contains(where: text.contains) {
             return Line("Claude Code isn't signed in.", fix: .openSettings(.claudeCode))

@@ -91,7 +91,7 @@ extension BuddyCoordinatorTests {
         let context = SwitchingContext(FakeContext.packet())
         bridge.setScript([Self.done(BuddyBlock(say: "Yes.", shape: .chip))])
         let coordinator = BuddyCoordinator(
-            settings: .init(), voice: voice, context: context, bridge: bridge,
+            settings: .init(), voice: voice, context: context, turns: bridge,
             overlay: overlay, inserter: inserter, pointer: FixedPointer())
         coordinator.start()
         await tapToTalk(coordinator)

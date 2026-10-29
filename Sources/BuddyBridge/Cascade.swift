@@ -255,6 +255,9 @@ public struct CascadeResult: Sendable, Equatable {
     /// From Quick's result to Deep's first streamed text as the cascade forwards it: Deep's
     /// launch, cold start and thinking included (M1 ask). Nil when Deep wasn't a handoff.
     public var handoffToFirstText: Duration?
+    /// Deep's work ran in the session's open Claude session: that session's own events finish its
+    /// turn, so the shell doesn't finish it a second time.
+    public var inOpenSession = false
 }
 
 /// Quick answers or hands off; Deep takes over in the project folder (steps 2–4).
@@ -265,12 +268,16 @@ public actor Cascade {
     private let policy: DeepPolicy
     private let home: URL
     private let now: @Sendable () -> Date
+    /// Sessions on: Deep's work goes to a new open session instead of the Deep lane.
+    private let openHandoff: OpenHandoffRunner?
     private var running: [String: (id: UUID, task: Task<Void, Never>)] = [:]
 
     /// `trust` is read per question, so trusting a folder in Claude Code takes effect at once.
     public init(quick: QuickLane, deep: DeepLane, policy: DeepPolicy = .default, home: URL,
                 now: @escaping @Sendable () -> Date = { Date() },
+                openHandoff: OpenHandoffRunner? = nil,
                 trust: @escaping @Sendable () -> FolderTrust) {
+        self.openHandoff = openHandoff
         self.quick = quick
         self.deep = deep
         self.policy = policy
@@ -490,12 +497,16 @@ public actor Cascade {
 
     private func runDeep(_ question: Question, state: inout ConversationState, note: String?, handoffAt: ContinuousClock.Instant?,
                          out: AsyncStream<CascadeEvent>.Continuation) async -> CascadeResult {
+        if let openHandoff, let events = await openHandoff(OpenHandoff(question: question, state: state, quickNote: note)) {
+            return await runOpen(events, state: &state, handoffAt: handoffAt, out: out)
+        }
         let folder = ProjectResolver.folder(for: question.packet, state: state, trust: trust(), policy: policy, home: home)
         // A different folder means a different Claude Code session. The switch is committed only
         // once Deep has started, so a failed or cancelled launch keeps the old folder's session.
         // By path: a URL made for an existing folder can carry a trailing slash.
         let sameFolder = state.deepFolder?.standardizedFileURL.path == folder.url.standardizedFileURL.path
-        var resume = sameFolder ? state.deepSessionID : nil
+        // Another folder resumes that folder's own Deep session, if the conversation has one.
+        var resume = sameFolder ? state.deepSessionID : state.deepSessions[folder.url.standardizedFileURL.path]
         if await !deep.isLive(conversation: state.id, folder: folder) { Self.forgetShown(resume, in: &state) }
         var outcome: TurnOutcome?
         var firstText: Duration?
@@ -512,6 +523,7 @@ public actor Cascade {
                 if case .failed(.sessionNotFound) = event, resume != nil {
                     Self.forgetShown(resume, in: &state)
                     if state.deepSessionID == resume { state.deepSessionID = nil }
+                    state.deepSessions[folder.url.standardizedFileURL.path] = nil
                     resume = nil
                     sessionLost = true
                     continue
@@ -519,6 +531,7 @@ public actor Cascade {
                 if let id = Self.sessionID(in: event) {
                     state.deepSessionID = id
                     state.deepFolder = folder.url
+                    state.deepSessions[folder.url.standardizedFileURL.path] = id
                 }
                 if case .text = event, firstText == nil, let handoffAt { firstText = ContinuousClock.now - handoffAt }
                 if case .finished(let o) = event {
@@ -538,6 +551,30 @@ public actor Cascade {
             }
         }
         return CascadeResult(lane: outcome == nil ? nil : .deep, outcome: outcome, state: state, handoffToFirstText: firstText)
+    }
+}
+
+extension Cascade {
+    /// Deep's work in an open session: its events stand in for the Deep lane's. The open session's
+    /// ids live in Lumi's session store, not in `ConversationState`.
+    private func runOpen(_ events: AsyncStream<TurnEvent>, state: inout ConversationState, handoffAt: ContinuousClock.Instant?,
+                         out: AsyncStream<CascadeEvent>.Continuation) async -> CascadeResult {
+        var outcome: TurnOutcome?
+        var firstText: Duration?
+        var ended = false
+        for await event in events {
+            if case .text = event, firstText == nil, let handoffAt { firstText = ContinuousClock.now - handoffAt }
+            if case .finished(let o) = event { outcome = o }
+            ended = ended || event.isTerminal
+            out.yield(.turn(lane: .deep, event))
+        }
+        if !ended { out.yield(.turn(lane: .deep, .failed(.cancelled))) }
+        if outcome != nil {
+            state.lastLane = .deep
+            state.lastDeepAnswerAt = now()
+        }
+        return CascadeResult(lane: outcome == nil ? nil : .deep, outcome: outcome, state: state, handoffToFirstText: firstText,
+                             inOpenSession: true)
     }
 }
 

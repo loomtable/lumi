@@ -1,5 +1,6 @@
 import AppKit
 import BuddyKeys
+import BuddyOverlay
 import BuddyVoice
 import SwiftUI
 
@@ -25,7 +26,7 @@ public struct OnboardingView: View {
             HStack {
                 Text("Step \(model.progress.step) of \(model.progress.of)")
                 if model.isSatisfied(model.current) {
-                    Label("Already set up", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    Label("Already set up", systemImage: "checkmark.circle.fill").foregroundStyle(.lumiSage)
                 }
                 Spacer()
                 // Other modules' progress (e.g. model download), on every step.
@@ -40,7 +41,7 @@ public struct OnboardingView: View {
             .frame(maxHeight: .infinity)
             HStack {
                 if model.index > 0 {
-                    Button("Back") { model.back() }.keyboardShortcut(.cancelAction)
+                    Button("Back") { model.back() }.keyboardShortcut(.cancelAction).buttonStyle(.pill)
                 }
                 Spacer()
                 Button(model.isLast ? "Done" : "Continue") {
@@ -52,11 +53,16 @@ public struct OnboardingView: View {
                     }
                 }
                 .keyboardShortcut(.defaultAction)
+                // Dark text on ember (onEmber), not the system's white on the tint, which reads under 4.5:1.
+                .buttonStyle(.pillProminent)
                 .disabled(!model.canContinue)
             }
         }
         .padding(28)
         .frame(width: 580, height: 460)
+        // The Lumi window's page and accent: the default button, links and selections in ember.
+        .studioBackground()
+        .emberTint()
         .task {
             model.start()
             environment = KeyEnvironment.current()
@@ -126,7 +132,7 @@ public struct OnboardingView: View {
                         .font(.callout)
                 }
                 ForEach(KeyConflicts.check(store.keys.key, in: environment).filter { $0.severity == .warning }) {
-                    Label($0.message, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                    Label($0.message, systemImage: "exclamationmark.triangle").foregroundStyle(.lumiAmber)
                 }
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
                     ForEach(Self.gestures(store.keys.key), id: \.gesture) { row in
@@ -148,7 +154,7 @@ public struct OnboardingView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 if model.firstQuestionDone {
                     Label("That's it: you asked your first question.", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.lumiSage)
                 }
             }
         }
@@ -163,7 +169,7 @@ extension OnboardingView {
             ("Tap", "talk, then tap again to send"),
             ("Hold", "talk while you hold it"),
             ("Double-tap", "type instead"),
-            ("\(key.freshSymbol) + \(key.symbol)", "start a new conversation"),
+            ("\(key.freshSymbol) + \(key.symbol)", "start a new session"),
         ]
     }
 
@@ -201,7 +207,7 @@ private struct ClaudeCodeStep: View {
                 Label("Checking…", systemImage: "hourglass")
             } else if model.claudeCodeReady {
                 Label("Found\(model.claudeCode.version.map { " (\($0))" } ?? ""), and you're signed in.", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.lumiSage)
             } else if let path = model.claudeCode.executablePath {
                 Text(model.claudeCode.loggedIn == false
                     ? "Claude Code is installed but not signed in."

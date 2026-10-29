@@ -21,7 +21,7 @@ struct TranscriptTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), conversations: conversations)
         c.start()
         return c
@@ -34,7 +34,7 @@ struct TranscriptTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while answers.count == before, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
     }
 
@@ -47,6 +47,7 @@ struct TranscriptTests {
         await ask(c, "by how much?", answer: "About half a point.")
 
         #expect(answers.map(\.question) == ["what is QT?", "and mortgages?", "by how much?"])
+        guard answers.count >= 3 else { Issue.record("answers: \(answers.count) of 3"); return }
         #expect(answers[0].earlier.isEmpty)
         #expect(answers[1].earlier.map(\.question) == ["what is QT?"])
         let third = answers[2].earlier
@@ -60,7 +61,7 @@ struct TranscriptTests {
         let c = make()
         await ask(c, "what is QT?", answer: "Quantitative tightening.")
         overlay.send(.newConversation)
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while !overlay.calls.contains(.resetPositions), ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         await ask(c, "what's for lunch?", answer: "Soup.")
         #expect(answers.last?.earlier.isEmpty == true)
@@ -79,7 +80,7 @@ struct TranscriptTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext(result: .blocked(app: "1Password")), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext(result: .blocked(app: "1Password")), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         await ask(c, "what is this?", answer: "unused")
@@ -97,7 +98,7 @@ struct TranscriptTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while answers.isEmpty, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
 
         bridge.setScript([BuddyCoordinatorTests.done(BuddyBlock(say: "Done: 14 days now.", shape: .card), lane: .deep)])

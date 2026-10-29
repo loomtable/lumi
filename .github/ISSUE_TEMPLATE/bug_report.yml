@@ -37,7 +37,7 @@ body:
     attributes:
       label: Lumi version
       description: Select Lumi in Applications and choose File › Get Info.
-      placeholder: "0.1.0"
+      placeholder: "0.2.0"
     validations:
       required: true
   - type: input
@@ -45,7 +45,7 @@ body:
     attributes:
       label: Claude Code version
       description: Run `claude --version` in Terminal.
-      placeholder: "2.1.259"
+      placeholder: "2.1.312"
     validations:
       required: true
   - type: input

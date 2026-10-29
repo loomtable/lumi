@@ -1,28 +1,28 @@
 import SwiftUI
 
-/// The index's behaviour: idle timeout, retention, temporary mode. The Conversations
-/// window shows temporary mode and retention too, bound to the same store.
+/// Settings › Privacy's sessions part: idle limit, retention, temporary mode. The engine applies
+/// each change at once (a shorter retention prunes; temporary mode switches the index).
 struct ConversationsSettingsSection: View {
     @Binding var settings: ConversationsPreferences
 
     var body: some View {
         Section {
-            Picker("Start a new conversation after", selection: $settings.idleTimeoutMinutes) {
+            Picker("Start a new session after", selection: $settings.idleTimeoutMinutes) {
                 ForEach(Self.choices(Self.idleChoices, current: settings.idleTimeoutMinutes), id: \.self) {
                     Text("\($0) min idle").tag($0)
                 }
             }
-            Picker("Keep conversations for", selection: $settings.retentionDays) {
+            Picker("Keep sessions for", selection: $settings.retentionDays) {
                 ForEach(Self.choices(Self.retentionChoices, current: settings.retentionDays), id: \.self) {
                     Text(Self.days($0)).tag($0)
                 }
             }
             Toggle(isOn: $settings.temporaryMode) {
                 Text("Temporary mode")
-                Text("Save nothing: conversations live in memory and are deleted when you turn this off.")
+                Text("Save nothing: sessions and dictations live in memory and are deleted when you turn this off.")
             }
         } footer: {
-            Text("Conversations unused for longer than “Keep conversations for” are removed from this Mac.")
+            Text("Sessions unused for longer than “Keep sessions for” are removed from this Mac, and so are older dictations.")
         }
     }
 

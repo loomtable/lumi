@@ -33,6 +33,9 @@ struct RingView: View {
     /// Bloom strength: peak, then where it rests.
     static let bloomPeak = 1.0
     static let bloomRest = 0.35
+    /// The bloom rises as the wash lands, then settles (together, the ring's 450 ms and a bit).
+    static let bloomRise = 0.25
+    static let bloomSettle = 0.35
 
     var body: some View {
         let r = RingWash.washRect(for: ring.rect).offsetBy(dx: -displayFrame.minX, dy: -displayFrame.minY)
@@ -50,10 +53,10 @@ struct RingView: View {
             .padding(.leading, r.minX)
             .padding(.top, r.minY)
             .onAppear {
-                withAnimation(.easeOut(duration: 0.45)) { shown = true }
+                withAnimation(Motion.ring) { shown = true }
                 guard !reduceMotion else { return }
-                withAnimation(.easeOut(duration: 0.25)) { bloom = Self.bloomPeak } completion: {
-                    withAnimation(.easeInOut(duration: 0.35)) { bloom = Self.bloomRest }
+                withAnimation(.easeOut(duration: Self.bloomRise)) { bloom = Self.bloomPeak } completion: {
+                    withAnimation(.easeInOut(duration: Self.bloomSettle)) { bloom = Self.bloomRest }
                 }
             }
             .allowsHitTesting(false)

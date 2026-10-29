@@ -61,6 +61,59 @@ public enum StatusMapper {
         }
     }
 
+    /// One Trail step for a tool call: a kind, a present-tense verb and a short object (a file
+    /// name, a domain, a connector), never a raw path or JSON. Nil for bookkeeping tools the Trail
+    /// doesn't show (ToolSearch).
+    public static func step(for tool: StreamEvent.ToolUse) -> StepDescription? {
+        let input = tool.input
+        switch tool.name {
+        case "Read":
+            return .init(kind: .read, verb: "Reading", object: input["file_path"].map(filename) ?? "a file")
+        case "NotebookRead":
+            return .init(kind: .read, verb: "Reading", object: input["notebook_path"].map(filename) ?? "a notebook")
+        case "Edit", "MultiEdit", "NotebookEdit":
+            return .init(kind: .edit, verb: "Editing",
+                         object: (input["file_path"] ?? input["notebook_path"]).map(filename) ?? "a file")
+        case "Write":
+            return .init(kind: .write, verb: "Writing", object: input["file_path"].map(filename) ?? "a file")
+        case "Grep":
+            return .init(kind: .search, verb: "Searching for", object: input["pattern"].map { "“\(clip($0))”" } ?? "text")
+        case "Glob":
+            return .init(kind: .search, verb: "Finding files", object: input["pattern"].map { clip($0) })
+        case "Bash", "PowerShell":
+            if let d = input["description"], !d.isEmpty { return .init(kind: .bash, verb: clip(d, 60), object: nil) }
+            return .init(kind: .bash, verb: "Running", object: input["command"].map { clip(firstWord($0), 30) } ?? "a command")
+        case "Monitor":
+            return .init(kind: .bash, verb: "Checking", object: input["description"].map { clip($0, 50) } ?? "a command")
+        case "WebSearch":
+            return .init(kind: .web, verb: "Searching the web for", object: input["query"].map { "“\(clip($0))”" } ?? "an answer")
+        case "WebFetch":
+            return .init(kind: .web, verb: "Reading", object: input["url"].flatMap { URL(string: $0)?.host() } ?? "a web page")
+        case "Agent", "Task":
+            return .init(kind: .agent, verb: "Starting",
+                         object: (input["name"] ?? input["description"]).map { clip($0, 50) } ?? "a teammate")
+        case "SendMessage":
+            return .init(kind: .agent, verb: "Messaging", object: input["to"].map { clip($0, 30) } ?? "a teammate")
+        case "TodoWrite":
+            return .init(kind: .plan, verb: "Updating the plan", object: nil)
+        case "EnterPlanMode", "ExitPlanMode":
+            return .init(kind: .plan, verb: "Planning", object: nil)
+        case "AskUserQuestion":
+            return .init(kind: .ask, verb: "Asking you", object: nil)
+        case "Skill":
+            return .init(kind: .other, verb: "Using", object: input["skill"].map { clip($0, 30) } ?? "a skill")
+        case "ToolSearch":
+            return nil
+        default:
+            if tool.name.hasPrefix("mcp__") {
+                let parts = tool.name.split(separator: "__", omittingEmptySubsequences: true).dropFirst()
+                let server = parts.first.map { String($0).replacingOccurrences(of: "_", with: " ") }
+                return .init(kind: .mcp, verb: "Using", object: server ?? tool.name, mcpServer: parts.first.map(String.init))
+            }
+            return .init(kind: .other, verb: "Using", object: tool.name)
+        }
+    }
+
     static func filename(_ path: String) -> String {
         URL(fileURLWithPath: path).lastPathComponent
     }
@@ -73,4 +126,29 @@ public enum StatusMapper {
         let oneLine = s.replacingOccurrences(of: "\n", with: " ")
         return oneLine.count <= max ? oneLine : String(oneLine.prefix(max - 1)) + "…"
     }
+}
+
+/// What a tool call looks like as one Trail step. `SessionEventMapper` turns it into
+/// `BuddyCore.TrailStep`.
+public struct StepDescription: Sendable, Equatable {
+    public enum Kind: String, Sendable {
+        case read, search, edit, write, bash, web, mcp, agent, plan, ask, screen, other
+    }
+
+    public var kind: Kind
+    /// Present tense: "Reading", "Searching for", or a Bash description used whole.
+    public var verb: String
+    public var object: String?
+    /// The MCP server's raw name for `.mcp` steps.
+    public var mcpServer: String?
+
+    public init(kind: Kind, verb: String, object: String?, mcpServer: String? = nil) {
+        self.kind = kind
+        self.verb = verb
+        self.object = object
+        self.mcpServer = mcpServer
+    }
+
+    /// "Reading budget.md".
+    public var line: String { object.map { "\(verb) \($0)" } ?? verb }
 }

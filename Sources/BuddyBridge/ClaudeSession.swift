@@ -72,6 +72,9 @@ public enum TurnEvent: Sendable, Equatable {
     /// Claude Code isn't running the way it was asked: see `PermissionNotice`. Sent before the
     /// turn's `.finished`/`.failed`, so the app can show one true line.
     case permissionNotice(PermissionNotice)
+    /// A hand-off turn's open-session event the app's permission host follows: an approval or
+    /// question asked, its answer, and the turn's end. The host answers it on any surface.
+    case hostEvent(SessionEvent)
 }
 
 public enum PermissionNotice: Sendable, Equatable {
@@ -459,7 +462,7 @@ public actor ClaudeSession {
             if parent == nil, let tokens, tokens > 0 { t.contextTokens = tokens }
             // The latest main reply decides: a later normal reply clears an earlier error code.
             if parent == nil { t.errorCode = error }
-        case .system(subtype: "compact_boundary"):
+        case .compactBoundary:
             t.compacted = true
         case .apiRetry(let r):
             t.continuation.yield(.retrying(r))

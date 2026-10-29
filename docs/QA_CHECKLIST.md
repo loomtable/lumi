@@ -61,8 +61,8 @@ Run `Scripts/build-app.sh` on the latest main (it installs to /Applications), th
 19. **Connections.** In Settings › Connections, Add… Context7, ask a question, then Remove… it. On a first run, the Connections page follows Voice.
     **Expected:** "Added · checked on your next question", then Connected. Slack, Linear, Notion and Atlassian offer "Connect on claude.ai". The onboarding page is optional.
 
-20. **Conversations.** Open Conversations (⌘Y), click a few past conversations, then Resume one and ask.
-    **Expected:** each one's turns show on the right, oldest first, without a "Loading…" flash. After Resume it's marked Current and the next question continues it.
+20. **The Lumi window.** Choose Open Lumi in the menu, click a few past sessions in the sidebar, then type a follow-up in one. Press ⌘, and ⌘K.
+    **Expected:** Home shows the orb, a composer and the health strip. Each session's turns show oldest first, full answers included, without a "Loading…" flash. The follow-up continues that session. ⌘, opens Settings in the sidebar; ⌘K focuses search.
 
 21. **Tuck and recall.** With an answer up, close it each way in turn: click elsewhere, Esc, ✕, switch app. After each, left-click the menu-bar orb. Once, right-click the orb; once, open Lumi from Applications.
     **Expected:** nothing dims the screen. Each close folds the answer into the orb; a left-click brings it back, another tucks it. Right-click opens the menu with Show Last Answer first. Reopening recalls it. A new question clears it.
@@ -72,3 +72,36 @@ Run `Scripts/build-app.sh` on the latest main (it installs to /Applications), th
 
 23. **Reply hint.** Reply to an answer once by tapping the key, and to a later answer by clicking it and typing. Ask again, then quit, reopen and ask once more.
     **Expected:** "tap <key> to reply · click to type" shows under answers until you've done both; after that it's gone, with no blank row, even after reopening.
+
+24. **Sessions across apps.** Ask by voice about the front app. Within 30 minutes, ask a follow-up from a different app, then one with a terminal in a repo in front.
+    **Expected:** all three land in the same session (one row in the Lumi window's sidebar), with a short title and an icon. Nothing says "new".
+
+25. **Tab switcher.** With three or more sessions, hold the Lumi key and press Tab, then Tab and ⇧Tab. Release once while speaking, once silently. Then hold, Tab, and press N.
+    **Expected:** the strip grows out of the listening pill (top centre, or bottom with Settings › Appearance › Listening and status at the bottom), on the screen with the pointer, showing the last few sessions and New; the first Tab lands on the previous session, and the front app never gets the Tab. Speaking sends the words to the highlighted session; a silent release makes it current and peeks its last answer for about 4 s. N starts a new session.
+
+26. **Panel.** Double-tap the key and type a question whose answer has a code block. Then press the Lumi key while the Panel shows that session, and speak.
+    **Expected:** the Panel opens and the answer streams in as Markdown with the code block. Nothing is spoken unless Settings › Voice says so. The spoken turn lands in the same page, with no Glance card.
+
+27. **Background work and approvals.** Start a long typed task that edits a file, switch to another app and wait.
+    **Expected:** a capsule at the top centre shows it running, one per running question. An approval turns it amber, and a click opens what's needed; "yes" works for an edit inside the session's folder, while commands, web and anything that sends need a click. When it finishes, the answer waits as a Ready capsule and never covers a card you're reading (one banner instead if you've been away for 2 minutes or more).
+
+28. **Teammates.** By voice, ask for a job that splits well ("compare these three files").
+    **Expected:** Lumi proposes the split in one line and waits for your yes. Each teammate gets a name and its own lane; Stop stops them.
+
+29. **Quit mid-turn.** Start a long answer, quit Lumi from the menu, reopen it and open that session.
+    **Expected:** the turn reads "Interrupted" with Continue; Continue picks the turn up. Idle sessions reopen with their history, including turns from before a `/compact`.
+
+30. **Dictation key.** Check Settings › General for the dictation key and why it was picked. In TextEdit, tap it, speak for a minute with pauses, and tap again. Then hold it, speak and let go. Then press ⌘C quickly with ⌘ as the dictation key.
+    **Expected:** both times the words are typed at the cursor and nothing reaches Claude; pauses never stop it. Each dictation shows on the Lumi window's Dictation page. A quick ⌘C never starts the mic.
+
+31. **Kill switch.** `defaults write com.loomtable.lumi v2.sessions -bool NO`, reopen Lumi, ask twice. Then `defaults delete com.loomtable.lumi v2.sessions` and reopen.
+    **Expected:** with the switch off: answers only in the Glance and no strip. The Lumi window stays the only window, and no Conversations or old Settings window ever opens. After the delete, everything is back.
+
+32. **Edit an earlier question.** In a session with three turns, hover the first question in the Panel, click Edit, change it and send.
+    **Expected:** the turns below it are replaced by the new answer; if a later reply changed files, the first Send warns that those changes stay.
+
+33. **Composer.** In the Panel, paste a screenshot with ⌘V, type `@` and pick a file, then type `/` at the start and pick a command.
+    **Expected:** the picture shows as a thumbnail and reaches Claude; the menu floats above the field; the file becomes `@path`.
+
+34. **Themes and Dock.** Switch Settings › Appearance through each theme with a session page, the Panel and a card open. Turn off Settings › General › Show in Dock and relaunch.
+    **Expected:** every surface switches at once and stays readable; the Dock icon opens the Lumi window, and it's gone after the relaunch with Show in Dock off.

@@ -19,7 +19,7 @@ struct ProseAnswerTests {
         var settings = BuddyCoordinator.Settings()
         settings.sounds = false
         let c = BuddyCoordinator(
-            settings: settings, voice: voice, context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: voice, context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer())
         c.start()
         return c
@@ -29,7 +29,7 @@ struct ProseAnswerTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase != .showing, c.phase != .idle, ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }

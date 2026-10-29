@@ -1,3 +1,5 @@
+import Carbon.HIToolbox
+import CoreGraphics
 import Darwin
 import Dispatch
 import Foundation
@@ -29,6 +31,18 @@ public enum InsertResult: Sendable, Equatable {
     case busy
 }
 
+/// Who is inserting, which decides the method.
+public enum InsertMode: Sendable, Equatable {
+    /// Lumi's draft insert: AX first (verified by the caret), paste as the fallback.
+    case draft
+    /// The dictation key (11-REUSE §5): paste first, because an AX write can report success in
+    /// Chrome or Electron and do nothing, and a dictation must never vanish. Refused under Secure
+    /// Event Input; lines are joined with spaces in terminals; ⌘V waits until no modifier is
+    /// down (a held ⌥ or fn would make it ⌥⌘V); the clipboard comes back 200 ms after the app
+    /// reads it, waiting up to 3 s for slow (Electron) apps.
+    case dictation
+}
+
 /// Puts text into the user's app ("Typing and inserting"): first by setting
 /// kAXSelectedTextAttribute on the focused element, else by pasting — save the clipboard, write
 /// the text, send ⌘V to the target app only, and restore the clipboard once the app has read it.
@@ -43,10 +57,23 @@ public final class TextInserter {
         public var restoreDelay: Duration
         /// How long to wait for an app to read the draft before giving up on restoring.
         public var readTimeout: Duration
+        /// Dictation: how long to wait for an app to read the text.
+        public var dictationReadTimeout: Duration
+        /// Dictation: how long the text stays on the clipboard after the app read it.
+        public var dictationRestoreAfterRead: Duration
+        /// Dictation: how long to wait for the modifiers to be let go before giving up on ⌘V.
+        public var modifierReleaseTimeout: Duration
 
-        public init(restoreDelay: Duration = .milliseconds(250), readTimeout: Duration = .seconds(1)) {
+        public init(
+            restoreDelay: Duration = .milliseconds(250), readTimeout: Duration = .seconds(1),
+            dictationReadTimeout: Duration = .seconds(3), dictationRestoreAfterRead: Duration = .milliseconds(200),
+            modifierReleaseTimeout: Duration = .seconds(1)
+        ) {
             self.restoreDelay = restoreDelay
             self.readTimeout = readTimeout
+            self.dictationReadTimeout = dictationReadTimeout
+            self.dictationRestoreAfterRead = dictationRestoreAfterRead
+            self.modifierReleaseTimeout = modifierReleaseTimeout
         }
     }
 
@@ -62,6 +89,8 @@ public final class TextInserter {
     let isBlocked: @Sendable (String?) -> Bool
     let options: Options
     let wait: @Sendable (Duration) async -> Void
+    let secureInput: @Sendable () -> Bool
+    let modifiersDown: @Sendable () -> Bool
     private var inFlight = false
 
     /// `isBlocked` takes a bundle ID (the shell passes BuddyContext's Blocklist). `wait` must not
@@ -72,7 +101,9 @@ public final class TextInserter {
         paster: any PasteShortcut = CGEventPaster(),
         isBlocked: @escaping @Sendable (String?) -> Bool,
         options: Options = Options(),
-        wait: @escaping @Sendable (Duration) async -> Void = TextInserter.uncancellableWait
+        wait: @escaping @Sendable (Duration) async -> Void = TextInserter.uncancellableWait,
+        secureInput: @escaping @Sendable () -> Bool = { IsSecureEventInputEnabled() },
+        modifiersDown: @escaping @Sendable () -> Bool = TextInserter.physicalModifiersDown
     ) {
         self.target = target
         self.pasteboard = pasteboard
@@ -80,6 +111,14 @@ public final class TextInserter {
         self.isBlocked = isBlocked
         self.options = options
         self.wait = wait
+        self.secureInput = secureInput
+        self.modifiersDown = modifiersDown
+    }
+
+    /// Whether ⇧, ⌃, ⌥, ⌘ or fn is physically down right now.
+    @Sendable public nonisolated static func physicalModifiersDown() -> Bool {
+        let flags = CGEventSource.flagsState(.hidSystemState)
+        return !flags.intersection([.maskShift, .maskControl, .maskAlternate, .maskCommand, .maskSecondaryFn]).isEmpty
     }
 
     /// Sleeps the full duration even if the task is cancelled, so a cancelled insert can't
@@ -92,7 +131,7 @@ public final class TextInserter {
     }
 
     /// Into `pid`'s focused field (the app the user summoned in), or the system-wide focus if nil.
-    public func insert(_ text: String, into pid: Int32? = nil) async -> InsertResult {
+    public func insert(_ text: String, into pid: Int32? = nil, mode: InsertMode = .draft) async -> InsertResult {
         guard !inFlight else { return .busy }
         inFlight = true
         defer { inFlight = false }
@@ -100,13 +139,18 @@ public final class TextInserter {
         var text = text
         while text.last?.isNewline == true { text.removeLast() }
         guard !text.isEmpty else { return .refusedEmptyText }
+        // A password prompt somewhere has the keyboard: its field may not say it is secure.
+        if mode == .dictation, secureInput() { return .refusedSecureField }
 
         // AX calls block for up to the messaging timeout, so they run off the main actor.
         let access = target
         guard let field = await Task.detached(operation: { access.focusedTarget(in: pid) }).value else { return .noFocusedField }
+        if mode == .dictation, Self.terminalBundleIDs.contains(field.bundleID ?? "") {
+            text = Self.oneLine(text)
+        }
         if let refusal = refusal(for: field, text: text) { return refusal }
 
-        if field.canSetSelectedText {
+        if mode == .draft, field.canSetSelectedText {
             let written = text
             switch await Task.detached(operation: { access.setSelectedText(written, target: field) }).value {
             case .verified: return .insertedViaAccessibility
@@ -114,7 +158,15 @@ public final class TextInserter {
             case .notApplied: break
             }
         }
-        return await paste(text, into: field)
+        return await paste(text, into: field, mode: mode)
+    }
+
+    /// Dictated lines joined with spaces, so a terminal never gets a newline that runs a command.
+    static func oneLine(_ text: String) -> String {
+        text.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
     }
 
     private func refusal(for field: InsertTarget, text: String) -> InsertResult? {
@@ -127,7 +179,15 @@ public final class TextInserter {
         return nil
     }
 
-    private func paste(_ text: String, into field: InsertTarget) async -> InsertResult {
+    private func paste(_ text: String, into field: InsertTarget, mode: InsertMode) async -> InsertResult {
+        if mode == .dictation {
+            var waited: Duration = .zero
+            while modifiersDown() {
+                guard waited < options.modifierReleaseTimeout else { return .pasteFailed }
+                await wait(.milliseconds(10))
+                waited += .milliseconds(10)
+            }
+        }
         // Re-check right before touching the clipboard: same field, still allowed.
         let access = target
         let pid = field.pid
@@ -141,11 +201,21 @@ public final class TextInserter {
             pasteboard.restore(saved)
             return .pasteFailed
         }
-        await wait(options.restoreDelay)
-        var waited = options.restoreDelay
-        while !ours.wasRead(), waited < options.readTimeout {
-            await wait(.milliseconds(20))
-            waited += .milliseconds(20)
+        switch mode {
+        case .draft:
+            await wait(options.restoreDelay)
+            var waited = options.restoreDelay
+            while !ours.wasRead(), waited < options.readTimeout {
+                await wait(.milliseconds(20))
+                waited += .milliseconds(20)
+            }
+        case .dictation:
+            var waited: Duration = .zero
+            while !ours.wasRead(), waited < options.dictationReadTimeout {
+                await wait(.milliseconds(20))
+                waited += .milliseconds(20)
+            }
+            if ours.wasRead() { await wait(options.dictationRestoreAfterRead) }
         }
         // The user copied something new meanwhile: keep theirs.
         guard pasteboard.changeCount == ours.changeCount else { return .pasted(clipboardRestored: false) }

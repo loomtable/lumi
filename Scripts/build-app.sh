@@ -65,15 +65,17 @@ done
 if [[ -d buddy-plugin/.claude-plugin ]]; then
   ditto buddy-plugin "$app/Contents/Resources/buddy-plugin"
 fi
-# The app icon is an Icon Composer file (light, dark, tinted and clear). actool compiles it to
-# Assets.car and AppIcon.icns; it ships with Xcode, not the Command Line Tools. A broken icon stops
-# the build; actool reports why on stdout, so its output is shown only when it fails.
+# The app icon is an Icon Composer file (light, dark, tinted and clear); App/Assets.xcassets holds the
+# accent colour (ember, Info.plist NSAccentColorName), which the system uses for selected rows, focus
+# rings and controls. actool compiles both to Assets.car and AppIcon.icns; it ships with Xcode, not the
+# Command Line Tools. A broken icon stops the build; actool reports why on stdout, so its output is
+# shown only when it fails.
 if xcrun --find actool >/dev/null 2>&1; then
-  if ! actool_out=$(xcrun actool App/AppIcon.icon --compile "$app/Contents/Resources" --platform macosx \
-      --minimum-deployment-target 26.0 --app-icon AppIcon --output-format human-readable-text \
+  if ! actool_out=$(xcrun actool App/AppIcon.icon App/Assets.xcassets --compile "$app/Contents/Resources" --platform macosx \
+      --minimum-deployment-target 26.0 --app-icon AppIcon --accent-color AccentColor --output-format human-readable-text \
       --output-partial-info-plist "$stage_dir/icon-info.plist" 2>&1); then
     print -r -- "$actool_out" >&2
-    echo "actool couldn't compile App/AppIcon.icon (see above)." >&2
+    echo "actool couldn't compile App/AppIcon.icon or App/Assets.xcassets (see above)." >&2
     exit 1
   fi
   # actool exits 0 without output when --app-icon doesn't match the .icon's file name.

@@ -348,6 +348,21 @@ struct CascadeTests {
         #expect(fresh.contains("turn-one") && fresh.contains("turn-two"), "the fresh session gets the recap the old one had")
     }
 
+    @Test func anotherFoldersDeletedDeepSessionIsDroppedAndReplaced() async throws {
+        let launcher = ScriptedLauncher(quick: "", deadSessions: ["web-gone"])
+        var state = ConversationState(id: "c1")
+        state.deepFolder = URL(fileURLWithPath: "/Users/me/Developer/other")
+        state.deepSessionID = "other-session"
+        state.deepSessions = ["/Users/me/Developer/other": "other-session", "/Users/me/Developer/aipulse/web": "web-gone"]
+        state.lastLane = .deep
+        let evs = await events(await makeCascade(launcher).ask(Question(packet: packet("go deep why is it empty?")), state: state))
+        let r = try #require(result(evs))
+        #expect(launcher.specs.filter { $0.mode == .deep }.map(\.resumeSessionID) == ["web-gone", nil], "one fresh start")
+        let fresh = try #require(r.state.deepSessions["/Users/me/Developer/aipulse/web"])
+        #expect(fresh != "web-gone", "the dead id is replaced by the new session's")
+        #expect(r.state.deepSessions["/Users/me/Developer/other"] == "other-session", "the other folder's session is kept")
+    }
+
     @Test func aDeletedDeepSessionStartsFresh() async throws {
         let launcher = ScriptedLauncher(quick: "", deadSessions: ["deep-gone"])
         let cascade = makeCascade(launcher)
@@ -466,6 +481,16 @@ struct CascadeTests {
         state.deepSessionID = "stored"
         _ = await events(await makeCascade(launcher).ask(Question(packet: packet("go deep: why?")), state: state))
         #expect(launcher.specs.last?.arguments.suffix(2) == ["--resume", "stored"])
+    }
+
+    @Test func anotherFolderResumesThatFoldersOwnDeepSession() async throws {
+        let launcher = ScriptedLauncher(quick: ScriptedLauncher.block(say: "x"))
+        var state = ConversationState(id: "c1")
+        state.deepFolder = URL(fileURLWithPath: "/Users/me/Developer/other")
+        state.deepSessionID = "other-session"
+        state.deepSessions = ["/Users/me/Developer/other": "other-session", "/Users/me/Developer/aipulse/web": "web-session"]
+        _ = await events(await makeCascade(launcher).ask(Question(packet: packet("go deep: why?")), state: state))
+        #expect(launcher.specs.last?.arguments.suffix(2) == ["--resume", "web-session"])
     }
 
     @Test func aTrailingSlashIsStillTheSameFolder() async throws {

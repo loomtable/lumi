@@ -52,10 +52,12 @@ private func answer(_ b: BuddyBlock) -> Answer {
     #expect(approval.height > plain.height, "the Needs your OK row adds height")
 }
 
-@Test func aKeyForAnActionNotOnScreenDoesNothing() async {
-    let overlay = BuddyOverlayController()
+@Test(.overlayExclusive) func aKeyForAnActionNotOnScreenDoesNothing() async {
+    // Not observing the system: an app switch on the Mac mid-test would close the card.
+    let overlay = BuddyOverlayController(observesSystem: false)
     overlay.showAnswer(answer(block(approval: true)), anchor: .point(CGPoint(x: 400, y: 400)))
     await overlay.presentationFinished()
+    #expect(overlay.model.surface.isAnswer)
     func key(_ c: String) -> NSEvent {
         NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: 0, context: nil,
                          characters: c, charactersIgnoringModifiers: c, isARepeat: false, keyCode: 0)!

@@ -1,3 +1,4 @@
+import BuddyOverlay
 import SwiftUI
 
 /// Settings › Claude Code: whether it's installed, its version, sign-in, and plugin
@@ -11,7 +12,7 @@ struct ClaudeCodePane: View {
     @State private var repairError: String?
 
     var body: some View {
-        Form {
+        PaneForm {
             Section("Install") {
                 LabeledContent("Claude Code") { Text(value(status.executablePath.map { _ in "Installed" }, missing: "Not found")) }
                 LabeledContent("Version") { Text(value(status.version, missing: "Unknown")) }
@@ -43,14 +44,13 @@ struct ClaudeCodePane: View {
                         }
                     }
                     .disabled(repairing)
-                    if let repairError { Text(repairError).font(.callout).foregroundStyle(.red) }
+                    if let repairError { Text(repairError).font(.callout).foregroundStyle(.lumiRose) }
                 }
             }
             if let refresh = actions.refresh {
                 Section { Button("Check again") { Task { await refresh() } } }
             }
         }
-        .formStyle(.grouped)
     }
 
     private func value(_ text: String?, missing: String) -> String {

@@ -1,4 +1,5 @@
 import AppKit
+import BuddyOverlay
 import SwiftUI
 
 /// One permission as a row: status, why it's needed, and a button that always shows the user
@@ -18,7 +19,7 @@ struct PermissionGrantRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Image(systemName: Self.symbol(state))
-                .foregroundStyle(state == .granted ? Color.green : state == .grantedNeedsRelaunch ? Color.orange : Color.secondary)
+                .foregroundStyle(state == .granted ? AnyShapeStyle(.lumiSage) : state == .grantedNeedsRelaunch ? AnyShapeStyle(.lumiAmber) : AnyShapeStyle(.secondary))
                 .accessibilityLabel(Self.status(state))
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -45,7 +46,7 @@ struct PermissionGrantRow: View {
                             .fixedSize(horizontal: false, vertical: true)
                         if PermissionGrantRow.canReveal {
                             Button("Show in Finder") { PermissionGrantRow.revealApp() }
-                                .buttonStyle(.link).font(.caption)
+                                .buttonStyle(.lumiLink).font(.caption)
                         }
                     }
                 }
@@ -119,7 +120,7 @@ struct LaunchedFromTerminalNotice: View {
             Text("Lumi was started from Terminal, so macOS is checking Terminal's permissions, not Lumi's. Quit it and open Lumi from Applications.")
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
-            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.lumiAmber)
         }
     }
 }

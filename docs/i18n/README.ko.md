@@ -32,7 +32,7 @@ Lumi by Loomtable은 Mac용 음성 어시스턴트입니다. 어떤 앱에서든
 ## 요구 사항
 
 - Apple Silicon(M1 이상)의 macOS 26. Intel Mac과 이전 macOS 버전은 지원하지 않습니다.
-- Claude Code 2.1.259 이상, 설치 후 로그인된 상태.
+- Claude Code 2.1.312 이상, 설치 후 로그인된 상태.
 - 메모리 16 GB를 권장합니다. 8 GB에서는 앱을 많이 열어 두면 답이 느려질 수 있습니다.
 
 ## 작동 방식
@@ -145,7 +145,7 @@ Lumi는 항상 응용 프로그램 폴더, Spotlight, Finder에서 여세요. �
 네. GPL-3.0의 무료 오픈 소스입니다. 질문은 내 Claude Code를 거치므로 내 Claude 플랜 또는 API 사용량에서 차감됩니다.
 
 **Claude Code가 필요한가요?**
-네. Claude Code 2.1.259 이상이 설치되어 있고 로그인되어 있어야 합니다. Lumi는 이를 내 Mac에서 실행하며, 자체 로그인이나 서버가 없습니다.
+네. Claude Code 2.1.312 이상이 설치되어 있고 로그인되어 있어야 합니다. Lumi는 이를 내 Mac에서 실행하며, 자체 로그인이나 서버가 없습니다.
 
 **Lumi는 Anthropic이 만들었나요?**
 아니요. Lumi는 Loomtable이 만들었습니다. 내 설정을 통해 Claude로 작동하며, Anthropic이 만들거나 Anthropic과 제휴한 제품이 아닙니다.

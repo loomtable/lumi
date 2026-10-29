@@ -1,3 +1,4 @@
+import BuddyOverlay
 import BuddyVoice
 import Observation
 import SwiftUI
@@ -133,7 +134,8 @@ struct ElevenLabsSection: View {
                 ElevenLabsKeyFields(setup: setup, replyVoice: $replyVoice, keyChanged: keyChanged)
             }
         } header: {
-            Text("Voice")
+            // Not "Voice": that's the page's own title.
+            Text("Reply voice")
         } footer: {
             Text(setup.wantsElevenLabs
                  ? "The most human-sounding voice. \(ElevenLabsAccount.privacyNote) If ElevenLabs can't be reached, that reply uses the Mac voice."
@@ -167,7 +169,7 @@ struct ElevenLabsKeyFields: View {
     var body: some View {
         if setup.keyMissing(for: replyVoice) {
             Text("The ElevenLabs key is missing, so replies use the Mac voice. Add a key to use ElevenLabs again.")
-                .font(.caption).foregroundStyle(.orange)
+                .font(.caption).foregroundStyle(.lumiAmber)
         }
         if setup.hasKey, !setup.replacingKey {
             Picker("Voice", selection: voiceID) {
@@ -203,10 +205,10 @@ struct ElevenLabsKeyFields: View {
         }
         if let check = setup.lastCheck, check != .ok || !setup.hasKey {
             Text(ElevenLabsSetup.message(check)).font(.caption)
-                .foregroundStyle(check == .ok ? Color.secondary : Color.orange)
+                .foregroundStyle(check == .ok ? AnyShapeStyle(.secondary) : AnyShapeStyle(.lumiAmber))
         }
         if let error = setup.keyError {
-            Text(error).font(.caption).foregroundStyle(.orange)
+            Text(error).font(.caption).foregroundStyle(.lumiAmber)
         }
     }
 

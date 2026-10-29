@@ -82,7 +82,7 @@ struct ReportDeletionTests {
             s.clock.advance(40 * 86_400)
             _ = try await s.manager.newConversation()
             _ = try await s.saved("recent")
-            s.clock.advance(60 * 86_400)   // past the ↩ Back window too
+            s.clock.advance(60 * 86_400)
             #expect(try await s.manager.prune(unusedSince: s.clock.now().addingTimeInterval(-90 * 86_400)) == [old])
             #expect(!exists(report.deletingLastPathComponent()))
             #expect(!s.files.deletedSessions.flatMap { $0 }.contains("r-old"))

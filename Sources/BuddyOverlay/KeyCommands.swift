@@ -18,11 +18,13 @@ nonisolated enum KeyCommand: Equatable {
 
     /// - Parameters:
     ///   - characters: `charactersIgnoringModifiers`, lowercased by the caller's layout.
+    ///   - continues: the card offers ⤢ Continue; ⌘↩ takes it when no button claims ⌘↩.
     ///   - plainKeysActive: plain keys (F, 1–3) act only when no text field is being edited
     ///     ("while the reply field is empty"): a voice card the user clicked. In a typed
     ///     conversation the reply field has focus, so F and digits type.
     static func map(keyCode: UInt16, characters: String?, modifiers: NSEvent.ModifierFlags,
-                    plainKeysActive: Bool, actionCount: Int, mainAction: MainAction? = nil) -> KeyCommand? {
+                    plainKeysActive: Bool, actionCount: Int, mainAction: MainAction? = nil,
+                    continues: Bool = false) -> KeyCommand? {
         let mods = modifiers.intersection([.command, .option, .control, .shift])
         let key = characters?.lowercased() ?? ""
         if keyCode == escapeKeyCode, mods.isEmpty { return .escape }
@@ -37,7 +39,9 @@ nonisolated enum KeyCommand: Equatable {
             }
             if keyCode == returnKeyCode || keyCode == enterKeyCode {
                 if let mainAction { return .event(.mainAction(mainAction)) }
-                return actionCount > 0 ? .event(.action(index: 0)) : nil
+                if actionCount > 0 { return .event(.action(index: 0)) }
+                // Nothing else on ⌘↩: it continues in the Panel (04 §3.2, QA U14).
+                return continues ? .event(.popOut) : nil
             }
             return nil
         }

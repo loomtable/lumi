@@ -10,10 +10,13 @@ public struct ConversationState: Sendable, Equatable, Codable {
     public var lastLane: Mode?
     /// The folder Deep last ran in, reused for follow-ups.
     public var deepFolder: URL?
+    /// Every Deep session by the folder it ran in, so a folder switch resumes that folder's
+    /// session instead of starting a new one.
+    public var deepSessions: [String: String] = [:]
     /// Quick's last answer, handed to Deep by "Go deeper".
     public var lastQuickAnswer: String?
     /// When Deep last answered. A follow-up within a couple of minutes stays on Deep; later ones go
-    /// back to Quick unless they're about the same project. In memory only.
+    /// back to Quick unless they're about the same project. Persisted with the conversation.
     public var lastDeepAnswerAt: Date?
     /// For each Claude Code session, the recap entries it already holds (its own answers, or a
     /// recap it was sent), so a recap carries only the turns that session hasn't seen. In memory

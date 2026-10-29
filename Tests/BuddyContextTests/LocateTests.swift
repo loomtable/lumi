@@ -87,8 +87,11 @@ struct OCRLocateTests {
     /// The display the helper draws.
     static let display = CGRect(x: 100, y: 50, width: 800, height: 400)
 
-    /// A locator that sees app `com.example.test` with `window` focused and no AX text.
-    static func locator(window: CGRect? = display, bundleID: String? = "com.example.test", ocrWait: Duration = .seconds(5)) -> ScreenPointLocator {
+    /// A locator that sees app `com.example.test` with `window` focused and no AX text. Real Vision
+    /// OCR has no upper bound on a loaded machine, so the wait is generous: only `deadline` tests
+    /// the cut-off, with 1 ms, which no OCR meets however idle the machine (QA R18b).
+    static func locator(window: CGRect? = display, bundleID: String? = "com.example.test",
+                        ocrWait: Duration = .seconds(120)) -> ScreenPointLocator {
         ScreenPointLocator(system: LocatorSystem(
             bundleID: { _ in bundleID }, windowFrame: { _ in window },
             findText: { _, _, _, partial in partial.window.withLock { $0 = window } }), ocrWait: ocrWait)

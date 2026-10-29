@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// A downscaled image of one display taken at summon, for Smart placement.
+/// A downscaled image of one display, for the overlay's backdrop brightness (outlines, rings).
 /// BuddyContext produces it from its ScreenCaptureKit capture; BuddyOverlay consumes it;
 /// the shell passes it through, so neither module depends on the other.
 public struct DisplaySnapshot: Sendable {

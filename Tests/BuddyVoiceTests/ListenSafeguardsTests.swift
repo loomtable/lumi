@@ -2,20 +2,22 @@ import Testing
 @testable import BuddyVoice
 
 struct ListenSafeguardsTests {
-    @Test func stopsAfterTenSecondsWithoutSpeech() {
+    /// Owner, Oct 29: the talk key stopped after 5–10 s of silence. It waits 30 s now.
+    @Test func stopsAfterThirtySecondsWithoutSpeech() {
         var g = ListenSafeguards(startedAt: 100)
-        #expect(g.tick(at: 109.9).isEmpty)
-        #expect(g.tick(at: 110) == [.stop(.silence)])
-        #expect(g.tick(at: 111).isEmpty, "a stop is reported once")
+        #expect(g.tick(at: 110).isEmpty, "10 s of silence no longer stops it")
+        #expect(g.tick(at: 129.9).isEmpty)
+        #expect(g.tick(at: 130) == [.stop(.silence)])
+        #expect(g.tick(at: 131).isEmpty, "a stop is reported once")
     }
 
     @Test func silenceCountsFromTheLastSpeechAndNotDuringIt() {
         var g = ListenSafeguards(startedAt: 0)
         g.observe(.started, at: 2)
-        #expect(g.tick(at: 30).isEmpty, "a long sentence isn't silence")
-        g.observe(.ended, at: 31)
-        #expect(g.tick(at: 40.9).isEmpty)
-        #expect(g.tick(at: 41) == [.stop(.silence)])
+        #expect(g.tick(at: 60).isEmpty, "a long sentence isn't silence")
+        g.observe(.ended, at: 61)
+        #expect(g.tick(at: 90.9).isEmpty)
+        #expect(g.tick(at: 91) == [.stop(.silence)])
     }
 
     @Test func warnsOnceAtOneFortyFiveAndStopsAtTwoMinutes() {

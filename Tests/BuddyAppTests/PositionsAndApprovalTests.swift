@@ -26,7 +26,7 @@ struct PositionsAndApprovalTests {
         settings.sounds = false
         let time = time
         let c = BuddyCoordinator(
-            settings: settings, voice: FakeVoice(), context: FakeContext.packet(), bridge: bridge,
+            settings: settings, voice: FakeVoice(), context: FakeContext.packet(), turns: bridge,
             overlay: overlay, pointer: FixedPointer(), clock: { time.now })
         c.start()
         return c
@@ -36,7 +36,7 @@ struct PositionsAndApprovalTests {
         await c.handle(.gesture(.pressBegan(fresh: false)))
         await c.handle(.gesture(.holdBegan))
         await c.handle(.gesture(.holdEnded))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while c.phase != .showing, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
     }
 
@@ -56,7 +56,7 @@ struct PositionsAndApprovalTests {
         for _ in 0..<100 { await Task.yield() }
         #expect(bridge.asked.count == 1)
         overlay.send(.action(index: 1))
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while bridge.asked.count < 2, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         #expect(bridge.asked.last?.packet.utterance == "Keep as text")
     }
@@ -66,7 +66,7 @@ struct PositionsAndApprovalTests {
         let c = make()
         await ask(c)
         overlay.send(.newConversation)
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + waitCeiling
         while resets == 0, ContinuousClock.now < deadline { try? await Task.sleep(for: .milliseconds(1)) }
         #expect(resets == 1)
     }

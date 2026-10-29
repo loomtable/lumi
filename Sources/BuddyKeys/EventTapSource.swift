@@ -6,6 +6,9 @@ import Synchronization
 /// The real buddy key sensor: a listen-only CGEventTap (Input Monitoring) on its own thread,
 /// for flagsChanged plus the cancel sources (key down, mouse down, scroll). It also polls
 /// Secure Event Input every 250 ms on the same thread.
+///
+/// With `arming` (shared with a `SwitcherTap`), key-downs the switcher takes are dropped here:
+/// that tap delivers them, mapped, and the gesture must not also see them as stray keys.
 public final class EventTapSource: KeyEventSource {
     private struct Running {
         let tap: TapThread
@@ -13,8 +16,11 @@ public final class EventTapSource: KeyEventSource {
     }
 
     private let running = Mutex<Running?>(nil)
+    private let arming: KeyArming?
 
-    public init() {}
+    public init(arming: KeyArming? = nil) {
+        self.arming = arming
+    }
 
     static let events: [CGEventType] = [
         .flagsChanged, .keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown, .scrollWheel,
@@ -24,7 +30,9 @@ public final class EventTapSource: KeyEventSource {
         // tapCreate succeeds without the grant, so check it explicitly (S1).
         guard CGPreflightListenEventAccess() else { throw .inputMonitoringNotGranted }
         let (stream, continuation) = AsyncStream.makeStream(of: KeySourceEvent.self)
+        let arming = arming
         let context = TapThread.Context { type, event in
+            if Self.dropped(type: type, event: event, arming: arming) { return false }
             if let input = Self.input(type: type, event: event, time: clock_gettime_nsec_np(CLOCK_UPTIME_RAW)) {
                 continuation.yield(.input(input))
             }
@@ -60,8 +68,19 @@ public final class EventTapSource: KeyEventSource {
         stopped?.continuation.finish()
     }
 
+    /// The HID modifier state. fn's bit may be missing from it while fn/🌐 is held (QA U43), so
+    /// the key state of kVK_Function adds it.
     public func currentFlags() -> UInt64 {
-        CGEventSource.flagsState(.hidSystemState).rawValue
+        let flags = CGEventSource.flagsState(.hidSystemState).rawValue
+        let fnDown = CGEventSource.keyState(.hidSystemState, key: CGKeyCode(kVK_Function))
+        return fnDown ? flags | ModifierMask.secondaryFn : flags
+    }
+
+    /// A key-down the switcher tap takes (or took the press of).
+    static func dropped(type: CGEventType, event: CGEvent, arming: KeyArming?) -> Bool {
+        guard type == .keyDown, let arming else { return false }
+        let code = UInt16(truncatingIfNeeded: event.getIntegerValueField(.keyboardEventKeycode))
+        return arming.drops(keyCode: code, flags: event.flags.rawValue)
     }
 
     /// Maps a tap callback to gesture input. Out-of-band "tap disabled" notices become

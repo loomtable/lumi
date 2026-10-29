@@ -27,6 +27,11 @@ public final class SettingsStore {
     public var appearance: AppearancePreferences { didSet { save(appearance, previous: oldValue) } }
     public var models: ModelPreferences { didSet { save(models, previous: oldValue) } }
     public var connections: ConnectionsPreferences { didSet { save(connections, previous: oldValue) } }
+    public var sessions: SessionsPreferences { didSet { save(sessions, previous: oldValue) } }
+    public var notifications: NotificationsPreferences { didSet { save(notifications, previous: oldValue) } }
+    public var teammates: TeammatesPreferences { didSet { save(teammates, previous: oldValue) } }
+    public var dictation: DictationPreferences { didSet { save(dictation, previous: oldValue) } }
+    public var dock: DockPreferences { didSet { save(dock, previous: oldValue) } }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -41,6 +46,11 @@ public final class SettingsStore {
         appearance = Self.load(defaults)
         models = Self.load(defaults)
         connections = Self.load(defaults)
+        sessions = Self.load(defaults)
+        notifications = Self.load(defaults)
+        teammates = Self.load(defaults)
+        dictation = Self.load(defaults)
+        dock = Self.load(defaults)
         // Once: someone who finished onboarding, or just its old Voice step (which loaded the
         // models), before the voice choice existed already has the voice. Never again, so a later
         // "not chosen" never turns into a download by itself.
@@ -75,6 +85,11 @@ public final class SettingsStore {
         self.voice = voice
         appearance = AppearancePreferences()
         models = ModelPreferences()
+        sessions = SessionsPreferences()
+        notifications = NotificationsPreferences()
+        teammates = TeammatesPreferences()
+        dictation = DictationPreferences()
+        dock = DockPreferences()
         // `connections` records what Lumi added to Claude Code: a reset mustn't forget it.
     }
 

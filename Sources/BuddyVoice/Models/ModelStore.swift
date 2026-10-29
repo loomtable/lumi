@@ -1,7 +1,7 @@
 import Foundation
 
 /// Where each FluidAudio model lives under `VoiceSettings.modelsDirectory`
-/// (`~/Library/Application Support/com.loomtable.lumi/models`), so models don't land in FluidAudio's
+/// (`~/Library/Application Support/<bundle id>/models`), so models don't land in FluidAudio's
 /// default `Application Support/FluidAudio` folder.
 ///
 /// One path can't be redirected: Kokoro's English G2P assets and lexicon always go to

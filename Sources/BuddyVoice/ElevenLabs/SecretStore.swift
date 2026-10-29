@@ -29,7 +29,7 @@ public struct KeychainSecretStore: SecretStore {
     }
 
     /// Where Lumi keeps the ElevenLabs API key.
-    public static let elevenLabs = KeychainSecretStore(service: BuddyCore.bundleIdentifier + ".elevenlabs", account: "api-key")
+    public static let elevenLabs = KeychainSecretStore(service: BuddyCore.paths.keychainService("elevenlabs"), account: "api-key")
 
     private var query: [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,

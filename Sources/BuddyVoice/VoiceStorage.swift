@@ -1,3 +1,4 @@
+import BuddyCore
 import FluidAudio
 import Foundation
 
@@ -33,10 +34,13 @@ public enum VoiceStorage {
     /// The folders each downloadable part lives in. Nothing else is ever removed. Silero (1 MB) isn't
     /// part of either: the Mac's own hearing needs it too.
     /// `lexicon` is FluidAudio's fixed cache folder; tests pass their own.
-    static func folders(_ part: VoiceModelPart, store: ModelStore, lexicon: URL = kokoroLexicon) -> [URL] {
+    /// `sharedLexicon` false (a copy with another bundle ID): FluidAudio's own lexicon folder
+    /// (`~/.cache/fluidaudio`, shared with the release app and other apps) isn't Lumi's to delete.
+    static func folders(_ part: VoiceModelPart, store: ModelStore, lexicon: URL = kokoroLexicon,
+                        sharedLexicon: Bool = BuddyCore.paths.isRelease) -> [URL] {
         switch part {
         case .speechRecognition: [store.asrBase]
-        case .lumiVoice: [store.kokoroBase, lexicon]
+        case .lumiVoice: sharedLexicon ? [store.kokoroBase, lexicon] : [store.kokoroBase]
         }
     }
 
@@ -82,11 +86,14 @@ public enum VoiceStorage {
     /// Copies a complete Parakeet TDT v2 from `shared` into Lumi's folder when Lumi has none, so the
     /// load finds it and downloads nothing. On APFS the copy is a clone: no extra space, about instant.
     /// Returns whether it copied. Any failure leaves Lumi's folder as it was, and the load downloads.
+    /// `canReplace` false (a copy with another bundle ID, which shares the release app's models):
+    /// an incomplete folder already there is left alone, since the copy only ever adds files.
     @discardableResult
     static func adoptParakeetTDTv2(into store: ModelStore, from shared: URL = sharedParakeetTDTv2,
-                                   fileManager: FileManager = .default) -> Bool {
+                                   fileManager: FileManager = .default, canReplace: Bool = BuddyCore.paths.isRelease) -> Bool {
         let target = store.parakeetTDTv2
         guard !hasParakeetTDTv2(at: target), hasParakeetTDTv2(at: shared) else { return false }
+        if !canReplace, fileManager.fileExists(atPath: target.path) { return false }
         let staging = target.deletingLastPathComponent().appending(path: ".adopting-\(UUID().uuidString)", directoryHint: .isDirectory)
         do {
             try fileManager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -102,8 +109,9 @@ public enum VoiceStorage {
 
     /// Deletes `part`'s folders. A folder that isn't there is fine.
     static func remove(_ part: VoiceModelPart, store: ModelStore, lexicon: URL = kokoroLexicon,
-                       fileManager: FileManager = .default) throws {
-        for folder in folders(part, store: store, lexicon: lexicon) where fileManager.fileExists(atPath: folder.path) {
+                       sharedLexicon: Bool = BuddyCore.paths.isRelease, fileManager: FileManager = .default) throws {
+        for folder in folders(part, store: store, lexicon: lexicon, sharedLexicon: sharedLexicon)
+        where fileManager.fileExists(atPath: folder.path) {
             try fileManager.removeItem(at: folder)
         }
     }

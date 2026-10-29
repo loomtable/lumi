@@ -311,6 +311,13 @@ public struct ContextPacket: Codable, Sendable, Equatable {
             "Q: \(question)\nA: \(answer)"
         }
 
+        /// The answer half of a `recapEntry`; nil when `entry` has none.
+        public static func recapAnswer(_ entry: String) -> String? {
+            guard let range = entry.range(of: "\nA: ") else { return nil }
+            let answer = entry[range.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
+            return answer.isEmpty ? nil : answer
+        }
+
         public init(id: String, turn: Int, previous: [String] = []) {
             self.id = id
             self.turn = turn

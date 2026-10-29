@@ -17,7 +17,6 @@ public final class BuddyOverlayController: OverlayPresenting {
     private var pointerMonitors: [Any] = []
     private var clickAwayMonitors: [Any] = []
     private var peekMonitors: [Any] = []
-    private var chipMonitors: [Any] = []
     private var observers: [any NSObjectProtocol] = []
     private var hintTask: Task<Void, Never>?
     private var foldTask: Task<Void, Never>?
@@ -30,7 +29,6 @@ public final class BuddyOverlayController: OverlayPresenting {
     private var speechEnvelope = LevelEnvelope.speech
     private var lastMic: ContinuousClock.Instant?
     private var lastSpeech: ContinuousClock.Instant?
-    private var lastSpeechPublish: ContinuousClock.Instant?
     private var lastWantsEscape = false
     /// Where recent answers sat when they left the screen, oldest first, for `recallAnswer`.
     private var recentPlacements: [(answer: Answer, origin: CGPoint)] = []
@@ -45,10 +43,14 @@ public final class BuddyOverlayController: OverlayPresenting {
     static let cardWidth: CGFloat = 330
     static let richWidth: CGFloat = 540
     static let chipMaxWidth: CGFloat = 390
-    /// Answers never take more than this share of the display's height.
+    /// Answers never take more than this share of the display's height; past it, the card's
+    /// body scrolls (header and reply line stay put).
     static let maxHeightFraction: CGFloat = 0.8
-    /// Web area height when the HTML never reported one (it then scrolls).
+    /// Web area height when the HTML never reported one (it then scrolls itself).
     static let fallbackWebHeight: CGFloat = 120
+    /// Where this conversation's answers go: the first answer's anchor and side, so later ones
+    /// appear in the same place (Placer rule 5). Cleared for a new conversation.
+    private var spot: (anchor: Anchor, edge: PlacementEdge)?
 
     public convenience init() { self.init(observesSystem: true) }
 
@@ -58,10 +60,6 @@ public final class BuddyOverlayController: OverlayPresenting {
     init(observesSystem: Bool) {
         self.observesSystem = observesSystem
         (events, continuation) = AsyncStream.makeStream(of: OverlayEvent.self)
-        Task { [weak self] in
-            await SmartPlacement.prewarm()
-            self?.saliencyWarm = true
-        }
         guard observesSystem else { return }
         // NotificationCenter delivers these on the main queue; the blocks are @Sendable,
         // so hop explicitly.
@@ -94,7 +92,6 @@ public final class BuddyOverlayController: OverlayPresenting {
         removeMonitors(&pointerMonitors)
         removeMonitors(&clickAwayMonitors)
         removeMonitors(&peekMonitors)
-        removeMonitors(&chipMonitors)
         // A controller going away (e.g. a test ending early) leaves nothing on screen.
         for panel in panels.values { panel.orderOut(nil) }
         continuation.finish()
@@ -112,6 +109,25 @@ public final class BuddyOverlayController: OverlayPresenting {
     }
     public var foldTarget: (@MainActor () -> CGRect?)?
     public var onFoldedIntoTarget: (@MainActor () -> Void)?
+
+    /// A Glance card (answer, chip, approval, report) appeared or left, for the trace log, so it
+    /// can show there is never more than one (65-SURFACE-RULES, rule 1).
+    public enum CardChange: Equatable, Sendable {
+        /// Its frame, global top-left.
+        case shown(CGRect)
+        case closed(CardClose)
+    }
+    public enum CardClose: Equatable, Sendable {
+        case dismissed(DismissReason)
+        /// A new Glance took its place.
+        case replaced
+        /// The key was pressed over it: it folded into the pill.
+        case summon
+    }
+    public var onCard: (@MainActor (CardChange) -> Void)?
+    /// The `answerID` of the card last reported shown, and why it's leaving.
+    private var reportedCard: Int?
+    private var cardCloseReason: CardClose?
     /// A recalled answer pops out of the orb it was tucked into.
     private var pendingPopSource: CGPoint?
 
@@ -138,17 +154,23 @@ public final class BuddyOverlayController: OverlayPresenting {
     private var brightness = BrightnessGate()
     /// Luminance of the latest snapshot, built once per snapshot.
     private var luminance: (image: CGImage, map: LuminanceMap)?
-    /// Saliency joins edge density once its model is loaded (pre-warmed at launch).
-    private var saliencyWarm = false
     /// An open card is folding away before listening starts.
     private var foldingIntoListening = false
 
     // MARK: OverlayPresenting
 
+    public var showsAnswer: Bool { presentingAnswer || (model.surface.isAnswer && !model.folding) }
+
+    public var pointerOnAnswer: Bool {
+        model.surface.isAnswer && model.hitFrames.contains { $0.contains(pointerLocation()) }
+    }
+
     public func showListening(at pointer: CGPoint, hint: String) {
         guard Self.fallbackScreen != nil else { return }  // no display attached
         cancelPendingAnswer()
-        hideConversationChip()
+        readyTask?.cancel()
+        model.micReady = true // the caller marks it not ready (setMicReady) when it must wait
+        model.showsGettingReady = false
         // The buddy key with a card open: the card folds away toward the new pill, then
         // listening starts. The mic is already live; only the pill waits 200 ms.
         rememberPlacement()  // the card this folds away may be recalled later
@@ -157,7 +179,8 @@ public final class BuddyOverlayController: OverlayPresenting {
             let origin = model.statusPillOrigin(size: model.pillSize, in: ScreenSpace.topLeft(screen.visibleFrame))
             model.source = CGPoint(x: origin.x, y: origin.y + model.pillSize.height / 2)
             model.foldScale = Motion.foldScale
-            withAnimation(Motion.fold) { model.folding = true }
+            withAnimation(Motion.animation(Motion.fold, reduceMotion: reduceMotion)) { model.folding = true }
+            reportCard(closing: .summon)
             foldingIntoListening = true
             hintTask?.cancel()
             foldTask?.cancel()
@@ -180,7 +203,10 @@ public final class BuddyOverlayController: OverlayPresenting {
             return
         }
         cancelFold()
-        if model.surface.isAnswer { clearAnswer() }  // Reduce Motion: no fold, but drop the card's state
+        if model.surface.isAnswer {  // Reduce Motion: no fold, but drop the card's state
+            clearAnswer()
+            cardCloseReason = .summon
+        }
         enterListening(at: pointer, hint: hint)
     }
 
@@ -197,26 +223,84 @@ public final class BuddyOverlayController: OverlayPresenting {
         model.reply = ""
         model.fullScreen = false
         placePill(at: pointer, on: screen)
-        withAnimation(reduceMotion ? Motion.crossfade : Motion.pillIn) {
+        withAnimation(Motion.animation(Motion.pillIn, reduceMotion: reduceMotion)) {
             model.surface = .listening(hint: hint)
         }
+        startHintTimer()
+        surfaceChanged()
+    }
+
+    /// "Listening", then the hint 2 s later. Only once the mic is live: before that the pill
+    /// isn't saying "Listening" yet, and `setMicReady(true)` starts it.
+    private func startHintTimer() {
         hintTask?.cancel()
+        guard model.micReady else { return }
         hintTask = Task { [weak self] in
             try? await Task.sleep(for: self?.listeningHintDelay ?? .seconds(2))
             guard !Task.isCancelled, let self, case .listening = self.model.surface else { return }
-            withAnimation(.easeInOut(duration: 0.2)) { self.model.showsListeningHint = true }
+            withAnimation(Motion.quick) { self.model.showsListeningHint = true }
         }
-        surfaceChanged()
+    }
+
+    public func setPillTarget(_ target: PillTarget) {
+        guard target != model.pillTarget else { return }
+        if case .session(let s) = target, let bundle = s.origin?.key.bundleID {
+            model.pillTargetIcon = Self.appIcon(bundle)
+        } else {
+            model.pillTargetIcon = nil
+        }
+        withAnimation(Motion.animation(Motion.quick, reduceMotion: reduceMotion)) { model.pillTarget = target }
+    }
+
+    /// "Listening and status" is set to Bottom: the pill and its strip sit at the bottom centre.
+    public var statusAtBottom: Bool { model.settings.statusPosition == .bottom }
+
+    public func setSwitcherOpen(_ open: Bool) {
+        guard open != model.switcherOpen else { return }
+        withAnimation(Motion.animation(Motion.quick, reduceMotion: reduceMotion)) { model.switcherOpen = open }
+    }
+
+    /// Origin app icons for the pill's badge, loaded once per app.
+    private static var appIcons: [String: NSImage] = [:]
+    static func appIcon(_ bundle: String) -> NSImage? {
+        if let icon = appIcons[bundle] { return icon }
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle) else { return nil }
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        icon.size = NSSize(width: 32, height: 32)
+        appIcons[bundle] = icon
+        return icon
+    }
+
+    public func setMicReady(_ ready: Bool) {
+        readyTask?.cancel()
+        guard ready != model.micReady else { return }
+        if ready {
+            withAnimation(Motion.quick) {
+                model.micReady = true
+                model.showsGettingReady = false
+            }
+            // "Listening" gets its 2 s from the moment it's true.
+            guard case .listening = model.surface else { return }
+            model.showsListeningHint = false
+            startHintTimer()
+        } else {
+            model.micReady = false
+            model.showsGettingReady = false
+            readyTask = Task { [weak self] in
+                try? await Task.sleep(for: self?.gettingReadyDelay ?? .milliseconds(250))
+                guard !Task.isCancelled, let self, !self.model.micReady else { return }
+                withAnimation(Motion.quick) { self.model.showsGettingReady = true }
+            }
+        }
     }
 
     public func updateListeningHint(_ hint: String) {
         guard case .listening(let current) = model.surface, current != hint else { return }
-        withAnimation(.easeInOut(duration: 0.2)) { model.surface = .listening(hint: hint) }
+        withAnimation(Motion.quick) { model.surface = .listening(hint: hint) }
     }
 
     public func showTextBox(at pointer: CGPoint) {
         guard Self.fallbackScreen != nil else { return }  // no display attached
-        hideConversationChip()
         cancelFold()
         hintTask?.cancel()
         cancelPendingAnswer()
@@ -229,7 +313,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         // A visible pill (the first tap of a double-tap) morphs into the box in place;
         // otherwise the box appears at the pill's fixed spot.
         if !model.surface.isPill { placePill(at: pointer, on: screen) }
-        withAnimation(reduceMotion ? Motion.crossfade : Motion.pillIn) { model.surface = .textBox }
+        withAnimation(Motion.animation(Motion.pillIn, reduceMotion: reduceMotion)) { model.surface = .textBox }
         surfaceChanged()
         installClickAway()
         takeFocus()
@@ -250,7 +334,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         guard Self.fallbackScreen != nil else { return }  // no display attached
         // A new answer is on its way: the last answer's marks go, so a 6 s wash can't sit on
         // text the user has since scrolled to.
-        if !model.rings.isEmpty { withAnimation(.easeIn(duration: 0.2)) { model.rings.removeAll() } }
+        if !model.rings.isEmpty { withAnimation(Motion.quick) { model.rings.removeAll() } }
         cancelFold()
         hintTask?.cancel()
         if !model.surface.isPill {
@@ -259,7 +343,7 @@ public final class BuddyOverlayController: OverlayPresenting {
             placePill(at: pointer, on: activate(screenContaining: pointer))
         }
         model.statusIsHeadline = false
-        withAnimation(reduceMotion ? Motion.crossfade : .smooth(duration: 0.25)) {
+        withAnimation(Motion.animation(Motion.settle, reduceMotion: reduceMotion)) {
             model.surface = .thinking(lane, status: status)
         }
         surfaceChanged()
@@ -268,13 +352,13 @@ public final class BuddyOverlayController: OverlayPresenting {
     public func updateStatus(_ status: String?) {
         guard case .thinking(let lane, _) = model.surface else { return }
         model.statusIsHeadline = false
-        withAnimation(.easeInOut(duration: 0.15)) { model.surface = .thinking(lane, status: status) }
+        withAnimation(Motion.quick) { model.surface = .thinking(lane, status: status) }
     }
 
     public func showHeadline(_ headline: String) {
         guard case .thinking(let lane, _) = model.surface else { return }
         model.statusIsHeadline = true
-        withAnimation(.easeInOut(duration: 0.15)) { model.surface = .thinking(lane, status: headline) }
+        withAnimation(Motion.quick) { model.surface = .thinking(lane, status: headline) }
     }
 
     /// The headline the pill is showing now, if its status is the answer's headline.
@@ -370,19 +454,21 @@ public final class BuddyOverlayController: OverlayPresenting {
         let dt = lastSpeech.map { Self.seconds(now - $0) } ?? 0.02
         lastSpeech = now
         let v = speechEnvelope.step(toward: level, dt: dt)
-        // Publish at most 30 times a second; each publish redraws the card's glow.
-        if model.speaking, lastSpeechPublish.map({ now - $0 >= .milliseconds(33) }) ?? true {
-            lastSpeechPublish = now
-            model.speech = v
-        }
+        // Outside observation: only the glow's own 30 Hz timeline reads it.
+        if model.speaking { model.speech.value = v }
     }
 
     public func setSpeaking(_ speaking: Bool) {
-        model.speaking = speaking
+        if speaking != model.speaking {
+            // The glow and the header's stop control fade rather than snap.
+            withAnimation(Motion.quick) {
+                model.speaking = speaking
+            }
+        }
         if !speaking {
             speechEnvelope.reset()
             lastSpeech = nil
-            model.speech = 0
+            model.speech.value = 0
         }
     }
 
@@ -390,7 +476,6 @@ public final class BuddyOverlayController: OverlayPresenting {
         dragStart = nil
         // Cancel a pending answer first: it may still be loading with nothing on screen.
         cancelPendingAnswer()
-        hideConversationChip()
         if foldingIntoListening {
             // Discard or cancel during the fold into listening: stop it, don't start listening.
             foldingIntoListening = false
@@ -406,7 +491,8 @@ public final class BuddyOverlayController: OverlayPresenting {
         let orb = Self.tuckReasons.contains(reason) ? orbPoint() : nil
         if let orb { model.source = orb }
         model.foldScale = orb == nil ? Motion.foldScale : Motion.tuckScale
-        withAnimation(reduceMotion ? Motion.crossfade : orb == nil ? Motion.fold : Motion.tuck) { model.folding = true }
+        withAnimation(Motion.animation(orb == nil ? Motion.fold : Motion.tuck, reduceMotion: reduceMotion)) { model.folding = true }
+        reportCard(closing: .dismissed(reason))
         updateFocusability()
         continuation.yield(.dismissed(reason))
         publishWantsEscape()
@@ -470,7 +556,6 @@ public final class BuddyOverlayController: OverlayPresenting {
             ?? fallback
         var bounds = ScreenSpace.topLeft(screen.visibleFrame)
         let width = Self.width(for: style)
-        let maxHeight = bounds.height * Self.maxHeightFraction
 
         // Load and measure card_html first, so the card pops at its final size.
         var web: CardWebContent?
@@ -484,25 +569,10 @@ public final class BuddyOverlayController: OverlayPresenting {
             webHeight = measured ?? Self.fallbackWebHeight
             if measured == nil { enableScrolling(content) }
         }
-        var size = measure(answer, style: style, width: width, webHeight: webHeight)
-        if size.height > maxHeight, webHeight > 0 {
-            // Too tall: shrink the web area and let it scroll.
-            webHeight = max(80, webHeight - (size.height - maxHeight))
-            size = measure(answer, style: style, width: width, webHeight: webHeight)
-            if let web { enableScrolling(web) }
-        }
         // Every await above can be overtaken by a newer call (another answer, listening,
         // dismiss). Only the latest request may touch the model.
         guard !Task.isCancelled else { return web?.tearDown() ?? () }
 
-        // Smart placement scores only make sense for the display the snapshot shows.
-        var scores: SmartPlacement.Scores?
-        // Content scoring is what makes Smart smart; "Next to it" is the plain placement rule.
-        if style != .centered, placementMode == .smart,
-           let snapshot = Self.usableSnapshot(snapshot, for: anchor, on: screen) {
-            scores = await SmartPlacement.scores(for: snapshot, withSaliency: saliencyWarm)
-            guard !Task.isCancelled else { return web?.tearDown() ?? () }
-        }
         // The awaits above can outlast a display change (unplugged, rearranged, resolution):
         // place on the display as it is now, never on one that's gone.
         let live = NSScreen.screens
@@ -516,22 +586,16 @@ public final class BuddyOverlayController: OverlayPresenting {
             guard let now = live.first(where: { $0.displayID == id }) else { return web?.tearDown() ?? () }
             screen = now
             bounds = ScreenSpace.topLeft(now.visibleFrame)
-            scores = nil  // the snapshot showed the display as it was
-            if gone {
+            if gone, anchor != .capsule {
                 // As screensChanged does: continue on the main display, near its centre.
-                let centre = CGPoint(x: bounds.midX, y: bounds.midY)
-                if anchor != .capsule { anchor = anchor.isPage ? .page(centre) : .point(centre) }
-            }
-            if size.height > bounds.height * Self.maxHeightFraction, webHeight > 0 {
-                webHeight = max(80, webHeight - (size.height - bounds.height * Self.maxHeightFraction))
-                size = measure(answer, style: style, width: width, webHeight: webHeight)
-                // Shrunk to fit the new display: let the HTML scroll (not awaited, as in relayoutAnswer).
-                if let web { Task { await web.allowScrolling() } }
+                anchor = .point(CGPoint(x: bounds.midX, y: bounds.midY))
             }
         }
-        let placement = placeAnswer(answer, size: size, anchor: anchor, in: bounds, style: style, scores: scores)
+        // The natural size, capped: past the cap the body scrolls inside the card.
+        let natural = measure(answer, style: style, width: width, webHeight: webHeight)
+        let size = Self.capped(natural, style: style, in: bounds, statusAtBottom: statusAtBottom)
+        let placement = placeAnswer(answer, size: size, anchor: anchor, in: bounds, style: style)
         activate(screen)
-        model.scores = scores
         // Out of a pill or a previous answer, the shared glassEffectID morphs; only a
         // surface appearing from nothing pops.
         let morph = (model.surface.isPill || model.surface.isAnswer) && !reduceMotion
@@ -548,6 +612,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         model.web?.tearDown()
         model.web = web
         model.webHeight = webHeight
+        model.answerScrolls = natural.height > size.height
         web?.onJump = { [weak self] label in self?.continuation.yield(.jump(label: label)) }
         web?.onCopy = { [weak self] text in self?.copyBlock(text) }
         web?.onHeightChange = { [weak self, weak web] height in
@@ -556,7 +621,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         }
         if !morph { model.popTrigger += 1 }
         rememberPlacement()  // the answer this one replaces
-        withAnimation(reduceMotion ? Motion.crossfade : Motion.pop) {
+        withAnimation(Motion.animation(Motion.pop, reduceMotion: reduceMotion)) {
             model.fullScreen = false
             model.answerID += 1
             model.surface = .answer(answer, placement, style)
@@ -604,9 +669,12 @@ public final class BuddyOverlayController: OverlayPresenting {
         }
     }
 
+    /// The answer's natural size at `width`: everything laid out, nothing scrolled. With the
+    /// card focused its reply line is a field, so it is measured as one.
     private func measure(_ answer: Answer, style: Placer.Style, width: CGFloat, webHeight: CGFloat) -> CGSize {
         let probe = AnswerContent(answer: answer, style: style, t: Tokens(.init(dark: false)), web: nil,
-                                  webHeight: webHeight, speaking: true, sizing: true)
+                                  webHeight: webHeight, speaking: true, sizing: true,
+                                  reply: model.hasFocus ? .constant(model.reply) : nil)
         let host = NSHostingController(rootView: probe)
         let fitted = host.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude))
         let w = style == .chip ? min(ceil(fitted.width), width) : width
@@ -622,7 +690,7 @@ public final class BuddyOverlayController: OverlayPresenting {
             model.fullScreenContentHeight = newHeight
             guard case .answer(let answer, _, let style) = model.surface,
                   let id = activeDisplay, let screen = NSScreen.screens.first(where: { $0.displayID == id }) else { return }
-            withAnimation(reduceMotion ? Motion.crossfade : .smooth(duration: 0.25)) {
+            withAnimation(Motion.animation(Motion.settle, reduceMotion: reduceMotion)) {
                 updateFullScreenGeometry(answer, style: style, bounds: ScreenSpace.topLeft(screen.visibleFrame))
             }
             return
@@ -630,29 +698,32 @@ public final class BuddyOverlayController: OverlayPresenting {
         guard case .answer(let answer, _, let style) = model.surface, !model.folding, let anchor = model.anchor,
               let id = activeDisplay, let screen = NSScreen.screens.first(where: { $0.displayID == id }) else { return }
         let bounds = ScreenSpace.topLeft(screen.visibleFrame)
-        let width = Self.width(for: style)
-        var webHeight = newHeight ?? model.webHeight
-        var size = measure(answer, style: style, width: width, webHeight: webHeight)
-        let maxHeight = bounds.height * Self.maxHeightFraction
-        if size.height > maxHeight, webHeight > 0 {
-            webHeight = max(80, webHeight - (size.height - maxHeight))
-            size = measure(answer, style: style, width: width, webHeight: webHeight)
-            Task { await model.web?.allowScrolling() }
-        }
-        let placement = placeAnswer(answer, size: size, anchor: anchor, in: bounds, style: style, scores: model.scores)
-        withAnimation(reduceMotion ? Motion.crossfade : .smooth(duration: 0.25)) {
+        let webHeight = newHeight ?? model.webHeight
+        let natural = measure(answer, style: style, width: Self.width(for: style), webHeight: webHeight)
+        let size = Self.capped(natural, style: style, in: bounds, statusAtBottom: statusAtBottom)
+        let placement = placeAnswer(answer, size: size, anchor: anchor, in: bounds, style: style)
+        withAnimation(Motion.animation(Motion.settle, reduceMotion: reduceMotion)) {
             if model.fullScreen { updateFullScreenGeometry(answer, style: style, bounds: bounds) }
             model.webHeight = webHeight
+            model.answerScrolls = natural.height > size.height
             model.surface = .answer(answer, placement, style)
         }
         surfaceChanged()
     }
 
-    static func place(size: CGSize, anchor: Anchor, in bounds: CGRect, style: Placer.Style,
-                      scores: SmartPlacement.Scores?) -> Placement {
-        if style == .centered { return Placer.place(size: size, anchor: anchor, in: bounds, style: .centered) }
-        if anchor.isPage { return SmartPlacement.placeOnPage(size: size, in: bounds, scores: scores) }
-        return SmartPlacement.placeNextTo(size: size, anchor: anchor, in: bounds, style: style, scores: scores)
+    /// The tallest an answer of `style` may be on a display whose visible frame is `bounds`:
+    /// `maxHeightFraction` of it, and never so tall that it would have to cover a reserved zone
+    /// (a short display, a centred answer).
+    static func maxHeight(style: Placer.Style, in bounds: CGRect, statusAtBottom: Bool = false) -> CGFloat {
+        // A centred answer always sits top-centre, never beside the zones: an infinite width
+        // takes the band between them (U53).
+        min((bounds.height * maxHeightFraction).rounded(.down),
+            Placer.clearHeight(width: style == .centered ? .infinity : width(for: style), in: bounds,
+                               statusAtBottom: statusAtBottom))
+    }
+
+    static func capped(_ size: CGSize, style: Placer.Style, in bounds: CGRect, statusAtBottom: Bool = false) -> CGSize {
+        CGSize(width: size.width, height: min(size.height, maxHeight(style: style, in: bounds, statusAtBottom: statusAtBottom)))
     }
 
     /// F, ⤢ or Esc in full screen: one continuous morph between the placed card and about
@@ -673,7 +744,7 @@ public final class BuddyOverlayController: OverlayPresenting {
                 model.answerID += 1
             }
         } else {
-            withAnimation(Motion.fullScreen) { model.fullScreen = entering }
+            withAnimation(Motion.animation(Motion.fullScreen, reduceMotion: reduceMotion)) { model.fullScreen = entering }
         }
         surfaceChanged()
         // On the way out, size the card from the content's last known height: if it reflows to
@@ -706,20 +777,6 @@ public final class BuddyOverlayController: OverlayPresenting {
     }
 
     static func transcriptWebHeight(content: CGFloat) -> CGFloat { max(80, content) }
-
-    /// The snapshot, if it shows the anchor's display as it is now: the same display and
-    /// the same frame (a resolution or arrangement change since the capture gives wrong
-    /// pixels), and the anchor on it.
-    static func usableSnapshot(_ snapshot: DisplaySnapshot?, for anchor: Anchor, displayID: UInt32,
-                               displayFrame: CGRect) -> DisplaySnapshot? {
-        guard let snapshot, snapshot.displayID == displayID, snapshot.frame == displayFrame,
-              snapshot.frame.contains(CGPoint(x: anchor.rect.midX, y: anchor.rect.midY)) else { return nil }
-        return snapshot
-    }
-
-    static func usableSnapshot(_ snapshot: DisplaySnapshot?, for anchor: Anchor, on screen: NSScreen) -> DisplaySnapshot? {
-        usableSnapshot(snapshot, for: anchor, displayID: screen.displayID, displayFrame: ScreenSpace.topLeft(screen.frame))
-    }
 
     /// The listening pill and every status line sit at one fixed spot (top or bottom centre,
     /// Settings › Appearance) on the display under `pointer`, wherever the user's pointer is.
@@ -824,6 +881,29 @@ public final class BuddyOverlayController: OverlayPresenting {
         return panel
     }
 
+    // MARK: Progress capsules
+
+    public func updateProgress(_ shown: ProgressStack.Shown) {
+        guard shown != model.progress else { return }
+        withAnimation(Motion.animation(Motion.settle, reduceMotion: reduceMotion)) { model.progress = shown }
+        let ids = Set(shown.rows.map(\.id))
+        model.progressRowFrames = model.progressRowFrames.filter { ids.contains($0.key) }
+        surfaceChanged()
+    }
+
+    /// The stack sits on the pill's or answer's display while one shows, else where it was
+    /// (the pointer's display when it first appears or its display went away).
+    private func homeProgress() {
+        guard model.progressVisible else { return }
+        let screens = NSScreen.screens
+        let frame = model.surface != .none ? model.screenFrame : model.progressScreenFrame
+        guard let screen = screens.first(where: { ScreenSpace.topLeft($0.frame) == frame })
+                ?? ScreenSpace.screen(containing: pointerLocation()) ?? Self.fallbackScreen else { return }
+        ensurePanel(for: screen)
+        model.progressScreenFrame = ScreenSpace.topLeft(screen.frame)
+        model.progressBounds = ScreenSpace.topLeft(screen.visibleFrame)
+    }
+
     // MARK: Toasts and conversation chips
 
     public func showToast(_ text: String, at pointer: CGPoint) {
@@ -831,7 +911,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         let origin = placeNearPointer(pointer, offset: Placer.toastOffset, size: model.toastSize)
         let toast = OverlayModel.Toast(text: text, origin: origin)
         model.toastBounds = visibleBounds(containing: pointer)
-        withAnimation(.easeOut(duration: 0.15)) { model.toast = toast }
+        withAnimation(Motion.quick) { model.toast = toast }
         AccessibilityNotification.Announcement(text).post()
         refreshPanels()
         surfaceChanged()
@@ -849,31 +929,8 @@ public final class BuddyOverlayController: OverlayPresenting {
                 held += .milliseconds(100)
             }
             guard let self, self.model.toast?.id == toast.id else { return }
-            withAnimation(.easeIn(duration: 0.2)) { self.model.toast = nil }
+            withAnimation(Motion.quick) { self.model.toast = nil }
             try? await Task.sleep(for: .milliseconds(220))
-            self.refreshPanels()
-            self.surfaceChanged()
-        }
-    }
-
-    public func showBackChip(title: String, at pointer: CGPoint) {
-        guard Self.fallbackScreen != nil else { return }  // no display attached
-        showConversationChip(.back, title: title, at: pointer, lasts: backChipDuration)
-    }
-
-    public func showResumeChip(title: String, detail: String?, at pointer: CGPoint) {
-        guard Self.fallbackScreen != nil else { return }  // no display attached
-        showConversationChip(.resume, title: title, detail: detail, at: pointer, lasts: nil)
-    }
-
-    public func hideConversationChip() {
-        guard model.conversationChip != nil else { return }
-        withAnimation(.easeIn(duration: 0.2)) { model.conversationChip = nil }
-        removeMonitors(&chipMonitors)
-        // Let the fade finish before a panel with nothing else on it is ordered out.
-        Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(220))
-            guard let self, self.model.conversationChip == nil else { return }
             self.refreshPanels()
             self.surfaceChanged()
         }
@@ -893,27 +950,6 @@ public final class BuddyOverlayController: OverlayPresenting {
         guard let toast = model.toast else { return .null }
         return CGRect(origin: toast.origin, size: model.toastSize)
     }
-    /// The ↩ Back chip lasts 8 s. Adjustable for tests.
-    var backChipDuration: Duration = .seconds(8)
-    func chipClickedForTesting(_ event: OverlayEvent) { handleViewEvent(event) }
-
-    private func showConversationChip(_ kind: OverlayModel.ConversationChip.Kind, title: String, detail: String? = nil,
-                                      at pointer: CGPoint, lasts: Duration?) {
-        let origin = placeNearPointer(pointer, offset: Placer.backChipOffset, size: model.conversationChipSize)
-        let chip = OverlayModel.ConversationChip(kind: kind, title: title, detail: detail, origin: origin)
-        model.conversationChipBounds = visibleBounds(containing: pointer)
-        withAnimation(.smooth(duration: 0.25)) { model.conversationChip = chip }
-        installChipClickAway()
-        refreshPanels()
-        surfaceChanged()
-        guard let lasts else { return }
-        Task { [weak self] in
-            try? await Task.sleep(for: lasts)
-            guard let self, self.model.conversationChip?.id == chip.id else { return }
-            self.hideConversationChip()
-        }
-    }
-
     /// A point near the pointer, kept 12 pt inside its display; creates that display's panel.
     private func placeNearPointer(_ pointer: CGPoint, offset: CGSize, size: CGSize) -> CGPoint {
         let screen = ScreenSpace.screen(containing: pointer) ?? Self.fallbackScreen!
@@ -923,13 +959,6 @@ public final class BuddyOverlayController: OverlayPresenting {
 
     private func visibleBounds(containing pointer: CGPoint) -> CGRect {
         ScreenSpace.topLeft((ScreenSpace.screen(containing: pointer) ?? Self.fallbackScreen!).visibleFrame)
-    }
-
-    private func installChipClickAway() {
-        guard chipMonitors.isEmpty else { return }
-        if let g = globalMonitor(matching: [.leftMouseDown, .rightMouseDown], handler: { [weak self] _ in
-            MainActor.assumeIsolated { self?.hideConversationChip() }
-        }) { chipMonitors.append(g) }
     }
 
     // MARK: Edge strengthening
@@ -952,7 +981,7 @@ public final class BuddyOverlayController: OverlayPresenting {
 
     private func setBright(_ bright: Bool) {
         guard bright != model.brightBackdrop else { return }
-        withAnimation(.easeInOut(duration: 0.3)) { model.brightBackdrop = bright }
+        withAnimation(Motion.crossfade) { model.brightBackdrop = bright }
     }
 
     /// A new surface in a new place starts a fresh decision rather than inheriting the last
@@ -973,7 +1002,7 @@ public final class BuddyOverlayController: OverlayPresenting {
             if let screen = ScreenSpace.screen(containing: CGPoint(x: ring.rect.midX, y: ring.rect.midY)) { ensurePanel(for: screen) }
         }
         let added = valid.map { OverlayModel.ActiveRing(ring: $0) }
-        withAnimation(.easeOut(duration: 0.3)) {
+        withAnimation(Motion.ring) {
             // A spot rung again (a jump to it) restarts its ring rather than stacking a second wash.
             model.rings.removeAll { shown in valid.contains { $0.rect == shown.ring.rect } }
             model.rings.append(contentsOf: added)
@@ -984,7 +1013,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         Task { [weak self] in
             try? await Task.sleep(for: duration)
             guard let self else { return }
-            withAnimation(.easeIn(duration: 0.3)) { self.model.rings.removeAll { ids.contains($0.id) } }
+            withAnimation(Motion.crossfade) { self.model.rings.removeAll { ids.contains($0.id) } }
             try? await Task.sleep(for: .milliseconds(320))
             self.refreshPanels()
         }
@@ -998,6 +1027,9 @@ public final class BuddyOverlayController: OverlayPresenting {
     static let cardLoadBudget: Duration = .milliseconds(1500)
     /// "Listening" shows this long before the hint (2 s). Injectable so tests don't race the clock.
     var listeningHintDelay: Duration = .seconds(2)
+    /// A mic not live after this shows "Getting ready…"; a normal start (under 200 ms) never does.
+    var gettingReadyDelay: Duration = .milliseconds(250)
+    private var readyTask: Task<Void, Never>?
 
     /// Lets an over-tall card's HTML scroll. Never awaited while presenting: a hung web
     /// process must not keep the card from appearing. Injectable for that test.
@@ -1036,6 +1068,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         dragStart = nil
         model.pillDrag = .zero
         model.answerOrigin = nil
+        spot = nil
         model.placeStatusPill()
     }
 
@@ -1094,21 +1127,40 @@ public final class BuddyOverlayController: OverlayPresenting {
         surfaceChanged()
     }
 
-    /// The answer's placement: where the user dragged answers in this conversation, else the mode's.
-    private func placeAnswer(_ answer: Answer, size: CGSize, anchor: Anchor, in bounds: CGRect, style: Placer.Style,
-                             scores: SmartPlacement.Scores?) -> Placement {
-        // A recalled answer goes back where it was, chips too, without its tail.
-        if answer == recalledAnswer, let origin = recentPlacements.last(where: { $0.answer == answer })?.origin,
-           bounds.contains(origin) {
-            let frame = CGRect(origin: OverlayModel.clamp(origin, size: size, in: bounds), size: size)
-            return Placement(frame: frame, edge: .centered, tailOffset: nil, avoidsAnchor: !frame.intersects(anchor.rect))
+    /// The answer's placement (Placer's rule): a recalled answer where it was; where the user
+    /// dragged this conversation's answers; else beside the anchor, clear of the reserved zones,
+    /// and on the conversation's spot when it has one on the same display. Every one of them
+    /// keeps clear of the reserved zones (65-SURFACE-RULES, rule 3).
+    private func placeAnswer(_ answer: Answer, size: CGSize, anchor: Anchor, in bounds: CGRect,
+                             style: Placer.Style) -> Placement {
+        let reserved = Placer.reservedZones(in: bounds, statusAtBottom: statusAtBottom)
+        // A recalled answer goes back where it was, chips too, without its tail; then where the
+        // user dragged this conversation's answers (chips always stay next to what was asked
+        // about). A spot on another display doesn't apply.
+        let recalled = answer == recalledAnswer ? recentPlacements.last(where: { $0.answer == answer })?.origin : nil
+        for origin in [recalled, style != .chip ? model.answerOrigin : nil].compactMap(\.self) where bounds.contains(origin) {
+            if let frame = Placer.keep(origin, size: size, in: bounds, reserved: reserved) {
+                return Placement(frame: frame, edge: .centered, tailOffset: nil, avoidsAnchor: !frame.intersects(anchor.rect))
+            }
         }
-        // Chips always stay next to what was asked about; a spot on another display doesn't apply.
-        if style != .chip, let origin = model.answerOrigin, bounds.contains(origin) {
-            let frame = CGRect(origin: OverlayModel.clamp(origin, size: size, in: bounds), size: size)
-            return Placement(frame: frame, edge: .centered, tailOffset: nil, avoidsAnchor: !frame.intersects(anchor.rect))
+        guard style != .centered else {
+            return Placer.place(size: size, anchor: anchor, in: bounds, style: .centered, reserved: reserved)
         }
-        return Self.place(size: size, anchor: anchor, in: bounds, style: style, scores: scores)
+        let kept = spot.flatMap { Self.sameDisplay($0.anchor, anchor) ? $0 : nil }
+        let placement = Placer.place(size: size, anchor: kept?.anchor ?? anchor, in: bounds, style: style,
+                                     reserved: reserved, prefer: kept?.edge)
+        if kept == nil, answer.keepsPlacement { spot = (anchor, placement.edge) }
+        return placement
+    }
+
+    /// Whether two anchors are on the same attached display (a conversation's spot only holds
+    /// there; one on a display that's gone doesn't).
+    private static func sameDisplay(_ a: Anchor, _ b: Anchor) -> Bool {
+        func display(_ anchor: Anchor) -> CGDirectDisplayID? {
+            let p = CGPoint(x: anchor.rect.midX, y: anchor.rect.midY)
+            return NSScreen.screens.first { ScreenSpace.topLeft($0.frame).contains(p) }?.displayID
+        }
+        return display(a) != nil && display(a) == display(b)
     }
 
     // MARK: Research capsule
@@ -1124,7 +1176,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         let finished = jobs.contains { job in
             job.status == .done && previous[job.id].map { $0 != .done } == true
         }
-        withAnimation(.smooth(duration: 0.25)) {
+        withAnimation(Motion.animation(Motion.settle, reduceMotion: reduceMotion)) {
             model.capsules = jobs
             // The peek follows its job: close it when that job is gone or can't be peeked.
             if model.peekOpen, !(model.peekJob.map { Self.peekable($0) } ?? false) { model.peekOpen = false }
@@ -1152,7 +1204,7 @@ public final class BuddyOverlayController: OverlayPresenting {
             removeMonitors(&peekMonitors)
             continuation.yield(.openReport(job.id))
         } else if Self.peekable(job) {
-            withAnimation(.smooth(duration: 0.2)) {
+            withAnimation(Motion.animation(Motion.settle, reduceMotion: reduceMotion)) {
                 model.peekJobID = job.id
                 model.peekOpen.toggle()
             }
@@ -1166,7 +1218,7 @@ public final class BuddyOverlayController: OverlayPresenting {
         if let g = globalMonitor(matching: [.leftMouseDown, .rightMouseDown], handler: { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self, self.model.peekOpen else { return }
-                withAnimation(.smooth(duration: 0.2)) { self.model.peekOpen = false }
+                withAnimation(Motion.animation(Motion.settle, reduceMotion: self.reduceMotion)) { self.model.peekOpen = false }
                 self.removeMonitors(&self.peekMonitors)
                 self.updateClickThrough()
             }
@@ -1202,6 +1254,10 @@ public final class BuddyOverlayController: OverlayPresenting {
         }
         // The capsule follows the active menu bar.
         if model.capsuleVisible { updateCapsule(model.capsules) }
+        if model.progressVisible {
+            homeProgress()
+            refreshPanels()
+        }
         guard let active = activeDisplay, model.surface != .none else { return }
         let screen: NSScreen
         if let same = NSScreen.screens.first(where: { $0.displayID == active }) {
@@ -1211,12 +1267,10 @@ public final class BuddyOverlayController: OverlayPresenting {
             screen = main
             let centre = ScreenSpace.topLeft(main.visibleFrame)
             let point = CGPoint(x: centre.midX, y: centre.midY)
-            if model.surface.isAnswer { model.anchor = (model.anchor?.isPage ?? false) ? .page(point) : .point(point) }
+            if model.surface.isAnswer { model.anchor = .point(point) }
         } else {
             return
         }
-        // The snapshot showed the display as it was; its scores no longer map.
-        if screen.displayID != active || ScreenSpace.topLeft(screen.frame) != model.screenFrame { model.scores = nil }
         activate(screen)
         // Resolution or visible-frame changes: keep everything inside the display.
         model.pillBounds = ScreenSpace.topLeft(screen.visibleFrame)
@@ -1229,11 +1283,11 @@ public final class BuddyOverlayController: OverlayPresenting {
         model.web?.tearDown()
         model.web = nil
         model.webHeight = 0
+        model.answerScrolls = false
         model.reply = ""
         model.fullScreen = false
-        model.scores = nil
         model.speaking = false
-        model.speech = 0
+        model.speech.value = 0
         removeMonitors(&clickAwayMonitors)
     }
 
@@ -1244,12 +1298,12 @@ public final class BuddyOverlayController: OverlayPresenting {
         model.web?.tearDown()
         model.web = nil
         model.webHeight = 0
+        model.answerScrolls = false
         model.reply = ""
         model.draft = ""
         model.fullScreen = false
-        model.scores = nil
         model.speaking = false
-        model.speech = 0
+        model.speech.value = 0
         model.brightBackdrop = false
         brightness.reset()
         luminance = nil
@@ -1267,14 +1321,16 @@ public final class BuddyOverlayController: OverlayPresenting {
         finishFold()
     }
 
-    /// Events from the views. A conversation chip hides once clicked.
+    /// Events from the views.
     private func handleViewEvent(_ event: OverlayEvent) {
-        if event == .backToPrevious || event == .resumeConversation { hideConversationChip() }
         continuation.yield(event)
     }
 
     func focusChanged(_ focused: Bool) {
+        let changed = model.hasFocus != focused
         model.hasFocus = focused
+        // The reply line turns into a field (or back): re-measure, so the card fits it.
+        if changed, model.surface.isAnswer, !model.fullScreen { relayoutAnswer() }
         // AppKit may make the first text field first responder when the panel becomes key.
         // A voice card the user clicked keeps focus on the card, so F and 1–3 act as
         // commands until they click "Reply…".
@@ -1303,7 +1359,7 @@ public final class BuddyOverlayController: OverlayPresenting {
                                      modifiers: event.modifierFlags, plainKeysActive: editor == nil,
                                      // Only the actions on screen: a chip shows one, an approval card two beside Cancel.
                                      actionCount: AnswerContent.shownActions(answer.block, isChip: style == .chip, mainAction: main).count,
-                                     mainAction: main)
+                                     mainAction: main, continues: AnswerContent.showsContinue(isChip: style == .chip, enabled: ContinueInPanel.enabled))
         switch command {
         case .escape:
             if model.fullScreen { toggleFullScreen() } else { dismiss(.escape) }
@@ -1326,12 +1382,26 @@ public final class BuddyOverlayController: OverlayPresenting {
 
     /// Called after every surface change, so click-through is right even when the pointer
     /// doesn't move (e.g. a card grows under a still pointer).
+    /// Reports a card that appeared or left since the last call (`onCard`). `closing`: why the one
+    /// on screen is leaving, when it is; otherwise a new card in its place replaced it.
+    private func reportCard(closing reason: CardClose? = nil) {
+        if let reason { cardCloseReason = reason }
+        let card = model.surface.isAnswer && !model.folding ? model.answerID : nil
+        guard card != reportedCard else { return }
+        if reportedCard != nil { onCard?(.closed(cardCloseReason ?? .replaced)) }
+        cardCloseReason = nil
+        reportedCard = card
+        if card != nil, let frame = model.hitFrames.first { onCard?(.shown(frame)) }
+    }
+
     private func surfaceChanged() {
+        reportCard()
+        homeProgress()  // the stack follows the pill to its display
         refreshPanels()
         publishWantsEscape()
         updateFocusability()
         if model.surface == .none { removeMonitors(&clickAwayMonitors) }
-        guard model.surface != .none || model.capsuleVisible || model.conversationChip != nil else {
+        guard model.surface != .none || model.capsuleVisible || model.progressTakesClicks else {
             removeMonitors(&pointerMonitors)
             removeMonitors(&peekMonitors)
             // Nothing clickable is left (rings never take clicks): every panel lets clicks
@@ -1360,8 +1430,10 @@ public final class BuddyOverlayController: OverlayPresenting {
         for (id, panel) in panels where panel.isVisible {
             guard let frame = model.displayFrames[id] else { continue }
             var frames = model.hitFrames(onDisplay: frame)
-            // While folding, the answer no longer takes clicks; the capsule and peek still do.
-            if model.folding, frame == model.screenFrame { frames = model.capsuleHitFrames(onDisplay: frame) }
+            // While folding, the answer no longer takes clicks; the capsules and peek still do.
+            if model.folding, frame == model.screenFrame {
+                frames = model.capsuleHitFrames(onDisplay: frame) + model.progressHitFrames(onDisplay: frame)
+            }
             let inside = frames.contains { $0.contains(p) }
             if panel.ignoresMouseEvents == inside { panel.ignoresMouseEvents = !inside }
         }
@@ -1392,7 +1464,6 @@ public final class BuddyOverlayController: OverlayPresenting {
 
     private func appActivated() {
         replaceCapsule()
-        hideConversationChip()
         guard model.surface.isAnswer || model.surface == .textBox else { return }
         dismiss(.appSwitched)
     }

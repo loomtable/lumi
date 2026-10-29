@@ -29,12 +29,12 @@ Lumi by Loomtable एक मुफ़्त, open-source macOS voice assistant �
 - **Price और license:** मुफ़्त, GPL-3.0
 - **बनाया है:** [Loomtable](https://loomtable.com) ने, जो एक AI-native product studio है। Powered by Claude.
 
-**मुफ़्त, open source और local। आपके Claude Code (2.1.259 या नया, installed और signed in) के साथ, आपके Mac (macOS 26, Apple Silicon) पर काम करता है।**
+**मुफ़्त, open source और local। आपके Claude Code (2.1.312 या नया, installed और signed in) के साथ, आपके Mac (macOS 26, Apple Silicon) पर काम करता है।**
 
 ## Requirements
 
 - Apple Silicon (M1 या नया) पर macOS 26। Intel Macs और पुराने macOS versions supported नहीं हैं।
-- ऊपर बताया harness, version 2.1.259 या नया, installed और signed in।
+- ऊपर बताया harness, version 2.1.312 या नया, installed और signed in।
 - 16 GB memory recommended है। 8 GB पर, अगर बहुत से apps खुले हों, तो जवाब धीमे आ सकते हैं।
 
 ## यह कैसे काम करता है
@@ -156,7 +156,7 @@ Lumi को हमेशा Applications, Spotlight या Finder से खो�
 हाँ। Lumi GPL-3.0 के तहत मुफ़्त और open source है। आपके सवाल आपके अपने harness से होकर जाते हैं, इसलिए वे आपके अपने Claude plan या API usage में गिने जाते हैं।
 
 **क्या मुझे अलग से कुछ चाहिए?**
-हाँ: ऊपर बताया harness, version 2.1.259 या नया, installed और signed in। Lumi उसे आपके Mac पर चलाता है। Lumi का अपना कोई login या server नहीं है।
+हाँ: ऊपर बताया harness, version 2.1.312 या नया, installed और signed in। Lumi उसे आपके Mac पर चलाता है। Lumi का अपना कोई login या server नहीं है।
 
 **क्या Lumi को Anthropic ने बनाया है?**
 नहीं। Lumi को Loomtable ने बनाया है। यह आपके harness के ज़रिए Claude से powered है, और इसे Anthropic ने नहीं बनाया है, न ही यह Anthropic से affiliated है।
